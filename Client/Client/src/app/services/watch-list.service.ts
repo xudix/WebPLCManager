@@ -32,7 +32,7 @@ export class WatchListService {
           comment: "",
           type: "",
           value: null,
-          newValue: null
+          newValueStr: ""
         });
         this._expireTimers[symbolName] = null;
       });
@@ -77,9 +77,9 @@ export class WatchListService {
     let newValues: Record<string, string> = {}; // a collection of key-value pairs. values are stored in string.
     let hasNewValues: boolean = false;
     this.model.list.forEach((symbol) =>{
-      if(symbol.newValue != null && symbol.newValue.length > 0){
-        newValues[symbol.name] = symbol.newValue;
-        symbol.newValue = null;
+      if(symbol.newValueStr != null && symbol.newValueStr.length > 0){
+        newValues[symbol.name] = symbol.newValueStr;
+        symbol.newValueStr = "";
         hasNewValues = true;
       }
     });

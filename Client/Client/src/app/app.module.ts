@@ -8,6 +8,7 @@ import { WatchListComponent } from './components/watch-list/watch-list.component
 
 import { FormsModule } from '@angular/forms';
 import { SocketIoModule, SocketIoConfig } from 'ngx-socket-io';
+import { WatchPageComponent } from './components/watch-page/watch-page.component';
 
 
 const config: SocketIoConfig = {url: 'http://localhost:2333', options: {}};
@@ -16,7 +17,8 @@ const config: SocketIoConfig = {url: 'http://localhost:2333', options: {}};
   declarations: [
     AppComponent,
     SymbolListComponent,
-    WatchListComponent
+    WatchListComponent,
+    WatchPageComponent
   ],
   imports: [
     BrowserModule,

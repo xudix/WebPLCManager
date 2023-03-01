@@ -175,7 +175,7 @@ export class ServerApp{
     // Try to write a symbol's value to the target system. Return a Promise<object>.
     // symbolName: string is the name of the requested symbol.
     // value: string, number, or other things that can be written to PLC
-    async writeSymbolValue(clientID, symbolName, valueStr){
+    writeSymbolValue(clientID, symbolName, valueStr){
         //let newValue = await this.strToType(symbolName, valueStr)
         //console.log(`${symbolName}: ${newValue}`)
         //this.controller.writeSymbolValue(symbolName, newValue)

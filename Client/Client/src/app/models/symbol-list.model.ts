@@ -25,14 +25,25 @@ export class SymbolList {
         let newSymbolType: string = "";
         let newSymbolComment: string = "";
         let found: boolean = false;
+        const arrayReg = /(.*)(?:\[)(\d*)(?:\]?)$/; // Regular expression used to match array indexing
+        let regMatch: string[]|null;
+        let isArrayName: boolean;
 
         let splitName = lowerName.split("."); // lower case name, splited by .
         
         if (splitName.length < 3) { // it's probably a base symbol.
+            regMatch = lowerName.match(arrayReg); // if match, regMatch[1] will be the name, and regMatch[2] will be the index number
             // loop through the list of all symbols
             for (let symbolName in this.symbols) {
-                if (symbolName.startsWith(lowerName)) {
-                    list.push(this.symbols[symbolName]);
+                if(regMatch != null){
+                    if (symbolName == regMatch[1]) {
+                        
+                    }
+                }
+                else{
+                    if (symbolName.startsWith(lowerName)) {
+                        list.push(this.symbols[symbolName]);
+                    }
                 }
             }
         }// splitName.length < 3

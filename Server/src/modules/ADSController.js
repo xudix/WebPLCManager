@@ -40,12 +40,14 @@ export class ADSController extends GenericController{
                     for(let key in adsTypesData){
                         typesObj[key] = {
                             name: adsTypesData[key].name,
+                            baseType: adsTypesData[key].type == "" ? adsTypesData[key].name : adsTypesData[key].type,
                             comment: adsTypesData[key].comment,
                             size: adsTypesData[key].size,
                             subItemCount: adsTypesData[key].subItemCount,
                             subItems: [],
                             arrayDimension: adsTypesData[key].arrayDimension,
                             arrayInfo: adsTypesData[key].arrayData,
+                            enumInfo: {},
                             isPersisted: false
                         }
                         adsTypesData[key].subItems.forEach((subItem) => {
@@ -56,6 +58,12 @@ export class ADSController extends GenericController{
                                 isPersisted: ((subItem.flags >> 8) & 1) == 1
                             });
                         });
+                        if(adsTypesData[key].enumInfo != undefined){
+                            adsTypesData[key].enumInfo.forEach((enumObj) => {
+                                typesObj[key].enumInfo[enumObj.name] = ads.ADS.BASE_DATA_TYPES.fromBuffer({}, typesObj[key].baseType, enumObj.value);
+                            })
+                        }
+
                     } // for let key in adsTypesData
                     resolve(typesObj);
                 })

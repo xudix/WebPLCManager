@@ -1,0 +1,71 @@
+<div style="height: 96vh; width: 96vw;">
+    <as-split direction="horizontal" unit="percent">
+      <as-split-area [size]="50">
+        <div class="symbol-list">
+            <div>
+                <p>Symbol information available: {{symbolInfoAvailable}}</p>
+            </div>
+            <div class="flex-container">
+                <input 
+                        type="text" 
+                        [(ngModel)]="symbolInputStr"
+                        (change)="symbolInputChanged()"
+                        (keyup)="symbolInputChanged()"
+                    >
+                <button (click)="clearInput()" >Clear Input</button>
+            </div>
+            <p>Current Path: {{currentPath}}</p>
+        
+            <div class="symbol-list-body">
+                <div *ngFor='let item of candidateList' 
+                    (click)="symbolSelected(item)" 
+                    (dblclick)="symbolDoubleClicked(item)"
+                    class="symbol-item">
+                    
+                    <p class="symbol-item-name">{{item.name}}</p>
+                    <table class="symbol-item-info">
+                        <tr class="symbol-item-type">
+                            <td class="symbol-item-info-title">Type: </td>
+                            <td class="symbol-item-info-content">{{item.type}}</td>
+                        </tr>
+                        <tr class="symbol-item-comment">
+                            <td class="symbol-item-info-title">Comment: </td>
+                            <td class="symbol-item-info-content">{{item.comment}}</td>
+                        </tr>
+                    </table>
+            
+                </div>
+            </div>
+            <!-- <button (click)="addSymbol()">Add To Watch List</button> -->
+        </div>
+        
+      </as-split-area>
+      <as-split-area [size]="50">
+        <div class="watch-list">
+            <button (click)="clear()">Clear Watch List</button>
+            <div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50%;">Symbol</th>
+                            <th style="width: 25%;">Value</th>
+                            <th style="width: 25%;">NewValue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                            <tr *ngFor="let item of watchList">
+                                <td style="width: 50%;">{{item.name}}</td>
+                                <td style="width: 25%; text-align: center;">{{item.value}}</td>
+                                <td style="width: 25%; text-align: center;">
+                                    <input [(ngModel)]="item.newValueStr">
+                                </td>
+                            </tr>
+                    </tbody>
+                </table>
+            </div>
+            <button (click)="writeNewValues()">Write New Values</button>
+        
+        </div>
+      </as-split-area>
+    </as-split>
+  </div>
