@@ -1,4 +1,4 @@
-<div style="height: 96vh; width: 96vw;">
+<div style="height: 98vh; width: 98vw;">
     <as-split direction="horizontal" unit="percent">
       <as-split-area [size]="50">
         <div class="symbol-list">
@@ -13,8 +13,11 @@
                         (keyup)="symbolInputChanged()"
                     >
                 <button (click)="clearInput()" >Clear Input</button>
+                <p id="currentPathDisp">
+                    Current Path: <span>{{currentPath}}</span>
+                </p>
+                <button (click)="previousLevel()">Previous Level</button>
             </div>
-            <p>Current Path: {{currentPath}}</p>
         
             <div class="symbol-list-body">
                 <div *ngFor='let item of candidateList' 

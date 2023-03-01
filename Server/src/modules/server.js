@@ -4,6 +4,7 @@ import * as utilities from './utilityFunctions.js';
 import express from 'express';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
+import { Interface } from 'readline';
 
 // Server object that handles HTTP, socket, and manages subscriptions from different clients
 // Use socket.io to handle data transfer
@@ -11,7 +12,7 @@ export class ServerApp{
     
     // Properties for Watch App management
     _accumulatingSubsData = false;
-    _watchClientsObj = {}; // An object of Watch clients.
+    _dataClientsObj = {}; // An object of Watch clients.
         // Each property name is the socket id of the client
 
     // An object of subscribed symbols.
@@ -46,15 +47,15 @@ export class ServerApp{
 
         // For socket connection: define actions 
         this.ioServer.on("connection", socket =>{
-            const client = new ClientRecord(this, socket);
+            const client = new WatchClient(this, socket);
             utilities.pipe(watchEventHandlers)(client);   // more event handlers can be added to pipe
 
-            this._watchClientsObj[socket.id] = client;
+            this._dataClientsObj[socket.id] = client;
             
             socket.on("disconnect", (reason) => {
                 console.log(`Socket ${socket.id} has disconnected`)
                 this.unsubscribeAll(socket.id);
-                delete this._watchClientsObj[socket.id];
+                delete this._dataClientsObj[socket.id];
             });
 
             this.getDataTypes();
@@ -104,19 +105,19 @@ export class ServerApp{
             this.controller.subscribeCyclic(symbolName, (data) => this.dispatchSubscriptions.call(this, data), this.config.subscriptionInterval)
                 .then((res) => {
                     this._subscriptionsObj[symbolName] = [clientID];
-                    this._watchClientsObj[clientID].subscriptions.push(symbolName);
-                    this._watchClientsObj[clientID].sendSubscriptionList();
+                    this._dataClientsObj[clientID].subscriptions.push(symbolName);
+                    this._dataClientsObj[clientID].sendSubscriptionList();
                 })
                 .catch(err => {
-                    this._watchClientsObj[clientID].socket.emit("error", new Error(`Failed to subscribe to symbol ${symbolName}`));
+                    this._dataClientsObj[clientID].socket.emit("error", new Error(`Failed to subscribe to symbol ${symbolName}`));
                     console.error(`Failed to subscribe to symbol ${symbolName}`, err)
                 });
         }
         else{
             if(!this._subscriptionsObj[symbolName].includes(clientID)){ // this symbol is not already subscribed by this client
                 this._subscriptionsObj[symbolName].push(clientID);
-                this._watchClientsObj[clientID].subscriptions.push(symbolName);
-                this._watchClientsObj[clientID].sendSubscriptionList();
+                this._dataClientsObj[clientID].subscriptions.push(symbolName);
+                this._dataClientsObj[clientID].sendSubscriptionList();
             }
         }
     }
@@ -133,10 +134,10 @@ export class ServerApp{
         let idx = this._subscriptionsObj[symbolName].indexOf(clientID);
         if(idx > -1){
             this._subscriptionsObj[symbolName].splice(idx, 1);
-            idx = this._watchClientsObj[clientID].subscriptions.indexOf(symbolName);
+            idx = this._dataClientsObj[clientID].subscriptions.indexOf(symbolName);
             if(idx > -1){
-                this._watchClientsObj[clientID].subscriptions.splice(idx, 1);
-                this._watchClientsObj[clientID].sendSubscriptionList();
+                this._dataClientsObj[clientID].subscriptions.splice(idx, 1);
+                this._dataClientsObj[clientID].sendSubscriptionList();
             }
         }
         if(this._subscriptionsObj[symbolName].length == 0){ // no one is subscribing to this anymore
@@ -146,7 +147,7 @@ export class ServerApp{
 
     // Try to unsubscribe to all symbols from the target system. Return a Promise<object>.
     unsubscribeAll(clientID){
-        this._watchClientsObj[clientID].subscriptions.forEach((symbolName) => {
+        this._dataClientsObj[clientID].subscriptions.forEach((symbolName) => {
             let idx = this._subscriptionsObj[symbolName].indexOf(clientID);
             if (idx > -1) {
                 this._subscriptionsObj[symbolName].splice(idx, 1);
@@ -155,8 +156,8 @@ export class ServerApp{
                 this.controller.unsubscribe(symbolName).catch(err => console.error(`Failed to subscribe to ${symbolName}`, err));
             }
         });
-        this._watchClientsObj[clientID].subscriptions = [];
-        this._watchClientsObj[clientID].sendSubscriptionList();
+        this._dataClientsObj[clientID].subscriptions = [];
+        this._dataClientsObj[clientID].sendSubscriptionList();
     }
 
     // Try to read a symbol's value from the target system. Return a Promise<object>.
@@ -181,7 +182,7 @@ export class ServerApp{
         //this.controller.writeSymbolValue(symbolName, newValue)
         this.controller.writeSymbolValue(symbolName, valueStr) // Looks like I can just pass a string to it???
             .catch( err => {
-                this._watchClientsObj[clientID].socket.emit("error", new Error(`Failed to write symbol ${symbolName}`, err));
+                this._dataClientsObj[clientID].socket.emit("error", new Error(`Failed to write symbol ${symbolName}`, err));
                 console.error(`Failed to write symbol ${symbolName}`, err);
             });
     }
@@ -194,14 +195,14 @@ export class ServerApp{
         // put values to the client objects
         
         this._subscriptionsObj[data.symbolName].forEach((clientID) => {
-            this._watchClientsObj[clientID].subscribedData[data.symbolName] = data.value;
+            this._dataClientsObj[clientID].subscribedData[data.symbolName] = data.value;
         });
         
         if(!this._accumulatingSubsData){ // First data received. Start accumulating them
             this._accumulatingSubsData = true;
             setTimeout(() => { // after the subscription interval from receiving the first data, send the accumulated data out.
-                for(let clientID in this._watchClientsObj){
-                    this._watchClientsObj[clientID].sendSubscribedData();
+                for(let clientID in this._dataClientsObj){
+                    this._dataClientsObj[clientID].sendSubscribedData();
                 }
                 this._accumulatingSubsData = false;
             }, this.config.subscriptionInterval/2);
@@ -225,11 +226,18 @@ export class ServerApp{
 
 }// class ServerApp
 
-class ClientRecord{
+class DataClient{
     subscriptions = []; // string[], names of subscribed symbols
     subscribedData = {}; // object that contains the subscribed data in key-value pairs, i.e. {symbolName: value}
 
+    sendSubscribedData(){}
+
+}
+
+class WatchClient extends DataClient{
+
     constructor(server, socket){
+        super();
         this.server = server;
         this.socket = socket;
     }

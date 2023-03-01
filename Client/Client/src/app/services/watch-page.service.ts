@@ -140,12 +140,15 @@ export class WatchPageService {
       this.symbolInputChanged();
     }
     else if(symbol.type.toLocaleLowerCase().startsWith("reference to") ||
-            symbol.type.toLocaleLowerCase().startsWith("pointer to"))
+      symbol.type.toLocaleLowerCase().startsWith("pointer to"))
     {
       console.error(`Unable to watch reference type symbol ${symbol}.`)
     }
     else if(this.watchableTypes.has(typeObj.baseType) || typeObj.baseType.includes("STRING")){ // primitive, enum, or string type
       this.socket.emit("addWatchSymbol", actualName);
+      this._model.cacheDataType(actualName, symbol.type);
+      // symbol.name = actualName;
+      // this.watchList.push(symbol)
     }
     else{
       console.error(`Unable to resolve the type of ${symbol}.`)
@@ -198,7 +201,7 @@ export class WatchPageService {
           else if(symbol.newValueStr.toLocaleLowerCase() == "false"){
             newValues[symbol.name] = false;
           }
-        } 
+        } // handles boolean
         else if(Object.keys(typeObj.enumInfo).length > 0 ){// handles enum
           let lowerNewValStr = symbol.newValueStr.toLocaleLowerCase();
           let num = Number(symbol.newValueStr);
@@ -217,8 +220,8 @@ export class WatchPageService {
               }
             }
           }
-        }
-        else{
+        }// handles enum
+        else{ // other types. Just send the string
           newValues[symbol.name] = symbol.newValueStr;
         }
         symbol.newValueStr = "";

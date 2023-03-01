@@ -57,6 +57,19 @@ export class WatchPageComponent {
     this._service.symbolInputChanged();
   }
 
+  previousLevel(){
+    let end_dot = this._service.symbolInputStr.lastIndexOf(".",this._service.symbolInputStr.length-2);
+    let end_bracket = this._service.symbolInputStr.lastIndexOf("[");
+    let end = Math.max(end_dot + 1, end_bracket)
+    if(end > 0){
+      this._service.symbolInputStr = this._service.symbolInputStr.slice(0, end);
+      this._service.symbolInputChanged();
+    }
+    else{
+      this.clearInput();
+    }
+  }
+
   symbolSelected(item: ControllerSymbol){
     // FIXME: allow multiple choices
     this._service.selectedSymbols[0] = item;

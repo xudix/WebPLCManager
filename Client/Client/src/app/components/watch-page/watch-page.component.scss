@@ -1,49 +1,67 @@
-.symbol-list {
-    background-color: #111111;
-    color: aqua;
-    height: 97%;
+as-split {
+  background-color: black;
+  .symbol-list {
+    background-color: rgb(58, 27, 25);
+    color: rgb(252, 240, 225);
+    height: 100%;
+    overflow: hidden;
     width: 100%;
     //overflow-x: hidden;
     //padding-top: 20px;
 
-    .flex-container{
+    .flex-container {
 
-      input{
+      input {
+        font-size: large;
         width: 80%;
         margin: 1%;
       }
-      
+
+      #currentPathDisp {
+        width: 80%;
+        padding: 2px;
+        margin: 5px;
+        font-size: large;
+        border: 2px solid rgb(201 071 055);
+        border-radius: 5px;
+        span{
+          color: rgb(254, 216, 117);
+        }
+      }
+
     }
 
-    .symbol-list-body{
+    
+
+    .symbol-list-body {
       width: 100%;
       overflow-y: auto;
-      height: 78vh;
-      margin: 5px;
-      
-      .symbol-item{
-        
-        margin: 0px;
+      height: 85vh;
+      margin-left: 5px;
+
+      .symbol-item {
+
+        margin: 0px 5px 0px 5px;
         padding: 2px 2px 2px 5px;
         word-wrap: break-word;
 
-        .symbol-item-name{
+        .symbol-item-name {
           margin: 0px
         }
 
-        .symbol-item-info{
+        .symbol-item-info {
           margin-left: 10px;
           visibility: collapse;
           height: 0px;
 
-          .symbol-item-type{
+          .symbol-item-type {
             margin: 0px;
             padding-left: 5px;
             visibility: inherit;
             height: 0px;
           }
-  
-          .symbol-item-comment{
+
+          .symbol-item-comment {
             margin: 0px;
             padding-left: 5px;
             visibility: inherit;
@@ -52,59 +70,80 @@
           }
         }
 
-        
 
-        &:hover{
-          border: 1px solid red;
 
-          .symbol-item-info{
+        &:hover {
+          border: 2px solid rgb(201 071 055);
+          border-radius: 5px;
+          background-color: rgb(123 089 094);
+
+          .symbol-item-info {
             visibility: visible;
             height: auto;
 
             .symbol-item-type {
               height: auto;
             }
-          
+
             .symbol-item-comment {
               height: auto;
             }
           }
         }
       }
-    } //.symbol-list-body   
-} // .symbol-list
+    }
 
-.watch-list{
+    //.symbol-list-body   
+  }
+
+  // .symbol-list
+
+  .watch-list {
     width: 100%;
-  
-      table{
-    
+    height: 100%;
+    background-color: rgb(047 035 033);
+    color: rgb(254, 216, 117);
+          margin: 0px;
+
+    table {
+
+      width: 100%;
+      border: 2px solid rgb(170 079 035);
+      border-radius: 10px;
+      margin: 0px;
+
+      thead {
         width: 100%;
-  
-        thead{
+        font-size: large;
+        color: rgb(248 235 220);
+        background-color: rgb(170 079 035);
+        margin: 0px;
+
+        tr {
           width: 100%;
-          tr{
-            width: 100%;
-            margin: 5px;
-            padding: 5px;
-            
-    
-          }
-    
+          margin: 0px;
+          padding: 5px;
         }
-    
-        tbody{
-          width: 100%;
-          vertical-align: top;
-          overflow: auto;
-          tr{
-            width: 100%;
-            height: fit-content;
-            td{
-              padding:0%;
-            }
-          }
-        }
-    
+
       }
-} // .watch-list
+
+      tbody {
+        width: 100%;
+        vertical-align: top;
+        overflow: auto;
+
+        tr {
+          width: 100%;
+          height: fit-content;
+
+          td {
+            padding-left: 5px;
+          }
+        }
+      }
+
+    }
+  }
+
+  // .watch-list
+}
