@@ -41,3 +41,4 @@ testem.log
 .DS_Store
 Thumbs.db
 .vscode/launch.json
+Server/src/node_ads_test.js

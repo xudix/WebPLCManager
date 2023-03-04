@@ -139,10 +139,10 @@ export class WatchPageService {
       this.symbolInputStr = actualName + "[";
       this.symbolInputChanged();
     }
-    else if(symbol.type.toLocaleLowerCase().startsWith("reference to") ||
-      symbol.type.toLocaleLowerCase().startsWith("pointer to"))
+    else if(symbol.type.toLocaleLowerCase().startsWith("pointer to")) // for pointers, double click => dereference it
     {
-      console.error(`Unable to watch reference type symbol ${symbol}.`)
+      this.symbolInputStr = actualName + "^";
+      this.symbolInputChanged();
     }
     else if(this.watchableTypes.has(typeObj.baseType) || typeObj.baseType.includes("STRING")){ // primitive, enum, or string type
       this.socket.emit("addWatchSymbol", actualName);

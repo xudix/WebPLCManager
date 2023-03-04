@@ -43,94 +43,72 @@ export class WatchPage {
         )
         { return ""; }
 
-        let lowerName = symbolInputStr.toLowerCase();// input tag name in lower case
+        let lowerName = symbolInputStr.toLowerCase().replace("^","");// input tag name in lower case. Remove all "^" since we will dereference all pointers anyways
         let actualPath: string = ""; // The correct tag name with right lower/upper case
         let newSymbolType: string = "";
-        let newSymbolComment: string = "";
+        let isArrayElement = false; // array elements have different rule for 
         let found: boolean = false;
         //const arrayReg = /(.*)(?:\[)(\d*)(?:\]?)$/; // Regular expression used to match array indexing
         //let regMatch: string[]|null;
 
-        let splitName = lowerName.split("."); // lower case name, splited by .
+        let splitName = lowerName.split(/[\[\]\.]+/); // lower case name, splited by .
         let currentName = splitName.length > 1 ? splitName[0] + "." + splitName[1]: lowerName; // This is in lower case. Build up the name piece by piece
-                   
-        let currentSymbols: any = this.symbols; // Record<string, ControllerSymbol>|ControllerSymbol[]
+        let candidateSymbols: any = this.symbols; // Record<string, ControllerSymbol>|ControllerSymbol[]
         let lastLevel = Math.max(2, splitName.length);
+
         for(let currentLevel = 2; currentLevel <= lastLevel; currentLevel++){
             found = false;
-            if(currentName.includes("[")){ // input is in a array
-                let arrayNameSplit = currentName.split(/[\[\]]+/); // for a variable varName[0][3] arrayNameSplt is something like["varName","0","3",""]
-                for (let idx in currentSymbols) { // look at all current symbols
-                    if (currentSymbols[idx].name.toLowerCase().startsWith(arrayNameSplit[0])) {
-                        let typeObj = this.dataTypes[currentSymbols[idx].type.toLocaleLowerCase()];
-                        if (typeObj.arrayDimension > 0) { // this symbol is an array
-                            found = true;
-                            actualPath = (actualPath == "") ? currentSymbols[idx].name : actualPath + "." + currentSymbols[idx].name;
-                            // Iteratively put the array path together and find the type
-                            for (let i = 1; i <= typeObj.arrayDimension; i++) {
-                                if(currentLevel == lastLevel){// last level in the symbol name input. Need to write list
-                                    if(i >= arrayNameSplit.length) // All dimensions specified in the input has been parsed
-                                        break; // Leaving unspecified item is allowed
-                                    else if(i == arrayNameSplit.length - 1){ // last dimension specified. 
-                                        for (let j = typeObj.arrayInfo[i - 1].startIndex; j < typeObj.arrayInfo[i - 1].startIndex + typeObj.arrayInfo[i - 1].length; j++) {
-                                            list.push({
-                                                name: `[${j}]`,
-                                                type: i < typeObj.arrayDimension ? typeObj.name : typeObj.baseType, // If this is the last dimension, it will be the base type.
-                                                comment: typeObj.comment
-                                            })
-                                        }
-                                    }
-                                    else{ // not the last dimension specified. need to parse the input number.
-                                        let index = parseInt(arrayNameSplit[i]);
-                                        if (Number.isNaN(index) || index < typeObj.arrayInfo[i - 1].startIndex || index >= typeObj.arrayInfo[i - 1].startIndex + typeObj.arrayInfo[i - 1].length) // if index is invalid, use 0
-                                        { index = typeObj.arrayInfo[i - 1].startIndex; }
-                                        actualPath += `[${index}]`;
-                                    }
-
-                                } 
-                                else{ // not at the last level of symbol name input yet. If array dim is not specified, assume them to 0.
-                                    if(i >= arrayNameSplit.length){ // All dimensions specified in the input has been parsed. The rest dimensions will be assumed to be startIndex
-                                        actualPath += `[${typeObj.arrayInfo[i - 1].startIndex}]`;
-                                    }
-                                    else{ // dimension specified. need to parse the input number.
-                                        let index = parseInt(arrayNameSplit[i]);
-                                        if (Number.isNaN(index) || index < typeObj.arrayInfo[i - 1].startIndex || index >= typeObj.arrayInfo[i - 1].startIndex + typeObj.arrayInfo[i - 1].length) // if index is invalid, use 0
-                                        { index = 0; }
-                                        actualPath += `[${index}]`;
-                                    }
-                                    currentSymbols = this.dataTypes[typeObj.baseType.toLocaleLowerCase()].subItems;
-                                } // if (currentLevel == lastLevel)
+            for(let idx in candidateSymbols){
+                let match = isArrayElement? candidateSymbols[idx].name.includes(currentName) :candidateSymbols[idx].name.toLowerCase().startsWith(currentName);
+                if(match){ // find a match
+                    if(currentLevel == lastLevel){ // last level in the symbol name input
+                        list.push(candidateSymbols[idx]);
+                    }
+                    else{ // not at the last level yet
+                        let typeObj = this.dataTypes[candidateSymbols[idx].type.toLowerCase()];
+                        if(isArrayElement){
+                            actualPath = (actualPath == "") ? candidateSymbols[idx].name : actualPath + candidateSymbols[idx].name;
+                        }else{
+                            actualPath = (actualPath == "") ? candidateSymbols[idx].name : actualPath + "." + candidateSymbols[idx].name;
+                        }
+                        isArrayElement = false;
+                        if(candidateSymbols[idx].type.toLowerCase().startsWith("pointer to")){ // dereference any pointer type encountered
+                            actualPath += "^";
+                            candidateSymbols = this.dataTypes[typeObj.baseType.toLocaleLowerCase()].subItems;
+                        }
+                        else if(candidateSymbols[idx].type.toLowerCase().startsWith("reference to")){ //reference type. Fall back to its base type
+                            candidateSymbols = this.dataTypes[typeObj.baseType.toLocaleLowerCase()].subItems;
+                        }
+                        else if(typeObj.arrayDimension > 0){ // array type
+                            isArrayElement = true;
+                            if(typeObj.arrayDimension == 1){ // last dimension of the array. The type for the list items will be the base type
+                                newSymbolType = typeObj.baseType;
                             }
-                            break; // break from for(let idx in currentSymbols)
-                        }  // if(typeObj.arrayDimension > 0)
-                    } // if(currentSymbols[idx].name.startsWith(arrayNameSplit[0]))
-                } // for(let idx in currentSymbols)
-                if (!found){
-                { break; } // break from for(let currentLevel = 2; currentLevel <= lastLevel; currentLevel++)
-                }
-            }
-            else{ // input is not in an array
-                for(let idx in currentSymbols){
-                    if(currentSymbols[idx].name.toLowerCase().startsWith(currentName)){ // find a match
-                        if(currentLevel == lastLevel){ // last level in the symbol name input
-                            list.push(currentSymbols[idx]);
+                            else{ // not the last dimension. The type for the list items are still arrays.
+                                newSymbolType = typeObj.name.replace(/(?<=\[)\d+\.\.\d+,\s*/, "");
+                            }
+                            candidateSymbols = [];
+                            for (let j = typeObj.arrayInfo[0].startIndex; j < typeObj.arrayInfo[0].startIndex + typeObj.arrayInfo[0].length; j++) {
+                                candidateSymbols.push({
+                                    name: `[${j}]`,
+                                    type: newSymbolType,
+                                    comment: typeObj.comment
+                                })
+                            }
                         }
-                        else{ // not at the last level yet
-                            newSymbolType = currentSymbols[idx].type;
-                            actualPath = (actualPath == "") ? currentSymbols[idx].name : actualPath + "." + currentSymbols[idx].name;
-                            newSymbolComment = currentSymbols[idx].comment;
-                            currentSymbols = this.dataTypes[newSymbolType.toLocaleLowerCase()].subItems;
-                            found = true;
-                            break;
+                        else{
+                            candidateSymbols = this.dataTypes[typeObj.baseType.toLocaleLowerCase()].subItems;
                         }
+                        found = true;
+                        break; // break from for(let idx in candidateSymbols)
                     }
                 }
-                if (!found)
-                { break; } // break from  for(let currentLevel = 2; currentLevel <= lastLevel; currentLevel++)
-
+            } // for(let idx in candidateSymbols)
+            if(!found){
+                break; // break from for(let currentLevel = 2; currentLevel <= lastLevel; currentLevel++)
             }
 
-            if(Object.keys(currentSymbols).length == 0)
+            if(Object.keys(candidateSymbols).length == 0)
             { break; } // break from  for(let currentLevel = 2; currentLevel <= lastLevel; currentLevel++)
             currentName = splitName[currentLevel];
 

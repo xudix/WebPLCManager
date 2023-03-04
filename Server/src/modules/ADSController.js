@@ -8,6 +8,14 @@ export class ADSController extends GenericController{
     
     
     subscriptions = {}; // Object containing all subscriptions at this point. Property names are the symbol names of each subscribed symbol.
+                        // property value is a notification object containing the handle and other info
+    handles = {}; // Object containing handles created on the PLC from variable names. 
+                    //Use this to subscribe to pointer and reference types. 
+                    // handles should be released if not needed anymore.
+
+    
+
+
     get isConnected(){
         return this.client.connection.connected;
     }
@@ -37,7 +45,7 @@ export class ADSController extends GenericController{
             this.client.readAndCacheDataTypes()
                 .then( adsTypesData => {
                     let typesObj = {};
-                    for(let key in adsTypesData){
+                    for(let key in adsTypesData){ // Convert the data from the ads-client lib to a format we want
                         typesObj[key] = {
                             name: adsTypesData[key].name,
                             baseType: adsTypesData[key].type == "" ? adsTypesData[key].name : adsTypesData[key].type,
@@ -65,6 +73,7 @@ export class ADSController extends GenericController{
                         }
 
                     } // for let key in adsTypesData
+                    this.adsTypesData = typesObj;
                     resolve(typesObj);
                 })
                 .catch(err => reject(err));
@@ -85,6 +94,7 @@ export class ADSController extends GenericController{
                             isPersisted: (adsSymsData[key].flags & 1) == 1
                         }
                     } // for let key in adsSymsData
+                    this.adsSymsData = symsObj;
                     resolve(symsObj);
                 })
                 .catch(err => reject(err));
@@ -98,22 +108,60 @@ export class ADSController extends GenericController{
     // interval: ms, time between readings
     // Return a Promise<object>. The object is the subscription object.
     subscribeCyclic(symbolName, callback, interval){
-        let adsCallBack = function(data, subsObj){
-            callback({
-                value: data.value,
-                symbolName: subsObj.target,
-                type: data.type.type,
-                timeStamp: data.timeStamp
+        return new Promise((resolve, reject) =>{
+            let adsCallBack;
+            this.client.getSymbolInfo(symbolName).then((symbolInfo) => { // check if the symbol is a pointer or reference type
+                if (symbolInfo.indexGroup > ads.ADS.ADS_RESERVED_INDEX_GROUPS.SymbolValueByHandle &&
+                    symbolInfo.indexGroup < ads.ADS.ADS_RESERVED_INDEX_GROUPS.IOImageRWIB)
+                // Pointer seems to have indexGroup of 0xF014, and reference has indexGroup of 0xF016. Not sure if other cases exist.
+                // The range set here is (0xF005, 0xF020)
+                {
+                    // Need to create a handle, then subscribe to that handle. Cannot directly subscribe to that name.
+                    this.client.createVariableHandle(symbolName).then(async (handleInfo) => {
+                        this.handles[symbolName] = handleInfo;
+                        if(this.adsSymsData == undefined){
+                            await this.getDataTypes();
+                        }
+                        let symbolType = this.adsTypesData[symbolInfo.type.toLowerCase()];
+                        adsCallBack = (data, subsObj) => {
+                            this.client.convertFromRaw(data.value, symbolType.baseType).then( (result) => {
+                                callback({
+                                    value: result,
+                                    symbolName: symbolName,
+                                    type: symbolType.name,
+                                    timeStamp: data.timeStamp
+                                });
+                            })
+                            .catch(err => console.error(err));
+                        }
+                        this.client.subscribeRaw(ads.ADS.ADS_RESERVED_INDEX_GROUPS.SymbolValueByHandle, handleInfo.handle, symbolType.size, adsCallBack, interval, false)
+                            .then(res => {
+                                this.subscriptions[symbolName] = res;
+                                resolve(res);
+                            })
+                            .catch(err => reject(err));
+                    })
+                }
+                else { // Not a reference or pointer. Directly subscribe to it by name.
+                    adsCallBack = function(data, subsObj){
+                        callback({
+                            value: data.value,
+                            symbolName: symbolName,
+                            type: data.type.type,
+                            timeStamp: data.timeStamp
+                        });
+                    }
+                    this.client.subscribe(symbolName, adsCallBack, interval, false)
+                        .then(res => {
+                            this.subscriptions[symbolName] = res;
+                            resolve(res);
+                        })
+                        .catch(err => reject(err));
+                }
+
             })
-        }
-        return new Promise((resolve, reject) => {
-            this.client.subscribe(symbolName, adsCallBack, interval, false)
-                .then( res => {
-                    this.subscriptions[symbolName] = res;
-                    resolve(res);
-                })
-                .catch(err => reject(err));
-        });
+
+        })
     }
 
     // Try to subscribe to a symbol for changes from the target system.
@@ -142,6 +190,10 @@ export class ADSController extends GenericController{
                 this.client.unsubscribe(this.subscriptions[symbolName].notificationHandle)
                     .then(res => {
                         delete this.subscriptions[symbolName];
+                        if(this.handles[symbolName]){
+                            this.client.deleteVariableHandle(this.handles[symbolName].handle)
+                            delete this.handles[symbolName];
+                        }
                         resolve(res);
                     })
                     .catch(err => reject(err));

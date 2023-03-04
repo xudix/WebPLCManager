@@ -1,5 +1,9 @@
-as-split {
+as-split-area {
   background-color: black;
+  border: 1px solid black;
+
+  
+
   .symbol-list {
     background-color: rgb(58, 27, 25);
     color: rgb(252, 240, 225);
@@ -36,8 +40,8 @@ as-split {
     .symbol-list-body {
       width: 100%;
       overflow-y: auto;
-      height: 85vh;
-      margin-left: 5px;
+      height: 80vh;
+      margin: 5px 0px 5px 0px;
 
       .symbol-item {
 
