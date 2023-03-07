@@ -18,6 +18,10 @@ export class WatchPageService {
   public currentPath: string = ""; // The path obtained by resolving the input string
   public selectedSymbols: ControllerSymbol[] = [];
   public candidateList: ControllerSymbol[] = []; 
+  
+  public get persistentList(){
+    return this._model.persistentList;
+  }
 
   public get symbolInfoAvailable(): boolean{
     return Object.keys(this._model.dataTypes).length > 0 && Object.keys(this._model.symbols).length > 0;
@@ -193,7 +197,7 @@ export class WatchPageService {
     let hasNewValues: boolean = false;
     this._model.watchList.forEach((symbol) =>{
       if(symbol.newValueStr != undefined && symbol.newValueStr.length > 0){
-        let typeObj = this.getTypeObj(symbol.type);
+        let typeObj = this._getTypeObj(symbol.type);
         if(typeObj.name.toLocaleLowerCase().startsWith("bool")){ // handles string to boolean
           if(symbol.newValueStr.toLocaleLowerCase() == "true"){
             newValues[symbol.name] = true;
@@ -233,8 +237,12 @@ export class WatchPageService {
     }
   }
 
-  getTypeObj(typeName: string): ControllerType{
+  _getTypeObj(typeName: string): ControllerType{
     return this._model.getTypeObj(typeName);
+  }
+
+  findPersistentSymbols(){
+    this._model.findPersistentSymbols();
   }
 
 }

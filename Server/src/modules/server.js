@@ -47,7 +47,7 @@ export class ServerApp{
 
         // For socket connection: define actions 
         this.ioServer.on("connection", socket =>{
-            const client = new WatchClient(this, socket);
+            const client = new WatchClient(this, socket, this.config.subscriptionInterval/2);
             utilities.pipe(watchEventHandlers)(client);   // more event handlers can be added to pipe
 
             this._dataClientsObj[socket.id] = client;
@@ -63,7 +63,9 @@ export class ServerApp{
             console.log(`Socket ${socket.id} has connected`);
         });
 
-
+        this.expressApp.get("*", (req, res) => {
+            res.sendFile(this.config.rootPath+'/client/index.html');
+          });
 
         this.httpServer.listen(this.config.port, () => {
             console.log(`Listening on port ${serverConfig.port}`);
@@ -99,6 +101,8 @@ export class ServerApp{
     }
 
     // Try to subscribe to a symbol for cyclic reading from the target system.
+    // If the symbol is already subscribed to, just add the client to the symbol item under subscriptions object.
+    // If the symbol is not subscribed to, ask the controller to subscribe.
     // symbolName: string is the name of the requested symbol.
     subscribeCyclic(clientID, symbolName){
         if(this._subscriptionsObj[symbolName] === undefined || this._subscriptionsObj[symbolName].length == 0){ // This symbol was not subscribed to
@@ -128,7 +132,8 @@ export class ServerApp{
         throw new Error("subscribeOnChange() method is not implemented!");
     }
 
-    // Try to unsubscribe to a symbol from the target system. Return a Promise<object>.
+    // Try to unsubscribe to a symbol for a client
+    // First remove the client from the symbol item under the subscriptions object. If no one is subscribing to this symbol anymore, ask the controller to unsubscribe.
     // symbolName: string is the name of the requested symbol.
     unsubscribe(clientID, symbolName){
         let idx = this._subscriptionsObj[symbolName].indexOf(clientID);
@@ -173,7 +178,7 @@ export class ServerApp{
             });
     }
 
-    // Try to write a symbol's value to the target system. Return a Promise<object>.
+    // Try to write a symbol's value to the target system.
     // symbolName: string is the name of the requested symbol.
     // value: string, number, or other things that can be written to PLC
     writeSymbolValue(clientID, symbolName, valueStr){
@@ -189,24 +194,17 @@ export class ServerApp{
 
     // callback function for subscription.
     // This method is called when subscription data is received from the controller
+    // After data is received, it is dispatched to the corresponding DataClient based on the clientID stored in _subscriptionObj
     dispatchSubscriptions(data){ // data: {value: any, symbolName: string, type: string, timeStamp: Time}
         if(typeof data.symbolName != "string")
             throw new  Error("Not Implemented in dispatchSubscriptions(): Unable to dispatch subscriptions without symbol name.");
         // put values to the client objects
         
         this._subscriptionsObj[data.symbolName].forEach((clientID) => {
-            this._dataClientsObj[clientID].subscribedData[data.symbolName] = data.value;
+            this._dataClientsObj[clientID].receiveData(data);
         });
         
-        if(!this._accumulatingSubsData){ // First data received. Start accumulating them
-            this._accumulatingSubsData = true;
-            setTimeout(() => { // after the subscription interval from receiving the first data, send the accumulated data out.
-                for(let clientID in this._dataClientsObj){
-                    this._dataClientsObj[clientID].sendSubscribedData();
-                }
-                this._accumulatingSubsData = false;
-            }, this.config.subscriptionInterval/2);
-        }
+
 
     } // dispatchSubscriptions()
 
@@ -230,14 +228,36 @@ class DataClient{
     subscriptions = []; // string[], names of subscribed symbols
     subscribedData = {}; // object that contains the subscribed data in key-value pairs, i.e. {symbolName: value}
 
+    _accumulatingSubsData = false; // indicate whether data is being accumulated. After the accumulation time window, data accumulated will be sent.
+
+    constructor(accumulationTime){
+        this._accumulationTime = accumulationTime;
+    }
+
+
+    // Receive data from the server app. Accumulate the data for a while, then send accumulated data out
+    // data: {symbolName: string, value: any}
+    receiveData(data){
+        this.subscribedData[data.symbolName] = data.value;
+        if(!this._accumulatingSubsData){ // First data received. Start accumulating them
+            this._accumulatingSubsData = true;
+            setTimeout(() => { // after the subscription interval from receiving the first data, send the accumulated data out.
+                this.sendSubscribedData();
+                this._accumulatingSubsData = false;
+            }, this._accumulationTime);
+        }
+    }
+
+    sendSubscribedData(){}
+
     sendSubscribedData(){}
 
 }
 
 class WatchClient extends DataClient{
 
-    constructor(server, socket){
-        super();
+    constructor(server, socket, accumulationTime){
+        super(accumulationTime);
         this.server = server;
         this.socket = socket;
     }

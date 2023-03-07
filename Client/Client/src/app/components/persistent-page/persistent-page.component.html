@@ -1,0 +1,25 @@
+<div class="persistent-list">
+    <div class="flex-container">
+        <button (click)="findPersistentSymbols()">Load Persistent Symbols</button>
+    </div>
+
+    <div class="persistent-list-body">
+        <div *ngFor='let item of persistentList' 
+            class="persistent-symbol-item">
+            
+            <p class="symbol-item-name">{{item.name}}</p>
+            <table class="symbol-item-info">
+                <tr class="symbol-item-type">
+                    <td class="symbol-item-info-title">Type: </td>
+                    <td class="symbol-item-info-content">{{item.type}}</td>
+                </tr>
+                <tr class="symbol-item-comment">
+                    <td class="symbol-item-info-title">Comment: </td>
+                    <td class="symbol-item-info-content">{{item.comment}}</td>
+                </tr>
+            </table>
+    
+        </div>
+    </div>
+    <!-- <button (click)="addSymbol()">Add To Watch List</button> -->
+</div>

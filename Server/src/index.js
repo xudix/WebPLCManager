@@ -10,6 +10,7 @@ serverConfig = {
         methods: ["GET", "POST"]
     },
     subscriptionInterval: 1000, // ms, time between readings
+    rootPath: __dirname,
 };
 
 import("./modules/ADSController.js")

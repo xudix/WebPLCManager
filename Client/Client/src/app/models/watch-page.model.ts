@@ -2,9 +2,10 @@ import { __metadata } from "tslib";
 import { ControllerSymbol, ControllerType } from "./controller-data-types";
 
 export class WatchPage {
-    dataTypes: Record<string, ControllerType> = {};
-    symbols: Record<string, ControllerSymbol> = {};
-    watchList: ControllerSymbol[] = [];
+    dataTypes: Record<string, ControllerType> = {}; // data type info received from controller
+    symbols: Record<string, ControllerSymbol> = {}; // symbol info received from controller
+    watchList: ControllerSymbol[] = []; // list of variables being watched (subscribed to)
+    persistentList: ControllerSymbol[] = [];  // list of all persistent variables
 
     _dataTypeCache: Record<string, string> = {}; // A dictionary for known data types of known symbols. {symbolName: symbolType}
 
@@ -115,4 +116,51 @@ export class WatchPage {
         } // for(let currentLevel = 2; currentLevel <= lastLevel; currentLevel++)
         return actualPath;
     } // findSymbol
+
+
+    findPersistentSymbols(){
+        this.persistentList = [];
+        if(Object.keys(this.dataTypes).length > 0 && Object.keys(this.symbols).length > 0){
+            for(let symbolName in this.symbols){
+                this._findPersistentSymbolsRecursive(this.symbols[symbolName]);
+            }
+        }
+    }
+
+    // recursively find persistent symbols. Returns true if a persistent symbol is found.
+    _findPersistentSymbolsRecursive(symbol: ControllerSymbol): boolean{
+        let typeObj = this.getTypeObj(symbol.type);
+        let hasPersistentData = false;
+        if(typeObj.arrayDimension > 0){
+            let newSymbolType = typeObj.arrayDimension == 1? typeObj.baseType: typeObj.name.replace(/(?<=\[)\d+\.\.\d+,\s*/, "");
+            for(let i = typeObj.arrayInfo[0].startIndex; i < typeObj.arrayInfo[0].startIndex + typeObj.arrayInfo[0].length; i++){
+                hasPersistentData = this._findPersistentSymbolsRecursive({
+                    name: symbol.name+`[${i}]`,
+                    type: newSymbolType,
+                    comment: typeObj.comment,
+                    isPersisted: symbol.isPersisted
+                });
+                if(!hasPersistentData) // Try the first element in the array. If no persistent data, no need to continue.
+                    break;
+            }
+        }
+        else if(typeObj.subItemCount > 0){
+            typeObj.subItems.forEach((subitem) => {
+                hasPersistentData = this._findPersistentSymbolsRecursive({
+                    name: symbol.name + "." + subitem.name,
+                    type: subitem.type,
+                    comment: subitem.comment,
+                    isPersisted: subitem.isPersisted || symbol.isPersisted
+                }) || hasPersistentData;
+            });
+        }else if(symbol.isPersisted){
+            symbol.value = "";
+            symbol.newValueStr = "";
+            this.persistentList.push(symbol);
+            hasPersistentData = true;
+        }
+        return hasPersistentData;
+
+    }
+
 }

@@ -70,6 +70,9 @@ export class WatchPageComponent {
     }
   }
 
+  // Special behavior: When something is double clicked in the candidate window, 
+  // if it has sub items, set it as the path
+  // if it is a primitive type, add it to watch list
   symbolSelected(item: ControllerSymbol){
     // FIXME: allow multiple choices
     this._service.selectedSymbols[0] = item;
