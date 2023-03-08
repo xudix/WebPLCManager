@@ -33,17 +33,6 @@ export class ServerApp{
         
         // Connect to controller
         this.controller = controller;
-        // this.controller.on("connect", () =>{
-        //     this.getDataTypes();
-        //     this.getSymbols();
-        // })
-        this.controller.connect().then((res) =>{
-            console.log(`Connected to the ${res.targetAmsNetId}`)
-            console.log(`Router assigned us AmsNetId ${res.localAmsNetId} and port ${res.localAdsPort}`)
-        })
-        .catch(err =>{
-            console.error('Failed to Connect to ADS Target:', err);
-        })
 
         // For socket connection: define actions 
         this.ioServer.on("connection", socket =>{
@@ -62,6 +51,8 @@ export class ServerApp{
             this.getSymbols();
             console.log(`Socket ${socket.id} has connected`);
         });
+
+        this.expressApp.use(express.static(this.config.rootPath+'/client/'));
 
         this.expressApp.get("*", (req, res) => {
             res.sendFile(this.config.rootPath+'/client/index.html');

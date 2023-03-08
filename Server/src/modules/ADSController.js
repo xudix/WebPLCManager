@@ -23,15 +23,27 @@ export class ADSController extends GenericController{
     // Takes a config object to setup the connection
     constructor(config){
         super();
+        this._config = config;
         this.client = new ads.Client(config);
+        this._connect();
         
     }
     
 
 
     // Try to connect to the target system. Return a Promise.
-    connect(){
-        return this.client.connect();
+    _connect(){
+        this.client.connect()   // retry after anything happened
+        .then((res) =>{
+            console.log(`Connected to the ${res.targetAmsNetId}`)
+            console.log(`Router assigned us AmsNetId ${res.localAmsNetId} and port ${res.localAdsPort}`)
+        })
+        .catch((err) => {
+            console.error('Failed to Connect to ADS Target:', err);
+            setTimeout(() => {
+                this._connect();
+            }, this._config.retryTime);
+        });
     }
 
     // Try to disconnect from the target system. Return a Promise.

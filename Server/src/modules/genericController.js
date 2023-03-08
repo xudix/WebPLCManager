@@ -5,7 +5,7 @@ export class GenericController{
 
 
     // Try to connect to the target system. Return a Promise.
-    connect(){
+    _connect(){
         return new Promise(function(resolve, reject){
             reject(new Error("connect() method is not implemented!"))
         })
