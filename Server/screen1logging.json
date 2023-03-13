@@ -1,0 +1,414 @@
+{
+   "bucket" : "DacLab",
+   "measurement" : "ScreeningReactor1",
+   "org" : "Sustaera",
+   "port" : 851,
+   "name" : "ScreeningReactor1",
+   "tags" : [
+      {
+         "field" : "Controller.lifeCounter",
+         "tag" : "Controller.lifeCounter",
+         "type" : "INT"
+      },
+      {
+         "field" : "aiReactorTempTE_113.value",
+         "tag" : "Main.fbScreening.aiReactorTempTE_113.value",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "aiReactorTempTE_114.value",
+         "tag" : "Main.fbScreening.aiReactorTempTE_114.value",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "aiReactorTempTE_115.value",
+         "tag" : "Main.fbScreening.aiReactorTempTE_115.value",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "aiCO2.value",
+         "tag" : "Main.fbScreening.aiCO2.value",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "aiH2O.value",
+         "tag" : "Main.fbScreening.aiH2O.value",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "heatRamp.out",
+         "tag" : "Main.fbScreening.heatRamp.out",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "heater.tempSetC",
+         "tag" : "Main.fbScreening.heater.tempSetC",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "XV-111",
+         "tag" : "Main.fbScreening.svRxrAirIn.dqState1.dqOut.value",
+         "type" : "BOOL"
+      },
+      {
+         "field" : "XV-112",
+         "tag" : "Main.fbScreening.svRxrNitrogenIn.dqState1.dqOut.value",
+         "type" : "BOOL"
+      },
+      {
+         "field" : "XV-113",
+         "tag" : "Main.fbScreening.svDryNitrogenAirBypass.dqState2.dqOut.value",
+         "type" : "BOOL"
+      },
+      {
+         "field" : "XV-114",
+         "tag" : "Main.fbScreening.svHumidifiedNitrogenAirBypass.dqState1.dqOut.value",
+         "type" : "BOOL"
+      },
+      {
+         "field" : "XV-111 state",
+         "tag" : "Main.fbScreening.svRxrAirIn.state",
+         "type" : "INT"
+      },
+      {
+         "field" : "XV-112 state",
+         "tag" : "Main.fbScreening.svRxrNitrogenIn.state",
+         "type" : "INT"
+      },
+      {
+         "field" : "XV-113 state",
+         "tag" : "Main.fbScreening.svDryNitrogenAirBypass.state",
+         "type" : "INT"
+      },
+      {
+         "field" : "XV-114 state",
+         "tag" : "Main.fbScreening.svHumidifiedNitrogenAirBypass.state",
+         "type" : "INT"
+      },
+      {
+         "field" : "fbScreening.state",
+         "tag" : "Main.fbScreening.state",
+         "type" : "INT"
+      },
+      {
+         "field" : "fbScreening.odTimeRemaining",
+         "tag" : "Main.fbScreening.odTimeRemaining",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "heatRamp.dest",
+         "tag" : "Main.fbScreening.heatRamp.dest",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "fbScreening.AlicatAir.status",
+         "tag" : "Main.fbScreening.fbAlicatSerial.allStatus[1].status",
+         "type" : "USINT"
+      },
+      {
+         "field" : "fbScreening.AlicatAir.pressure",
+         "tag" : "Main.fbScreening.fbAlicatSerial.allStatus[1].pressure",
+         "type" : "REAL"
+      },
+      {
+         "field" : "fbScreening.AlicatAir.temp",
+         "tag" : "Main.fbScreening.fbAlicatSerial.allStatus[1].temp",
+         "type" : "REAL"
+      },
+      {
+         "field" : "fbScreening.AlicatAir.volFlow",
+         "tag" : "Main.fbScreening.fbAlicatSerial.allStatus[1].volFlow",
+         "type" : "REAL"
+      },
+      {
+         "field" : "fbScreening.AlicatAir.massFlow",
+         "tag" : "Main.fbScreening.fbAlicatSerial.allStatus[1].massFlow",
+         "type" : "REAL"
+      },
+      {
+         "field" : "fbScreening.AlicatAir.massFlowSet",
+         "tag" : "Main.fbScreening.fbAlicatSerial.allStatus[1].massFlowSet",
+         "type" : "REAL"
+      },
+      {
+         "field" : "fbScreening.AlicatNitrogen.status",
+         "tag" : "Main.fbScreening.fbAlicatSerial.allStatus[2].status",
+         "type" : "DWORD"
+      },
+      {
+         "field" : "fbScreening.AlicatNitrogen.pressure",
+         "tag" : "Main.fbScreening.fbAlicatSerial.allStatus[2].pressure",
+         "type" : "REAL"
+      },
+      {
+         "field" : "fbScreening.AlicatNitrogen.temp",
+         "tag" : "Main.fbScreening.fbAlicatSerial.allStatus[2].temp",
+         "type" : "REAL"
+      },
+      {
+         "field" : "fbScreening.AlicatNitrogen.volFlow",
+         "tag" : "Main.fbScreening.fbAlicatSerial.allStatus[2].volFlow",
+         "type" : "REAL"
+      },
+      {
+         "field" : "fbScreening.AlicatNitrogen.massFlow",
+         "tag" : "Main.fbScreening.fbAlicatSerial.allStatus[2].massFlow",
+         "type" : "REAL"
+      },
+      {
+         "field" : "fbScreening.AlicatNitrogen.massFlowSet",
+         "tag" : "Main.fbScreening.fbAlicatSerial.allStatus[2].massFlowSet",
+         "type" : "REAL"
+      },
+      {
+         "field" : "fbScreening.AlicatNitrogen.gasType",
+         "tag" : "Main.fbScreening.fbAlicatSerial.allStatus[2].gasType",
+         "type" : "USINT"
+      },
+      {
+         "field" : "fbScreening.AlicatAir.gasType",
+         "tag" : "Main.fbScreening.fbAlicatSerial.allStatus[1].gasType",
+         "type" : "USINT"
+      },
+      {
+         "field" : "fbScreening.odMainState",
+         "tag" : "Main.fbScreening.odMainState",
+         "type" : "INT"
+      },
+      {
+         "field" : "experimentNumber",
+         "tag" : "Main.fbScreening.experLastData.experimentNumber",
+         "type" : "UINT"
+      },
+      {
+         "field" : "cycleNumber",
+         "tag" : "Main.fbScreening.experLastData.cycleNumber",
+         "type" : "UINT"
+      },
+      {
+         "field" : "blankNumber",
+         "tag" : "Main.fbScreening.experLastData.blankNumber",
+         "type" : "UINT"
+      },
+      {
+         "field" : "mass",
+         "tag" : "Main.fbScreening.experLastData.mass",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "volume",
+         "tag" : "Main.fbScreening.experLastData.volume",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "isBlank",
+         "tag" : "Main.fbScreening.experLastData.isBlank",
+         "type" : "BOOL"
+      },
+      {
+         "field" : "description",
+         "tag" : "Main.fbScreening.experLastData.description",
+         "type" : "STRING"
+      },
+      {
+         "field" : "experResult.experimentNumber",
+         "tag" : "Main.fbScreening.experResult.experimentNumber",
+         "type" : "UINT"
+      },
+      {
+         "field" : "experResult.cycleNumber",
+         "tag" : "Main.fbScreening.experResult.cycleNumber",
+         "type" : "UINT"
+      },
+      {
+         "field" : "experResult.blankNumber",
+         "tag" : "Main.fbScreening.experResult.blankNumber",
+         "type" : "UINT"
+      },
+      {
+         "field" : "experResult.mass",
+         "tag" : "Main.fbScreening.experResult.mass",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "experResult.volume",
+         "tag" : "Main.fbScreening.experResult.volume",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "experResult.isBlank",
+         "tag" : "Main.fbScreening.experResult.isBlank",
+         "type" : "BOOL"
+      },
+      {
+         "field" : "experResult.description",
+         "tag" : "Main.fbScreening.experResult.description",
+         "type" : "STRING"
+      },
+      {
+         "field" : "experResult.adsorbCO2",
+         "tag" : "Main.fbScreening.experResult.adsorbCO2",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "experResult.adsorbCO2out",
+         "tag" : "Main.fbScreening.experResult.adsorbCO2out",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "experResult.desorbCO2out",
+         "tag" : "Main.fbScreening.experResult.desorbCO2out",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "experResult.blankCO2out",
+         "tag" : "Main.fbScreening.experResult.blankCO2out",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "experResult.calibFlowCO2",
+         "tag" : "Main.fbScreening.experResult.calibFlowCO2",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "experResult.blankCO2offset",
+         "tag" : "Main.fbScreening.experResult.blankCO2offset",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "experResult.purgeCO2out",
+         "tag" : "Main.fbScreening.experResult.purgeCO2out",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "experResult.adsorbTimeMins",
+         "tag" : "Main.fbScreening.experResult.adsorbTimeMins",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "experResult.desorbTimeMins",
+         "tag" : "Main.fbScreening.experResult.desorbTimeMins",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "Controller.nodeRedLifeCounter",
+         "tag" : "Controller.nodeRedLifeCounter",
+         "type" : "INT"
+      },
+      {
+         "field" : "heater.onPct",
+         "tag" : "Main.fbScreening.heater.onPct",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "htrModel.coef10",
+         "tag" : "Main.fbScreening.htrModel.coef1.v[0]",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "htrModel.coef20",
+         "tag" : "Main.fbScreening.htrModel.coef2.v[0]",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "htrModel.error1",
+         "tag" : "Main.fbScreening.htrModel.error1",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "htrModel.error2",
+         "tag" : "Main.fbScreening.htrModel.error2",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "processTempModel.error1",
+         "tag" : "Main.fbScreening.processTempModel.error1",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "processTempModel.error2",
+         "tag" : "Main.fbScreening.processTempModel.error2",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "htrModel.coef11",
+         "tag" : "Main.fbScreening.htrModel.coef1.v[1]",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "htrModel.coef12",
+         "tag" : "Main.fbScreening.htrModel.coef1.v[2]",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "htrModel.coef21",
+         "tag" : "Main.fbScreening.htrModel.coef2.v[1]",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "htrModel.coef22",
+         "tag" : "Main.fbScreening.htrModel.coef2.v[2]",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "htrModel.coef23",
+         "tag" : "Main.fbScreening.htrModel.coef2.v[3]",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "processTempModel.coef10",
+         "tag" : "Main.fbScreening.processTempModel.coef1.v[0]",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "processTempModel.coef20",
+         "tag" : "Main.fbScreening.processTempModel.coef2.v[0]",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "processTempModel.coef11",
+         "tag" : "Main.fbScreening.processTempModel.coef1.v[1]",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "processTempModel.coef12",
+         "tag" : "Main.fbScreening.processTempModel.coef1.v[2]",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "processTempModel.coef21",
+         "tag" : "Main.fbScreening.processTempModel.coef2.v[1]",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "processTempModel.coef22",
+         "tag" : "Main.fbScreening.processTempModel.coef2.v[2]",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "processTempModel.coef23",
+         "tag" : "Main.fbScreening.processTempModel.coef2.v[3]",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "licor.CO2",
+         "tag" : "Main.fbScreening.licor.CO2",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "licor.H2O",
+         "tag" : "Main.fbScreening.licor.H2O",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "licor.pressure",
+         "tag" : "Main.fbScreening.licor.pressure",
+         "type" : "LREAL"
+      },
+      {
+         "field" : "licor.flowrate",
+         "tag" : "Main.fbScreening.licor.flowrate",
+         "type" : "LREAL"
+      }
+   ]
+}

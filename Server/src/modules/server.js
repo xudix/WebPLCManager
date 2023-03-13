@@ -1,6 +1,9 @@
 // Event handlers for socket connection
 import { watchEventHandlers } from './watchEventHandlers.js';
 import * as utilities from './utilityFunctions.js';
+import { ADSController } from './ADSController.js';
+
+
 import express from 'express';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
@@ -11,7 +14,7 @@ import { Interface } from 'readline';
 export class ServerApp{
     
     // Properties for Watch App management
-    _accumulatingSubsData = false;
+    
     _dataClientsObj = {}; // An object of Watch clients.
         // Each property name is the socket id of the client
 
@@ -22,7 +25,7 @@ export class ServerApp{
 
 
 
-    constructor(serverConfig, controller) {
+    constructor(serverConfig, controllers, loggings) {
         this.config = serverConfig;
         console.log(this.config)
 
@@ -32,7 +35,15 @@ export class ServerApp{
         this.ioServer = new SocketIOServer(this.httpServer, {cors: serverConfig.cors});
         
         // Connect to controller
-        this.controller = controller;
+        this.controllers = controllers;
+        this.controller1 = controllers[0];
+        this.controller2 = controllers[1];
+
+        this.logging1conf = loggings[0];
+        this.logging2conf = loggings[1];
+
+        this.logging1 = new LoggingClient(this.config.subscriptionInterval/2, this.logging1conf, this, 0);
+        this.logging2 = new LoggingClient(this.config.subscriptionInterval/2, this.logging2conf, this, 1);
 
         // For socket connection: define actions 
         this.ioServer.on("connection", socket =>{
@@ -67,7 +78,7 @@ export class ServerApp{
 
     // Try to get the data types from the target system.
     getDataTypes(){
-        this.controller.getDataTypes().then( dataTypes => {
+        this.controller1.getDataTypes().then( dataTypes => {
             this.ioServer.emit("dataTypes", dataTypes);
             this.dataTypes = dataTypes;
             console.log(`Data types updated: ${Object.keys(dataTypes).length} data types found.`)
@@ -80,7 +91,7 @@ export class ServerApp{
 
     // Try to get the symbols from the target system.
     getSymbols(){
-        this.controller.getSymbols().then( symbols => {
+        this.controller1.getSymbols().then( symbols => {
             this.ioServer.emit("symbols", symbols);
             this.symbols = symbols;
             console.log(`Symbols updated: ${Object.keys(symbols).length} symbols found.`)
@@ -97,7 +108,7 @@ export class ServerApp{
     // symbolName: string is the name of the requested symbol.
     subscribeCyclic(clientID, symbolName){
         if(this._subscriptionsObj[symbolName] === undefined || this._subscriptionsObj[symbolName].length == 0){ // This symbol was not subscribed to
-            this.controller.subscribeCyclic(symbolName, (data) => this.dispatchSubscriptions.call(this, data), this.config.subscriptionInterval)
+            this.controller1.subscribeCyclic(symbolName, (data) => this.dispatchSubscriptions.call(this, data), this.config.subscriptionInterval)
                 .then((res) => {
                     this._subscriptionsObj[symbolName] = [clientID];
                     this._dataClientsObj[clientID].subscriptions.push(symbolName);
@@ -137,7 +148,7 @@ export class ServerApp{
             }
         }
         if(this._subscriptionsObj[symbolName].length == 0){ // no one is subscribing to this anymore
-            this.controller.unsubscribe(symbolName).catch(err => console.error(`Failed to subscribe to ${symbolName}`, err));
+            this.controller1.unsubscribe(symbolName).catch(err => console.error(`Failed to subscribe to ${symbolName}`, err));
         }
     }
 
@@ -149,7 +160,7 @@ export class ServerApp{
                 this._subscriptionsObj[symbolName].splice(idx, 1);
             }
             if (this._subscriptionsObj[symbolName].length == 0) { // no one is subscribing to this anymore
-                this.controller.unsubscribe(symbolName).catch(err => console.error(`Failed to subscribe to ${symbolName}`, err));
+                this.controller1.unsubscribe(symbolName).catch(err => console.error(`Failed to subscribe to ${symbolName}`, err));
             }
         });
         this._dataClientsObj[clientID].subscriptions = [];
@@ -159,7 +170,7 @@ export class ServerApp{
     // Try to read a symbol's value from the target system. Return a Promise<object>.
     // symbolName: string is the name of the requested symbol.
     readSymbolValue(clientID, symbolName){
-        this.controller.readSymbolValue(symbolName)
+        this.controller1.readSymbolValue(symbolName)
             .then((value) => {
                 watchClientsObj[clientID].socket.emit("symbolValue", {symbolName: symbolName, value: value});
             })
@@ -176,7 +187,7 @@ export class ServerApp{
         //let newValue = await this.strToType(symbolName, valueStr)
         //console.log(`${symbolName}: ${newValue}`)
         //this.controller.writeSymbolValue(symbolName, newValue)
-        this.controller.writeSymbolValue(symbolName, valueStr) // Looks like I can just pass a string to it???
+        this.controller1.writeSymbolValue(symbolName, valueStr) // Looks like I can just pass a string to it???
             .catch( err => {
                 this._dataClientsObj[clientID].socket.emit("error", new Error(`Failed to write symbol ${symbolName}`, err));
                 console.error(`Failed to write symbol ${symbolName}`, err);
@@ -212,6 +223,32 @@ export class ServerApp{
     }
     */
 
+    // Try to subscribe to a symbol for cyclic reading from the target system.
+    // If the symbol is already subscribed to, just add the client to the symbol item under subscriptions object.
+    // If the symbol is not subscribed to, ask the controller to subscribe.
+    // symbolName: string is the name of the requested symbol.
+    subscribeCyclic_1(clientID, symbolName, nController){
+        if(this._subscriptionsObj[symbolName] === undefined || this._subscriptionsObj[symbolName].length == 0){ // This symbol was not subscribed to
+            this.controllers[nController].subscribeCyclic(symbolName, (data) => this.dispatchSubscriptions.call(this, data), this.config.subscriptionInterval)
+                .then((res) => {
+                    this._subscriptionsObj[symbolName] = [clientID];
+                    this._dataClientsObj[clientID].subscriptions.push(symbolName);
+                    // this._dataClientsObj[clientID].sendSubscriptionList();
+                })
+                .catch(err => {
+//                    this._dataClientsObj[clientID].socket.emit("error", new Error(`Failed to subscribe to symbol ${symbolName}`));
+                    console.error(`Failed to subscribe to symbol ${symbolName}`, err)
+                });
+        }
+        else{
+            if(!this._subscriptionsObj[symbolName].includes(clientID)){ // this symbol is not already subscribed by this client
+                this._subscriptionsObj[symbolName].push(clientID);
+                this._dataClientsObj[clientID].subscriptions.push(symbolName);
+                // this._dataClientsObj[clientID].sendSubscriptionList();
+            }
+        }
+    }
+
 
 }// class ServerApp
 
@@ -241,7 +278,6 @@ class DataClient{
 
     sendSubscribedData(){}
 
-    sendSubscribedData(){}
 
 }
 
@@ -261,5 +297,20 @@ class WatchClient extends DataClient{
     sendSubscriptionList(){
         this.socket.emit("watchListUpdated", this.subscriptions)
 
+    }
+}
+
+class LoggingClient extends DataClient{
+    constructor(accumulationTime, config, server, nController){
+        super(accumulationTime);
+        this.nController = nController;
+        this.config = config;
+        this.server = server;
+        
+    }
+
+    sendSubscribedData(){
+        console.log(`Logging ${this.nController}`);
+        console.log(this.subscribedData);
     }
 }

@@ -1,7 +1,14 @@
 export class GenericController{
 
-    isConnected;    // boolean, indicate whether the client is connected
+    /**
+     * Indicate whether the client is connected
+     * @type {boolean}
+     */
+    get isConnected(){
+        return false;
+    };
     error;          // object, error message from the client
+    name;
 
 
     // Try to connect to the target system. Return a Promise.
@@ -12,7 +19,7 @@ export class GenericController{
     }
 
     // Try to disconnect from the target system. Return a Promise.
-    disconnect(){
+    _disconnect(){
         return new Promise(function(resolve, reject){
             reject(new Error("disconnect() method is not implemented!"))
         })

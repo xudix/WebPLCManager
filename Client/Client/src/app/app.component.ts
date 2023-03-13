@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { WatchPageService } from './services/watch-page.service';
 
 @Component({
   selector: 'app-root',
@@ -7,4 +8,31 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'Controller Watch';
+
+  /**
+ * List of controller names obtained from the server
+ */
+  public get controllerList(): string[] {
+    return Object.keys(this._service.controllerStatus);
+  }
+
+  /**
+   * Configured controllers, and whether it's connected to the server.
+   * {controllerName: isConnected}
+   */
+  public get controllerStatus() {
+    return this._service.controllerStatus;
+  }
+
+  // Properties for view
+  public get currentController(): string {
+    return this._service.currentController;
+  }
+
+  public set currentController(controllerName: string) {
+    this._service.setCurrentController(controllerName);
+  }
+
+  constructor(private _service: WatchPageService){}
+
 }

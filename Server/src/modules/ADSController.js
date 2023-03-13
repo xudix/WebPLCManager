@@ -2,16 +2,23 @@ import { GenericController } from "./genericController.js";
 import ads from "ads-client";
 
 
-// Client object from ads-client library.
+/**
+ * Controller object based on ads-client library
+ */
 export class ADSController extends GenericController{
     // setting up the ADS client
     
-    
-    subscriptions = {}; // Object containing all subscriptions at this point. Property names are the symbol names of each subscribed symbol.
-                        // property value is a notification object containing the handle and other info
-    handles = {}; // Object containing handles created on the PLC from variable names. 
-                    //Use this to subscribe to pointer and reference types. 
-                    // handles should be released if not needed anymore.
+    /**
+     * Object containing all subscriptions at this point. 
+     * -Property names are the symbol names of each subscribed symbol.
+     * -Property value is a notification object containing the handle and other info
+     */
+    subscriptions = {};
+    /**
+     * Object containing handles created on the PLC from variable names. Use this to subscribe to pointer and reference types. 
+     * Handles should be released if not needed anymore.
+     */
+    handles = {}; // 
 
     
 
@@ -20,10 +27,14 @@ export class ADSController extends GenericController{
         return this.client.connection.connected;
     }
 
-    // Takes a config object to setup the connection
+    /**
+     * 
+     * @param {*} config see the documentation for ads-client library for required parameters in the config
+     */
     constructor(config){
         super();
         this._config = config;
+        this.name = config.name || config.targetAdsPort.toString();  // use the port number as controller name here
         this.client = new ads.Client(config);
         this._connect();
         
@@ -47,11 +58,14 @@ export class ADSController extends GenericController{
     }
 
     // Try to disconnect from the target system. Return a Promise.
-    disconnect(){
+    _disconnect(){
         return this.client.disconnect();
     }
 
-    // Try to get the data types from the target system. Return a Promise<dataTypes>.
+    /**
+     * Try to get the data types from the target system. 
+     * @returns Promise. If resolved, datatypes object is returned.
+     */
     getDataTypes(){
         return new Promise((resolve, reject) => {
             this.client.readAndCacheDataTypes()

@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { AngularSplitModule } from 'angular-split';
 import { MatTabsModule } from '@angular/material/tabs'
+import { MatSelectModule } from '@angular/material/select';
 
 import { AppComponent } from './app.component';
 
@@ -13,6 +14,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 
 const config: SocketIoConfig = {url: 'http://localhost:2333', options: {}};
+const config_SameDomain: SocketIoConfig = {url: "", options: {}};
 
 @NgModule({
   declarations: [
@@ -26,7 +28,8 @@ const config: SocketIoConfig = {url: 'http://localhost:2333', options: {}};
     SocketIoModule.forRoot(config),
     AngularSplitModule,
     BrowserAnimationsModule,
-    MatTabsModule
+    MatTabsModule,
+    MatSelectModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

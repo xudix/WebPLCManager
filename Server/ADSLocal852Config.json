@@ -1,0 +1,6 @@
+{
+    "name" : "ScreeningReactor1",
+    "targetAmsNetId": "127.0.0.1.1.1",
+    "targetAdsPort": 852,
+    "retryTime": 60000
+}

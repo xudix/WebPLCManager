@@ -1,4 +1,4 @@
-<div style="height: 98vh; width: 98vw;">
+<div style="height: 80vh; width: 98vw;">
     <as-split direction="horizontal" unit="percent" [restrictMove]="true" [gutterSize]="10">
       <as-split-area [size]="50">
         <div class="symbol-list">
@@ -55,14 +55,14 @@
                             <th style="width: 25%;">NewValue</th>
                         </tr>
                     </thead>
-                    <tbody>
-                            <tr *ngFor="let item of watchList">
-                                <td style="width: 50%;">{{item.name}}</td>
-                                <td style="width: 25%; text-align: center;">{{item.value}}</td>
-                                <td style="width: 25%; text-align: center;">
-                                    <input [(ngModel)]="item.newValueStr">
-                                </td>
-                            </tr>
+                    <tbody *ngFor="let controllerName of controllerList">
+                        <tr>{{controllerName}}</tr>
+                        <tr *ngFor="let item of watchList[controllerName]">
+                            <td style="width: 50%;">{{item.name}}</td>
+                            <td style="width: 25%; text-align: center;">{{item.value}}</td>
+                            <td style="width: 25%; text-align: center;">
+                                <input [(ngModel)]="item.newValueStr">
+                            </td>    </tr>
                     </tbody>
                 </table>
             </div>

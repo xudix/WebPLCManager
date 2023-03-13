@@ -2,45 +2,71 @@ import { __metadata } from "tslib";
 import { ControllerSymbol, ControllerType } from "./controller-data-types";
 
 export class WatchPage {
-    dataTypes: Record<string, ControllerType> = {}; // data type info received from controller
-    symbols: Record<string, ControllerSymbol> = {}; // symbol info received from controller
-    watchList: ControllerSymbol[] = []; // list of variables being watched (subscribed to)
-    persistentList: ControllerSymbol[] = [];  // list of all persistent variables
+    /**
+     * Configured controllers, and whether it's connected to the server.
+     * {controllerName: isConnected}
+     */
+    controllerStatus: Record<string, boolean> = {}; 
+    /**
+     * data type info received from controller. {controllerName: {typename: typeObj}}. typename is lower case
+     */
+    dataTypes: Record<string, Record<string, ControllerType>> = {};
+    /**
+     * symbol info received from controller. {controllerName: {symbolname: symbolObj}}. symbolname is lower case.
+     */
+    symbols: Record<string, Record<string, ControllerSymbol>> = {};
+    /**
+     * List of variables being watched (subscribed to)
+     */
+    watchList: Record<string, ControllerSymbol[]> = {};
+    /**
+     * list of all persistent variables
+     */
+    persistentList: Record<string, ControllerSymbol[]> = {};
 
-    _dataTypeCache: Record<string, string> = {}; // A dictionary for known data types of known symbols. {symbolName: symbolType}
 
-    cacheDataType(symbolName: string, symbolType: string){
-        this._dataTypeCache[symbolName] = symbolType;
+    /**
+     * A dictionary for known data types of known symbols. {controllerName: {symbolName: symbolType}}
+     */
+    _dataTypeCache: Record<string, Record<string, string>> = {};
+
+    cacheDataType(controllerName: string, symbolName: string, symbolType: string){
+        if(this._dataTypeCache[controllerName] == undefined)
+        { this._dataTypeCache[controllerName] = {}; }
+        this._dataTypeCache[controllerName][symbolName] = symbolType;
     }
 
-    getTypeObj(typeName: string): ControllerType{
-        return this.dataTypes[typeName.toLocaleLowerCase()];
+    getTypeObj(controllerName: string, typeName: string): ControllerType{
+        return this.dataTypes[controllerName][typeName.toLocaleLowerCase()];
     }
 
     // get the symbol type by symbol name
-    getTypeByName(symbolName: string): string{
-        if(this._dataTypeCache[symbolName] === undefined){
+    getTypeByName(controllerName: string, symbolName: string): string{
+        if(this._dataTypeCache[controllerName] === undefined || this._dataTypeCache[controllerName][symbolName] === undefined){
             let list: ControllerSymbol[] = [];
-            let path = this.findSymbolsByInput(symbolName.replace(/\]+$/,""), list); // remove the "]" at the end of an array
+            let path = this.findSymbolsByInput(controllerName, symbolName.replace(/\]+$/,""), list); // remove the "]" at the end of an array
             if(list.length > 0){
-                this.cacheDataType(symbolName, list[0].type);
+                this.cacheDataType(controllerName, symbolName, list[0].type);
             }
-
+            else
+                return ""; // nothing found for input symbol name
         }
-        return this._dataTypeCache[symbolName];
+        return this._dataTypeCache[controllerName][symbolName];
     }
 
     // Find matching symbols according to input string
     // Returns the path with correct lower/upper case
     // The resulting list will be written to the input list
-    findSymbolsByInput(symbolInputStr: string, list: ControllerSymbol[]): string{ 
+    findSymbolsByInput(controllerName: string, symbolInputStr: string, list: ControllerSymbol[]): string{ 
                 
         list.length = 0;
         if (
             this.symbols === undefined ||
-            Object.keys(this.symbols).length == 0 ||
+            this.symbols[controllerName] === undefined || 
+            Object.keys(this.symbols[controllerName]).length == 0 ||
             this.dataTypes === undefined ||
-            Object.keys(this.dataTypes).length == 0
+            this.dataTypes[controllerName] === undefined ||
+            Object.keys(this.dataTypes[controllerName]).length == 0
         )
         { return ""; }
 
@@ -54,7 +80,7 @@ export class WatchPage {
 
         let splitName = lowerName.split(/[\[\]\.]+/); // lower case name, splited by .
         let currentName = splitName.length > 1 ? splitName[0] + "." + splitName[1]: lowerName; // This is in lower case. Build up the name piece by piece
-        let candidateSymbols: any = this.symbols; // Record<string, ControllerSymbol>|ControllerSymbol[]
+        let candidateSymbols: any = this.symbols[controllerName]; // Record<string, ControllerSymbol>|ControllerSymbol[]
         let lastLevel = Math.max(2, splitName.length);
 
         for(let currentLevel = 2; currentLevel <= lastLevel; currentLevel++){
@@ -66,7 +92,7 @@ export class WatchPage {
                         list.push(candidateSymbols[idx]);
                     }
                     else{ // not at the last level yet
-                        let typeObj = this.dataTypes[candidateSymbols[idx].type.toLowerCase()];
+                        let typeObj = this.getTypeObj(controllerName, candidateSymbols[idx].type);
                         if(isArrayElement){
                             actualPath = (actualPath == "") ? candidateSymbols[idx].name : actualPath + candidateSymbols[idx].name;
                         }else{
@@ -75,10 +101,10 @@ export class WatchPage {
                         isArrayElement = false;
                         if(candidateSymbols[idx].type.toLowerCase().startsWith("pointer to")){ // dereference any pointer type encountered
                             actualPath += "^";
-                            candidateSymbols = this.dataTypes[typeObj.baseType.toLocaleLowerCase()].subItems;
+                            candidateSymbols = this.dataTypes[controllerName][typeObj.baseType.toLocaleLowerCase()].subItems;
                         }
                         else if(candidateSymbols[idx].type.toLowerCase().startsWith("reference to")){ //reference type. Fall back to its base type
-                            candidateSymbols = this.dataTypes[typeObj.baseType.toLocaleLowerCase()].subItems;
+                            candidateSymbols = this.dataTypes[controllerName][typeObj.baseType.toLocaleLowerCase()].subItems;
                         }
                         else if(typeObj.arrayDimension > 0){ // array type
                             isArrayElement = true;
@@ -98,7 +124,7 @@ export class WatchPage {
                             }
                         }
                         else{
-                            candidateSymbols = this.dataTypes[typeObj.baseType.toLocaleLowerCase()].subItems;
+                            candidateSymbols = this.dataTypes[controllerName][typeObj.baseType.toLocaleLowerCase()].subItems;
                         }
                         found = true;
                         break; // break from for(let idx in candidateSymbols)
@@ -118,23 +144,27 @@ export class WatchPage {
     } // findSymbol
 
 
-    findPersistentSymbols(){
-        this.persistentList = [];
-        if(Object.keys(this.dataTypes).length > 0 && Object.keys(this.symbols).length > 0){
-            for(let symbolName in this.symbols){
-                this._findPersistentSymbolsRecursive(this.symbols[symbolName]);
+    findPersistentSymbols(controllerName: string){
+        this.persistentList[controllerName] = [];
+        if(this.dataTypes[controllerName] !== undefined &&
+            Object.keys(this.dataTypes[controllerName]).length > 0 &&
+            this.symbols[controllerName] !== undefined &&
+            Object.keys(this.symbols[controllerName]).length > 0)
+        {
+            for(let symbolName in this.symbols[controllerName]){
+                this._findPersistentSymbolsRecursive(controllerName, this.symbols[controllerName][symbolName]);
             }
         }
     }
 
     // recursively find persistent symbols. Returns true if a persistent symbol is found.
-    _findPersistentSymbolsRecursive(symbol: ControllerSymbol): boolean{
-        let typeObj = this.getTypeObj(symbol.type);
+    _findPersistentSymbolsRecursive(controllerName: string, symbol: ControllerSymbol): boolean{
+        let typeObj = this.getTypeObj(controllerName, symbol.type);
         let hasPersistentData = false;
         if(typeObj.arrayDimension > 0){
-            let newSymbolType = typeObj.arrayDimension == 1? typeObj.baseType: typeObj.name.replace(/(?<=\[)\d+\.\.\d+,\s*/, "");
+            let newSymbolType = typeObj.arrayDimension == 1? typeObj.baseType: typeObj.name.replace(/(?<=\[)\d+\.\.\d+,\s*/, ""); // This regexp removes the first dimension of array definition. ARRAY [a..b,c..d] becomes ARRAY [c..d]
             for(let i = typeObj.arrayInfo[0].startIndex; i < typeObj.arrayInfo[0].startIndex + typeObj.arrayInfo[0].length; i++){
-                hasPersistentData = this._findPersistentSymbolsRecursive({
+                hasPersistentData = this._findPersistentSymbolsRecursive(controllerName, {
                     name: symbol.name+`[${i}]`,
                     type: newSymbolType,
                     comment: typeObj.comment,
@@ -146,7 +176,7 @@ export class WatchPage {
         }
         else if(typeObj.subItemCount > 0){
             typeObj.subItems.forEach((subitem) => {
-                hasPersistentData = this._findPersistentSymbolsRecursive({
+                hasPersistentData = this._findPersistentSymbolsRecursive(controllerName, {
                     name: symbol.name + "." + subitem.name,
                     type: subitem.type,
                     comment: subitem.comment,
@@ -156,7 +186,7 @@ export class WatchPage {
         }else if(symbol.isPersisted){
             symbol.value = "";
             symbol.newValueStr = "";
-            this.persistentList.push(symbol);
+            this.persistentList[controllerName].push(symbol);
             hasPersistentData = true;
         }
         return hasPersistentData;

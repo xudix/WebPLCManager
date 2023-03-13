@@ -14,20 +14,35 @@ export class WatchPageService {
   private _expireTimers: Record<string,any> = {};
 
   // Properties exposed to component / view
+  /**
+   * Current controller name. All search and subscription operation will be done to this controller.
+   */
+  public currentController: string = ""; 
   public symbolInputStr: string = "";
   public currentPath: string = ""; // The path obtained by resolving the input string
   public selectedSymbols: ControllerSymbol[] = [];
   public candidateList: ControllerSymbol[] = []; 
+
+  public get controllerStatus(){
+    return this._model.controllerStatus;
+  }
+
+  private set controllerStatus(value){
+    this._model.controllerStatus = value;
+  }
   
   public get persistentList(){
     return this._model.persistentList;
   }
 
   public get symbolInfoAvailable(): boolean{
-    return Object.keys(this._model.dataTypes).length > 0 && Object.keys(this._model.symbols).length > 0;
+    return this._model.dataTypes[this.currentController] !== undefined && 
+            Object.keys(this._model.dataTypes).length > 0 &&
+            this._model.symbols[this.currentController] !== undefined && 
+            Object.keys(this._model.symbols).length > 0;
   }
 
-  public get watchList(): ControllerSymbol[]{
+  public get watchList(): Record<string, ControllerSymbol[]>{
     return this._model.watchList;
   };
 
@@ -41,38 +56,58 @@ export class WatchPageService {
   constructor(private socket: Socket) {
     this._model = new WatchPage();
     
-    socket.on("dataTypes", (newTypes: Record<string ,ControllerType>)=>{
-      this._model.dataTypes = newTypes;
-      this.symbolInputChanged();
+    // handles broadcast data received from the server
+    socket.on("broadcast", (message: {messageType: string, controllerName: string, data: any})=>{
+      switch(message.messageType){
+        case "dataTypes":
+          this._model.dataTypes[message.controllerName] = message.data;
+          this.symbolInputChanged(true);
+          break;
+        case "symbols":
+          this._model.symbols[message.controllerName] = message.data;
+          this.symbolInputChanged(true);
+          break;
+        case "controllerStatus":
+          this.controllerStatus = message.data;
+          if(this.currentController == ""){ this.setCurrentController(Object.keys(message.data)[0]); }
+          break;
+      }
+      
     });
 
-    socket.on("symbols", (newSymbols: Record<string, ControllerSymbol>) => {
-      this._model.symbols = newSymbols;
-      this.symbolInputChanged();
-    });
+    socket.on("controllerStatus", (controllerStatus: Record<string, boolean>) => {
+      this._model.controllerStatus = controllerStatus;
+    })
 
-    socket.on("subscribedData", (newData: Record<string, any>) =>  {
+    socket.on("subscribedData", (newData: Record<string, Record<string, any>>) =>  {
       this.updateValues(newData);
     });
 
-    socket.on("watchListUpdated", (newWatchList: string[]) => {
-      this._model.watchList = [];
-      newWatchList.forEach((symbolName) => {
-        this._model.watchList.push({
-          name: symbolName,
-          comment: "",
-          type: this._model.getTypeByName(symbolName),
-          value: null,
-          newValueStr: ""
+    socket.on("watchListUpdated", (newWatchList: Record<string, string[]>) => {
+      this._model.watchList = {};
+      for(let controllerName in newWatchList){
+        this._model.watchList[controllerName] = [];
+        newWatchList[controllerName].forEach((symbolName) => {
+          this._model.watchList[controllerName].push({
+            name: symbolName,
+            comment: "",
+            type: this._model.getTypeByName(controllerName, symbolName),
+            value: null,
+            newValueStr: ""
+          });
+          this._expireTimers[controllerName + symbolName] = null;
         });
-        this._expireTimers[symbolName] = null;
-      });
+      }
     });
 
     socket.on("connect", () => { // This is actually reestablishing connection. Subscribe to all previous watches.
-      this._model.watchList.forEach((symbol) => {
-        socket.emit("addWatchSymbol", symbol.name);
-      });
+      socket.emit("requestControllerStatus")
+      for(let controllerName in this._model.watchList){
+        this._model.watchList[controllerName].forEach((symbol) => {
+          socket.emit("addWatchSymbol", controllerName, symbol.name);
+        });
+      }
+      
 
     });
 
@@ -82,36 +117,47 @@ export class WatchPageService {
 
   }
 
+  setCurrentController(controllerName: string){
+    if(Object.keys(this.controllerStatus).includes(controllerName)){
+      this.currentController = controllerName;
+      this.requestSymbols();
+      this.symbolInputChanged(true);
+    }
+      
+  }
+
+
   // request to subscribe to a symbol in the watch list
   addSymbolToWatch() {
     this.selectedSymbols.forEach((symbol) => {
       if (this.watchableTypes.has(symbol.type) || symbol.type.includes("STRING")) { // FIXME: how to handle ENUM and TIME?
-        this.socket.emit("addWatchSymbol", symbol.name);
+        this.socket.emit("addWatchSymbol", this.currentController, symbol.name);
       }
     });
   }
 
   // Request to load symbols list from the controller
   requestSymbols(){
-    this.socket.emit("requestSymbols");
+    this.socket.emit("requestSymbols", this.currentController);
   }
 
-  // Search a symbol in symbols and types info
-  symbolInputChanged(){
-    if (
-      this._model.symbols === undefined ||
-      Object.keys(this._model.symbols).length == 0 ||
-      this._model.dataTypes === undefined ||
-      Object.keys(this._model.dataTypes).length == 0
-    )
-    { return; }
-    if (this.symbolInputStr === this.previousInput){ // input is not actually changed
+  /**
+   * Search a symbol in symbols and types info
+   * @param forceUpdate If set to true, a search will be performed whether the text is changed or not.
+   * @returns 
+   */
+  symbolInputChanged(forceUpdate: boolean = false){
+    
+    if (!this.symbolInfoAvailable) { 
+      return; 
+    }
+    if ((!forceUpdate) && this.symbolInputStr === this.previousInput) { // input is not actually changed
       return;
     }
     this.previousInput = this.symbolInputStr;
     this.selectedSymbols = [];
     this.candidateList = [];
-    this.currentPath = this._model.findSymbolsByInput(this.symbolInputStr, this.candidateList);
+    this.currentPath = this._model.findSymbolsByInput(this.currentController, this.symbolInputStr, this.candidateList);
     if (this.candidateList.length > 0) {
       this.selectedSymbols.push({
         name: (this.currentPath == "") ? this.candidateList[0].name : this.currentPath + "." + this.candidateList[0].name,
@@ -134,7 +180,7 @@ export class WatchPageService {
       actualName = (this.currentPath == "") ? symbol.name : this.currentPath + "." + symbol.name;
     }
      
-    let typeObj = this._model.dataTypes[symbol.type.toLowerCase()];
+    let typeObj = this._model.dataTypes[this.currentController][symbol.type.toLowerCase()];
     if(typeObj.subItemCount > 0){ // large type. Will have sub items
       this.symbolInputStr = actualName + ".";
       this.symbolInputChanged();
@@ -149,8 +195,8 @@ export class WatchPageService {
       this.symbolInputChanged();
     }
     else if(this.watchableTypes.has(typeObj.baseType) || typeObj.baseType.includes("STRING")){ // primitive, enum, or string type
-      this.socket.emit("addWatchSymbol", actualName);
-      this._model.cacheDataType(actualName, symbol.type);
+      this.socket.emit("addWatchSymbol", this.currentController, actualName);
+      this._model.cacheDataType(this.currentController, actualName, symbol.type);
       // symbol.name = actualName;
       // this.watchList.push(symbol)
     }
@@ -160,89 +206,98 @@ export class WatchPageService {
   }
 
   // update the values shown in the watch list after new data is received
-  updateValues(newData: Record<string, any>) {
-    this._model.watchList.forEach((symbol) => {
-      if (newData[symbol.name] != undefined) { // newData contains a value for this symbol
-        if(typeof newData[symbol.name] == "object" && (newData[symbol.name].name != undefined && newData[symbol.name].value != undefined)){
-          symbol.value = `${newData[symbol.name].name} ( ${newData[symbol.name].value} )` 
+  updateValues(newData: Record<string, Record<string, any>>) {
+    for(let controllerName in this._model.watchList){
+      this._model.watchList[controllerName].forEach((symbol) => {
+        if (newData[controllerName] != undefined && newData[controllerName][symbol.name] != undefined) { // newData contains a value for this symbol
+          if(typeof newData[controllerName][symbol.name] == "object" && (newData[controllerName][symbol.name].name != undefined && newData[controllerName][symbol.name].value != undefined)){
+            // enum type object
+            symbol.value = `${newData[controllerName][symbol.name].name} ( ${newData[controllerName][symbol.name].value} )` 
+          }
+          else{
+            symbol.value = newData[controllerName][symbol.name];
+          }
+          if(this._expireTimers[controllerName+symbol.name]){
+            clearTimeout(this._expireTimers[controllerName+symbol.name]);
+          }
+          this._expireTimers[controllerName+symbol.name] = setTimeout(() => {
+            symbol.value = null;
+          }, this._dataExpireTime);
         }
-        else{
-          symbol.value = newData[symbol.name];
-        }
-        if(this._expireTimers[symbol.name]){
-          clearTimeout(this._expireTimers[symbol.name]);
-        }
-        this._expireTimers[symbol.name] = setTimeout(() => {
-          symbol.value = null;
-        }, this._dataExpireTime);
-      }
-    })
+      })
+    }
+
+    
 
   }
 
   // unsubscribe from all watched symbols
   removeAllSymbols(){
     this.socket.emit("removeAllSymbols");
-    this._model.watchList = [];
+    this._model.watchList = {};
   }
 
   // remove one watched symbol
-  removeSymbol(symbolName: string){
-    this.socket.emit("removeWatchSymbol", symbolName);
+  removeSymbol(controllerName: string, symbolName: string){
+    this.socket.emit("removeWatchSymbol", controllerName, symbolName);
   }
 
   // write new values from the watch list to the Controller
   writeNewValues(){
-    let newValues: Record<string, any> = {}; // a collection of key-value pairs.
+    let newValues: Record<string, Record<string, any>> = {}; // a collection of key-value pairs.
     let hasNewValues: boolean = false;
-    this._model.watchList.forEach((symbol) =>{
-      if(symbol.newValueStr != undefined && symbol.newValueStr.length > 0){
-        let typeObj = this._getTypeObj(symbol.type);
-        if(typeObj.name.toLocaleLowerCase().startsWith("bool")){ // handles string to boolean
-          if(symbol.newValueStr.toLocaleLowerCase() == "true"){
-            newValues[symbol.name] = true;
-          }
-          else if(symbol.newValueStr.toLocaleLowerCase() == "false"){
-            newValues[symbol.name] = false;
-          }
-        } // handles boolean
-        else if(Object.keys(typeObj.enumInfo).length > 0 ){// handles enum
-          let lowerNewValStr = symbol.newValueStr.toLocaleLowerCase();
-          let num = Number(symbol.newValueStr);
-          if(Number.isNaN(num)){
-            for(let name in typeObj.enumInfo){
-              if(name.toLocaleLowerCase() == lowerNewValStr){
-                newValues[symbol.name] = name;
-                break;
+    for(let controllerName in this._model.watchList){
+      newValues[controllerName] = {};
+      this._model.watchList[controllerName].forEach((symbol) =>{
+        if(symbol.newValueStr != undefined && symbol.newValueStr.length > 0){
+          let typeObj = this._getTypeObj(controllerName, symbol.type);
+          if(typeObj.name.toLocaleLowerCase().startsWith("bool")){ // handles string to boolean
+            if(symbol.newValueStr.toLocaleLowerCase() == "true"){
+              newValues[controllerName][symbol.name] = true;
+            }
+            else if(symbol.newValueStr.toLocaleLowerCase() == "false"){
+              newValues[controllerName][symbol.name] = false;
+            }
+          } // handles boolean
+          else if(Object.keys(typeObj.enumInfo).length > 0 ){// handles enum
+            let lowerNewValStr = symbol.newValueStr.toLocaleLowerCase();
+            let num = Number(symbol.newValueStr);
+            if(Number.isNaN(num)){ // not a number. Input is the name of the enum
+              for(let name in typeObj.enumInfo){
+                if(name.toLocaleLowerCase() == lowerNewValStr){
+                  newValues[controllerName][symbol.name] = name;
+                  break;
+                }
+              }
+            }else{ // input is the value of the enum
+              for(let name in typeObj.enumInfo){
+                if(typeObj.enumInfo[name] == num){
+                  newValues[controllerName][symbol.name] = name;
+                  break;
+                }
               }
             }
-          }else{
-            for(let name in typeObj.enumInfo){
-              if(typeObj.enumInfo[name] == num){
-                newValues[symbol.name] = name;
-                break;
-              }
-            }
+          }// handles enum
+          else{ // other types. Just send the string
+            newValues[controllerName][symbol.name] = symbol.newValueStr;
           }
-        }// handles enum
-        else{ // other types. Just send the string
-          newValues[symbol.name] = symbol.newValueStr;
+          symbol.newValueStr = "";
+          hasNewValues = true;
         }
-        symbol.newValueStr = "";
-        hasNewValues = true;
-      }
-    });
+      });
+    }
+
     if(hasNewValues){
       this.socket.emit("writeNewValues", newValues);
     }
   }
 
-  _getTypeObj(typeName: string): ControllerType{
-    return this._model.getTypeObj(typeName);
+  _getTypeObj(controllerName: string, typeName: string): ControllerType{
+    return this._model.getTypeObj(controllerName, typeName);
   }
 
   findPersistentSymbols(){
-    this._model.findPersistentSymbols();
+    this._model.findPersistentSymbols(this.currentController);
   }
 
 }

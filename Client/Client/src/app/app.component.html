@@ -1,3 +1,9 @@
+<p>Current Controller: </p>
+<mat-select [(value)]="currentController" >
+  <mat-option *ngFor="let controller of controllerList" [value]="controller" >
+      {{controller + " - " + (controllerStatus[controller]? "Connected" : "Disconnected")}}
+  </mat-option>
+</mat-select>
 <mat-tab-group>
   <mat-tab label="Watch Symbols">
     <app-watch-page></app-watch-page>

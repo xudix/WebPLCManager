@@ -11,8 +11,8 @@ export class PersistentPageComponent {
   
   constructor(private _service: WatchPageService){}
 
-  public get persistentList(){
-    return this._service.persistentList;
+  public get persistentList(): ControllerSymbol[]{
+    return this._service.persistentList[this._service.currentController];
   }
 
   public findPersistentSymbols(){
