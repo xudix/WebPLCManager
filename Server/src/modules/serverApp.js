@@ -62,9 +62,7 @@ export class ServerApp{
                 }
             }
         }
-        console.log(this._controllers);
-
-
+        
         // HTTP server
         this.expressApp = express();
         this.httpServer = http.createServer(this.expressApp);
@@ -91,7 +89,7 @@ export class ServerApp{
         });
 
         // Logging client
-         this.loggingClient = new LoggingClient("logging", this._serverConfig.subscriptionInterval/2, this.dataBroker, loggingConfig);
+        this.loggingClient = new LoggingClient("logging", this._serverConfig.subscriptionInterval/2, this.dataBroker, loggingConfig);
 
         // HTTP responses
         this.expressApp.use(express.static(path.join(this._serverConfig.rootPath,'client')));

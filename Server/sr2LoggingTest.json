@@ -1,0 +1,14 @@
+{
+    "bucket" : "DacLab",
+    "measurement" : "ScreeningReactor2",
+    "org" : "Sustaera",
+    "port" : 852,
+    "name" : "ScreeningReactor2",
+    "tags" : [
+       {
+          "field" : "Controller.lifeCounter",
+          "tag" : "Controller.lifeCounter",
+          "type" : "INT"
+       }
+    ]
+}

@@ -175,21 +175,25 @@ export class DataBroker extends EventEmitter{
     subscribeCyclic(clientID, controllerName, symbolName){
         return new Promise((resolve, reject) => {
             if(this._subscriptionsBySymbol[controllerName][symbolName] === undefined || this._subscriptionsBySymbol[controllerName][symbolName].length == 0){ // This symbol was not subscribed to
-                this._controllers[controllerName].subscribeCyclic(symbolName, (data) => this.dispatchSubscriptions.call(this, controllerName, data), this.config.subscriptionInterval)
-                    .then((res) => {
-                        this._subscriptionsBySymbol[controllerName][symbolName] = [clientID];
-                        if(this._subscriptionsByClient[clientID] == undefined)
-                        { this._subscriptionsByClient[clientID] = {} }
-                        if(this._subscriptionsByClient[clientID][controllerName] == undefined)
-                        { this._subscriptionsByClient[clientID][controllerName] = []; }
-                        this._subscriptionsByClient[clientID][controllerName].push(symbolName);
-                        
-                        resolve(res);
-                    })
-                    .catch(err => {
-                        console.error(`Failed to subscribe to symbol ${symbolName} from ${controllerName}`, err)
-                        reject(err);
-                    });
+                if(this._controllers[controllerName] == undefined){
+                    reject(new Error(`Controller ${controllerName} is not defined.`))
+                }
+                else if(!this._controllers[controllerName].isConnected){
+                    reject(new Error(`Controller ${controllerName} is not connected.`))
+                }
+                else{
+                    this._controllers[controllerName].subscribeCyclic(symbolName, (data) => this.dispatchSubscriptions.call(this, controllerName, data), this.config.subscriptionInterval)
+                        .then((res) => {
+                            this._subscriptionsBySymbol[controllerName][symbolName] = [clientID];
+                            if (this._subscriptionsByClient[clientID] == undefined) { this._subscriptionsByClient[clientID] = {} }
+                            if (this._subscriptionsByClient[clientID][controllerName] == undefined) { this._subscriptionsByClient[clientID][controllerName] = []; }
+                            this._subscriptionsByClient[clientID][controllerName].push(symbolName);
+                            resolve(res);
+                        })
+                        .catch(err => {
+                            reject(err);
+                        });
+                }
             }
             else{
                 if(!this._subscriptionsBySymbol[controllerName][symbolName].includes(clientID)){ // this symbol is not already subscribed by this client
@@ -210,27 +214,34 @@ export class DataBroker extends EventEmitter{
     /**
      * Try to subscribe to a symbol for changes from the target system.
      * @param {string} clientID 
+     * @param {string} controllerName
      * @param {string} symbolName 
      * @returns Promise. If resolved, the data to the resolve function is a subscription object.
      */
-    subscribeOnChange(clientID, symbolName){
+    subscribeOnChange(clientID, controllerName, symbolName){
         return new Promise((resolve, reject) => {
             if(this._subscriptionsBySymbol[controllerName][symbolName] === undefined || this._subscriptionsBySymbol[controllerName][symbolName].length == 0){ // This symbol was not subscribed to
-                this._controllers[controllerName].subscribeOnChange(symbolName, (data) => this.dispatchSubscriptions.call(this, controllerName, data))
-                    .then((res) => {
-                        this._subscriptionsBySymbol[controllerName][symbolName] = [clientID];
-                        if(this._subscriptionsByClient[clientID] == undefined)
-                        { this._subscriptionsByClient[clientID] = {} }
-                        if(this._subscriptionsByClient[clientID][controllerName] == undefined)
-                        { this._subscriptionsByClient[clientID][controllerName] = []; }
-                        this._subscriptionsByClient[clientID][controllerName].push(symbolName);
-                        
-                        resolve(res);
-                    })
-                    .catch(err => {
-                        console.error(`Failed to subscribe to symbol ${symbolName} from ${controllerName}`, err)
-                        reject(err);
-                    });
+                if(this._controllers[controllerName] == undefined){
+                    reject(new Error(`Controller ${controllerName} is not defined.`))
+                }
+                else if(!this._controllers[controllerName].isConnected){
+                    reject(new Error(`Controller ${controllerName} is not connected.`))
+                }
+                else{
+                    this._controllers[controllerName].subscribeOnChange(symbolName, (data) => this.dispatchSubscriptions.call(this, controllerName, data))
+                        .then((res) => {
+                            this._subscriptionsBySymbol[controllerName][symbolName] = [clientID];
+                            if (this._subscriptionsByClient[clientID] == undefined) { this._subscriptionsByClient[clientID] = {} }
+                            if (this._subscriptionsByClient[clientID][controllerName] == undefined) { this._subscriptionsByClient[clientID][controllerName] = []; }
+                            this._subscriptionsByClient[clientID][controllerName].push(symbolName);
+
+                            resolve(res);
+                        })
+                        .catch(err => {
+                            reject(err);
+                        });
+                }
+                
             }
             else{
                 if(!this._subscriptionsBySymbol[controllerName][symbolName].includes(clientID)){ // this symbol is not already subscribed by this client

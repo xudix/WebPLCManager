@@ -1,5 +1,7 @@
 import { Socket } from "socket.io";
 import { DataBroker } from "./DataBroker.js";
+import * as FileSystem from "node:fs/promises";
+import * as Path from "node:path";
 
 /**
  * A generic data client that subscribes data from DataBroker.
@@ -36,6 +38,12 @@ export class DataClient{
     _accumulatingSubsData = false;
 
     /**
+     * Timestamp of first data received during the current accumulation.
+     * @type {number} UTC, Unix timestamp. The number of seconds that have elapsed since January 1, 1970
+     */
+    _dataTime;
+
+    /**
      * The constructor will call the registerClient() method of the dataBroker.
      * @param {string} id A unique identifier for this client
      * @param {number} accumulationTime time to accumulate data, from receiving the first data to sending out the accumulated data.
@@ -52,13 +60,14 @@ export class DataClient{
     /**
      * Receive data from the server app. Accumulate the data for a while, then send accumulated data out
      * @param {string} controllerName 
-     * @param {{symbolName: string, value: any}} data 
+     * @param {{symbolName: string, value: any, timeStamp: Date}} data 
      */
     receiveData(controllerName, data){
         if(this.subscribedData[controllerName] === undefined)
         { this.subscribedData[controllerName] = {}; }
         this.subscribedData[controllerName][data.symbolName] = data.value;
         if(!this._accumulatingSubsData){ // First data received. Start accumulating them
+            this._dataTime = Math.floor(data.timeStamp.valueOf()/1000);
             this._accumulatingSubsData = true;
             setTimeout(() => { // after the subscription interval from receiving the first data, send the accumulated data out.
                 this.sendSubscribedData();
@@ -131,13 +140,25 @@ export class WatchClient extends DataClient{
                 {this.subscriptions[controllerName] = [];}
                 this.subscriptions[controllerName].push(symbolName);
                 this.sendSubscriptionList();
-            });
+            })
+            .catch(err => console.error(`Failed to subscribe to symbol ${symbolName} from ${controllerName}`, err));
         });
         this._socket.on("removeWatchSymbol", (controllerName, symbolName) =>{
-            this._dataBroker.unsubscribe(this.id, controllerName, symbolName);
+            try{
+                this._dataBroker.unsubscribe(this.id, controllerName, symbolName);
+                let idx = this.subscriptions[controllerName].indexOf(symbolName);
+                if(idx > -1){
+                    this.subscriptions[controllerName].splice(idx, 1);
+                }
+            }
+            catch(err){
+                console.error(err);
+            }
         });
         this._socket.on("removeAllSymbols", () => {
-            this._dataBroker.unsubscribeAll(this.id);
+            this._dataBroker.unsubscribeAll(this.id)
+            .catch((err) => console.error(err) )
+            .finally(() => this.subscriptions = {});
         });
         this._socket.on("requestSymbols", (controllerName) => {
             this._dataBroker.getDataTypes(controllerName);
@@ -195,8 +216,31 @@ export class WatchClient extends DataClient{
 
 export class LoggingClient extends DataClient{
 
-    _currentTime;
+    _fileTimer;
+    /**
+     * File handle for the logging file
+     * @type {FileSystem.FileHandle}
+     */
+    _fileHandle = null;
+
+    _buffer;
+    _bufferHead;
+    _bufferLength = 0;
+    _fileAvaileble = false;
+    _subsNumber = 0;
+    _subsSucceeded = 0;
+    _subsFailed = 0;
+    /**
+     * Indicate if a fresh subscription should be performed. Set it to false after a call to _subscribeLogging()
+     * @type {boolean} 
+     */
+    _freshSubscription = true;
     
+    /**
+     * A dictionary for looking up field name by controller name and tag name
+     * @type {Record<string, Record<string,string>>} {controllerName: {symbolName: field}}
+     */
+    fieldsDict = {};
 
     /**
      * 
@@ -220,17 +264,130 @@ export class LoggingClient extends DataClient{
     constructor(id, accumulationTime, dataBroker, loggingConfig){
         super(id, accumulationTime, dataBroker);
         this.configs = loggingConfig;
-        loggingConfig.logConfigs.forEach(config => {
-            if(dataBroker._controllers[config.name] !== undefined){ // The specified controller exist
-                config.tags.forEach(tag => {
-                    dataBroker.subscribeCyclic(id, config.name, tag.tag)
-                })
-            }
-        });
+        this.tempFilePath;
+        
+        this._subscribeLogging();
+        this._buffer = Buffer.alloc(this._subsNumber*100);
 
     }
 
     sendSubscribedData(){
+        let measurement;
+        for(let controllerName in this.subscribedData){
+            for(let config of this.configs.logConfigs){
+                if(config.name == controllerName){
+                    measurement = config.measurement;
+                    break;
+                }
+            }
+            this._bufferLength += this._buffer.write(`${measurement} `, this._bufferLength, 'binary');
+            for(let symbolName in this.subscribedData[controllerName]){
+                this._bufferLength += this._buffer.write(`${this.fieldsDict[controllerName][symbolName]}=${this.subscribedData[controllerName][symbolName]},`, this._bufferLength, 'binary');
+            }
+            this._bufferLength += this._buffer.write(` ${this._dataTime}\n`, this._bufferLength-1, 'binary'); // -1 in offset to remove the last comma
+        }
+        this._writeToFile();
+    }
+
+    /**
+     * 
+     * @param {boolean} reSubscribe Force the client to unsubscribe all symbols and re subscribe them from the data broker.
+     */
+    async _subscribeLogging(reSubscribe = false){
+        if(reSubscribe){
+            this._dataBroker.unsubscribeAll(this.id).then(() => {
+                this.subscriptions = {};
+                this._subsNumber = 0;
+                this._subsFailed = 0;
+                this._subsSucceeded = 0;
+                this._freshSubscription = true;
+                this._subscribeLogging(false);
+            })
+        }
+        else{
+            this.configs.logConfigs.forEach(config => {
+                let controllerName = config.name;
+                if(this._dataBroker._controllers[controllerName] !== undefined){ // The specified controller exist
+                    if(this.fieldsDict[controllerName] === undefined){
+                        this.fieldsDict[controllerName] = {};
+                    }
+                    if(this.subscriptions[controllerName] === undefined){
+                        this.subscriptions[controllerName] = [];
+                    }
+                    config.tags.forEach(tag => {
+                        let symbolName = tag.tag;
+                        this.fieldsDict[controllerName][symbolName] = tag.field;
+                        this._subsNumber += 1;
+                        if(this._freshSubscription || !this.subscriptions[controllerName].includes(symbolName)){
+                            this._dataBroker.subscribeCyclic(this.id, controllerName, symbolName)
+                                .then(() => {
+                                    this.subscriptions[controllerName].push(symbolName);
+                                    //this._subsSucceeded += 1;
+                                    //if(!this._freshSubscription) {this._subsFailed -= 1;} // If this is to go over the failed subscriptions again, reduce the fail number
+                                })
+                                .catch(err => {
+                                    //if(this._freshSubscription) {this._subsFailed += 1;}
+                                    console.error(`LoggingClient: Failed to subscribe to symbol ${symbolName} from ${controllerName}`, err)
+                                });
+                        }
+                        
+                    })
+                }
+            });
+        }
+        
+    }
+
+    _writeToFile(){
+        if(this._fileHandle == null){
+            this._fileAvaileble = false;
+            this._fileHandle = {};  // to prevent another file creation operation before this one is done.
+            this.tempFilePath = Path.join(this.configs.logPath, this._dataTime+".temp")
+            FileSystem.open(this.tempFilePath, "a+")
+            .then(fileHandle => {
+                this._fileHandle = fileHandle;
+                this._writeLine()
+                this._fileTimer = setTimeout(() => {
+                    this._switchFile();
+                }, this.configs.logFileTime);
+            })
+            .catch(err => {
+                this._fileHandle = null;
+                console.error("Failed to create temp file", err);
+            })
+        }
+        else if(this._fileAvaileble){
+            this._writeLine();
+        }
+    }
+
+    async _writeLine(){
+        this._fileAvaileble = false;
+        return this._fileHandle.write(this._buffer,0,this._bufferLength)
+        .then((res) => {
+            //console.log(`Written ${res.bytesWritten} bytes.`);
+            this._bufferLength = 0;
+            this._fileAvaileble = true;
+        })
+        .catch(err => console.error(`Failed to write to file.`, err));
+    }
+
+    _switchFile(){
+        console.log(`Processed ${this._subsNumber} symbols. ${this._subsSucceeded} succeeded, ${this._subsFailed} failed.`);
+        this._fileAvaileble = false;
+        console.log(`closing file.`);
+        this._fileHandle.close()
+        .then(() => {
+            FileSystem.rename(this.tempFilePath, Path.join(this.configs.logPath, this._dataTime+".data"))
+            .then(() => {
+            })
+            .catch(err =>{
+                console.error("Failed to rename file.");
+            })
+            .finally(() => {
+                this._fileHandle = null;
+            })
+        });
         
     }
 
