@@ -224,14 +224,16 @@ export class LoggingClient extends DataClient{
     _fileHandle = null;
 
     _buffer;
-    _bufferHead;
     _bufferLength = 0;
     _fileAvaileble = false;
     _subsNumber = 0;
     _subsSucceeded = 0;
     _subsFailed = 0;
+    _subsHasFailure = false;
     /**
-     * Indicate if a fresh subscription should be performed. Set it to false after a call to _subscribeLogging()
+     * Indicate if a fresh subscription should be performed, during which the all symbol will be subscribed to.
+     * If not in a fresh sub, only the symbols that failed in previous subscription will be retried.
+     * It is set to true when 1 first started; 2 _subscribeLogging(true) called with reSubscribe = true.
      * @type {boolean} 
      */
     _freshSubscription = true;
@@ -264,13 +266,15 @@ export class LoggingClient extends DataClient{
     constructor(id, accumulationTime, dataBroker, loggingConfig){
         super(id, accumulationTime, dataBroker);
         this.configs = loggingConfig;
-        this.tempFilePath;
+        this.autoResubscribe = true;
         
         this._subscribeLogging();
-        this._buffer = Buffer.alloc(this._subsNumber*100);
 
     }
 
+    /**
+     * Write the data accumulated in subscribedData to the buffer, then call _writeToFile.
+     */
     sendSubscribedData(){
         let measurement;
         for(let controllerName in this.subscribedData){
@@ -284,8 +288,9 @@ export class LoggingClient extends DataClient{
             for(let symbolName in this.subscribedData[controllerName]){
                 this._bufferLength += this._buffer.write(`${this.fieldsDict[controllerName][symbolName]}=${this.subscribedData[controllerName][symbolName]},`, this._bufferLength, 'binary');
             }
-            this._bufferLength += this._buffer.write(` ${this._dataTime}\n`, this._bufferLength-1, 'binary'); // -1 in offset to remove the last comma
+            this._bufferLength += (this._buffer.write(` ${this._dataTime}\n`, this._bufferLength-1, 'binary') - 1); // -1 in offset to remove the last comma
         }
+        this.subscribedData = {};
         this._writeToFile();
     }
 
@@ -294,18 +299,20 @@ export class LoggingClient extends DataClient{
      * @param {boolean} reSubscribe Force the client to unsubscribe all symbols and re subscribe them from the data broker.
      */
     async _subscribeLogging(reSubscribe = false){
-        if(reSubscribe){
-            this._dataBroker.unsubscribeAll(this.id).then(() => {
+        if(reSubscribe){ // If a resubscribe is needed, unsubscribe all previous ones, then start over.
+            this._dataBroker.unsubscribeAll(this.id).then(async () => {
+                this.sendSubscribedData();  // purge out current accumulated data
                 this.subscriptions = {};
                 this._subsNumber = 0;
                 this._subsFailed = 0;
+                this._subsHasFailure = false;
                 this._subsSucceeded = 0;
                 this._freshSubscription = true;
                 this._subscribeLogging(false);
             })
         }
         else{
-            this.configs.logConfigs.forEach(config => {
+            this.configs.logConfigs.forEach(config => { // iterate all configs (for all controllers)
                 let controllerName = config.name;
                 if(this._dataBroker._controllers[controllerName] !== undefined){ // The specified controller exist
                     if(this.fieldsDict[controllerName] === undefined){
@@ -314,19 +321,22 @@ export class LoggingClient extends DataClient{
                     if(this.subscriptions[controllerName] === undefined){
                         this.subscriptions[controllerName] = [];
                     }
-                    config.tags.forEach(tag => {
+                    config.tags.forEach(tag => { // iterate all symbols defined
                         let symbolName = tag.tag;
                         this.fieldsDict[controllerName][symbolName] = tag.field;
-                        this._subsNumber += 1;
-                        if(this._freshSubscription || !this.subscriptions[controllerName].includes(symbolName)){
+                        if(this._freshSubscription) {this._subsNumber += 1;} // just cound the number of defined tags, for allocating the buffer.
+                        if(this._freshSubscription || (!tag.success)){  // If it's not a fresh subscription, only subscribe to the ones that failed previously.
                             this._dataBroker.subscribeCyclic(this.id, controllerName, symbolName)
                                 .then(() => {
                                     this.subscriptions[controllerName].push(symbolName);
+                                    tag.success = true;
                                     //this._subsSucceeded += 1;
                                     //if(!this._freshSubscription) {this._subsFailed -= 1;} // If this is to go over the failed subscriptions again, reduce the fail number
                                 })
                                 .catch(err => {
                                     //if(this._freshSubscription) {this._subsFailed += 1;}
+                                    tag.success = false;
+                                    this._subsHasFailure = true;
                                     console.error(`LoggingClient: Failed to subscribe to symbol ${symbolName} from ${controllerName}`, err)
                                 });
                         }
@@ -334,36 +344,47 @@ export class LoggingClient extends DataClient{
                     })
                 }
             });
+            if(this._freshSubscription){ // Consider to re-allocate the buffer
+                this._buffer = Buffer.alloc((this._subsNumber+1)*100);
+            }
+            this._freshSubscription = false;
+            if(this.autoResubscribe){
+                setTimeout(() => {
+                    if (this._subsHasFailure) { this._subscribeLogging(false); }
+                }, this.configs.logFileTime);
+            }
         }
         
     }
 
-    _writeToFile(){
-        if(this._fileHandle == null){
-            this._fileAvaileble = false;
-            this._fileHandle = {};  // to prevent another file creation operation before this one is done.
-            this.tempFilePath = Path.join(this.configs.logPath, this._dataTime+".temp")
-            FileSystem.open(this.tempFilePath, "a+")
-            .then(fileHandle => {
-                this._fileHandle = fileHandle;
-                this._writeLine()
-                this._fileTimer = setTimeout(() => {
-                    this._switchFile();
-                }, this.configs.logFileTime);
-            })
-            .catch(err => {
-                this._fileHandle = null;
-                console.error("Failed to create temp file", err);
-            })
-        }
-        else if(this._fileAvaileble){
-            this._writeLine();
+    async _writeToFile(){
+        if(this._bufferLength > 0){ // only write if there's data to write
+            if(this._fileHandle == null){
+                this._fileAvaileble = false;
+                this._fileHandle = {};  // to prevent another file creation operation before this one is done.
+                this.tempFilePath = Path.join(this.configs.logPath, this._dataTime+".temp")
+                await FileSystem.open(this.tempFilePath, "a+")
+                .then(fileHandle => {
+                    this._fileHandle = fileHandle;
+                    this._writeLine()
+                    this._fileTimer = setTimeout(() => {
+                        this.switchFile();
+                    }, this.configs.logFileTime);
+                })
+                .catch(err => {
+                    this._fileHandle = null;
+                    console.error("Failed to create temp file", err);
+                })
+            }
+            else if(this._fileAvaileble){
+                await this._writeLine();
+            }
         }
     }
 
     async _writeLine(){
         this._fileAvaileble = false;
-        return this._fileHandle.write(this._buffer,0,this._bufferLength)
+        await this._fileHandle.write(this._buffer,0,this._bufferLength)
         .then((res) => {
             //console.log(`Written ${res.bytesWritten} bytes.`);
             this._bufferLength = 0;
@@ -372,10 +393,11 @@ export class LoggingClient extends DataClient{
         .catch(err => console.error(`Failed to write to file.`, err));
     }
 
-    _switchFile(){
-        console.log(`Processed ${this._subsNumber} symbols. ${this._subsSucceeded} succeeded, ${this._subsFailed} failed.`);
+    /**
+     * Close the current logging file and rename it. The next write operation will be on a new file.
+     */
+    switchFile(){
         this._fileAvaileble = false;
-        console.log(`closing file.`);
         this._fileHandle.close()
         .then(() => {
             FileSystem.rename(this.tempFilePath, Path.join(this.configs.logPath, this._dataTime+".data"))
@@ -389,6 +411,10 @@ export class LoggingClient extends DataClient{
             })
         });
         
+    }
+
+    restartLogging(){
+        this._subscribeLogging(true);
     }
 
 }
