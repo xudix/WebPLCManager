@@ -2,6 +2,8 @@ import { Socket } from "socket.io";
 import { DataBroker } from "./DataBroker.js";
 import * as FileSystem from "node:fs/promises";
 import * as Path from "node:path";
+import { json } from "express";
+import { Console } from "node:console";
 
 /**
  * A generic data client that subscribes data from DataBroker.
@@ -106,10 +108,12 @@ export class WatchClient extends DataClient{
      * @param {number} accumulationTime 
      * @param {DataBroker} dataBroker 
      * @param {Socket} socket 
+     * @param {LoggingClient} loggingClient The logging client managed by the watch page
      */
-    constructor(id, accumulationTime, dataBroker, socket){
+    constructor(id, accumulationTime, dataBroker, socket, loggingClient){
         super(id, accumulationTime, dataBroker);
         this._socket = socket;
+        this._loggingClient = loggingClient;
         this._addWatchEventHandlers();
     }
 
@@ -164,6 +168,16 @@ export class WatchClient extends DataClient{
             this._dataBroker.getDataTypes(controllerName);
             this._dataBroker.getSymbols(controllerName);
         });
+        this._socket.on("requestLoggingConfig", () => {
+            this._socket.emit("loggingConfigUpdated", this._loggingClient.loggingConfig);
+        });
+        this._socket.on("writeLoggingConfig", (newConfig) => {
+            if(newConfig != undefined){
+                this._loggingClient.loggingConfig = newConfig;
+            }
+
+        });
+
         // Expected to receive an object of name-value pairs {controllerName: {symbolName: value}}
         this._socket.on("writeNewValues", (newValuesObj) => {
             let results = {};
@@ -216,6 +230,36 @@ export class WatchClient extends DataClient{
 
 export class LoggingClient extends DataClient{
 
+
+    get loggingConfig(){
+        return this._loggingConfig;
+    }
+
+    /**
+    * @param {{logPath: string, 
+    *          logFileTime: number, 
+    *          logConfigs: {measurement: string,
+    *                       name: string,
+    *                       tags: {field: string, tag: string, status: string}[]
+    *                      }[]
+    *          }} newConfig  Configuration for logging.
+    *  - logPath is where the log files will be stored
+    *  - logFileTime, in miliseconds, specifies the max time duration for a single data file. After this time, a new file will be created.
+    *  - name is the controller's name, which should match the name in the controller object
+    *  - tag is the full symbol name in the PLC
+    *  - measurement and field are the name of this entry in the data base.
+     */
+    set loggingConfig(newConfig){
+        // FIXME: check validity of logging config
+        this._loggingConfig.logPath = (newConfig.logPath || this._loggingConfig.logPath);
+        this._loggingConfig.logFileTime = (newConfig.logFileTime || this._loggingConfig.logFileTime);
+        this._loggingConfig.logConfigs = newConfig.logConfigs;
+        for(let config of this._loggingConfig.logConfigs){
+            FileSystem.writeFile(Path.join(this._loggingConfig.configPath, config.name + "logging.json"), JSON.stringify(config,null,2));
+        }
+        
+    }
+
     _fileTimer;
     /**
      * File handle for the logging file
@@ -223,9 +267,22 @@ export class LoggingClient extends DataClient{
      */
     _fileHandle = null;
 
+    /**
+     * Buffer for data to be written to the file
+     */
     _buffer;
+    /**
+     * Number of bytes in _buffer
+     */
     _bufferLength = 0;
+    /**
+     * Indicate if the file is being used (for writing, closing, rename, etc.). When file is not available, write to file operation will 
+     */
     _fileAvaileble = false;
+    /**
+     * An array of Promises that need to be exmined for all complete
+     */
+    _promises = [];
     _subsNumber = 0;
     _subsSucceeded = 0;
     _subsFailed = 0;
@@ -249,9 +306,10 @@ export class LoggingClient extends DataClient{
      * @param {*} id 
      * @param {*} accumulationTime 
      * @param { DataBroker } dataBroker 
-     * @param {{logPath: string, 
-    *          logFileTime: number, 
-    *          logConfigs: {bucket: string,
+     * @param {{configPath: string,
+     *          logPath: string, 
+    *           logFileTime: number, 
+    *           logConfigs: {bucket: string,
     *                       measurement: string,
     *                       name: string,
     *                       tags: {field: string, tag: string}[]
@@ -265,10 +323,22 @@ export class LoggingClient extends DataClient{
      */
     constructor(id, accumulationTime, dataBroker, loggingConfig){
         super(id, accumulationTime, dataBroker);
-        this.configs = loggingConfig;
-        this.autoResubscribe = true;
+        this._loggingConfig = loggingConfig;
+        let controllerStatus = dataBroker.getControllerStatus();
+        for(let controllerName in controllerStatus){
+            this._promises.push(FileSystem.readFile(Path.join(this._loggingConfig.configPath, controllerName + "logging.json"))
+                .then((data) => {
+                    this._loggingConfig.logConfigs.push(JSON.parse(data));
+                })
+                .catch(err => console.error(`Failed to load logging configuration for ${controllerName}.`, err)));
+        }
+        Promise.all(this._promises).then(() => {
+            this.autoResubscribe = true;
         
-        this._subscribeLogging();
+            //this._subscribeLogging();
+        })
+        
+        
 
     }
 
@@ -278,7 +348,7 @@ export class LoggingClient extends DataClient{
     sendSubscribedData(){
         let measurement;
         for(let controllerName in this.subscribedData){
-            for(let config of this.configs.logConfigs){
+            for(let config of this.loggingConfig.logConfigs){
                 if(config.name == controllerName){
                     measurement = config.measurement;
                     break;
@@ -312,7 +382,7 @@ export class LoggingClient extends DataClient{
             })
         }
         else{
-            this.configs.logConfigs.forEach(config => { // iterate all configs (for all controllers)
+            this.loggingConfig.logConfigs.forEach(config => { // iterate all configs (for all controllers)
                 let controllerName = config.name;
                 if(this._dataBroker._controllers[controllerName] !== undefined){ // The specified controller exist
                     if(this.fieldsDict[controllerName] === undefined){
@@ -325,17 +395,17 @@ export class LoggingClient extends DataClient{
                         let symbolName = tag.tag;
                         this.fieldsDict[controllerName][symbolName] = tag.field;
                         if(this._freshSubscription) {this._subsNumber += 1;} // just cound the number of defined tags, for allocating the buffer.
-                        if(this._freshSubscription || (!tag.success)){  // If it's not a fresh subscription, only subscribe to the ones that failed previously.
+                        if(this._freshSubscription || (tag.status === undefined) || tag.status != "success"){  // If it's not a fresh subscription, only subscribe to the ones that failed previously.
                             this._dataBroker.subscribeCyclic(this.id, controllerName, symbolName)
                                 .then(() => {
                                     this.subscriptions[controllerName].push(symbolName);
-                                    tag.success = true;
+                                    tag.status = "success";
                                     //this._subsSucceeded += 1;
                                     //if(!this._freshSubscription) {this._subsFailed -= 1;} // If this is to go over the failed subscriptions again, reduce the fail number
                                 })
                                 .catch(err => {
                                     //if(this._freshSubscription) {this._subsFailed += 1;}
-                                    tag.success = false;
+                                    tag.status = "fail";
                                     this._subsHasFailure = true;
                                     console.error(`LoggingClient: Failed to subscribe to symbol ${symbolName} from ${controllerName}`, err)
                                 });
@@ -351,7 +421,7 @@ export class LoggingClient extends DataClient{
             if(this.autoResubscribe){
                 setTimeout(() => {
                     if (this._subsHasFailure) { this._subscribeLogging(false); }
-                }, this.configs.logFileTime);
+                }, this.loggingConfig.logFileTime);
             }
         }
         
@@ -359,17 +429,17 @@ export class LoggingClient extends DataClient{
 
     async _writeToFile(){
         if(this._bufferLength > 0){ // only write if there's data to write
-            if(this._fileHandle == null){
+            if(this._fileHandle === null){
                 this._fileAvaileble = false;
                 this._fileHandle = {};  // to prevent another file creation operation before this one is done.
-                this.tempFilePath = Path.join(this.configs.logPath, this._dataTime+".temp")
+                this.tempFilePath = Path.join(this.loggingConfig.logPath, this._dataTime+".temp")
                 await FileSystem.open(this.tempFilePath, "a+")
                 .then(fileHandle => {
                     this._fileHandle = fileHandle;
                     this._writeLine()
                     this._fileTimer = setTimeout(() => {
                         this.switchFile();
-                    }, this.configs.logFileTime);
+                    }, this.loggingConfig.logFileTime);
                 })
                 .catch(err => {
                     this._fileHandle = null;
@@ -400,7 +470,7 @@ export class LoggingClient extends DataClient{
         this._fileAvaileble = false;
         this._fileHandle.close()
         .then(() => {
-            FileSystem.rename(this.tempFilePath, Path.join(this.configs.logPath, this._dataTime+".data"))
+            FileSystem.rename(this.tempFilePath, Path.join(this.loggingConfig.logPath, this._dataTime+".data"))
             .then(() => {
             })
             .catch(err =>{
@@ -417,5 +487,7 @@ export class LoggingClient extends DataClient{
         this._subscribeLogging(true);
     }
 
-}
+    
+
+} // class LoggingClient
 

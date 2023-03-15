@@ -1,0 +1,189 @@
+{
+  "bucket": "DacLab",
+  "measurement": "ScreeningReactor2",
+  "org": "Sustaera",
+  "port": 852,
+  "name": "ScreeningReactor2",
+  "tags": [
+    {
+      "field": "Controller.lifeCounter",
+      "tag": "Controller.lifeCounter",
+      "type": "INT"
+    },
+    {
+      "field": "aiReactorTempTE_113",
+      "tag": "Main.fbScreening.aiReactorTempTE_113.value",
+      "type": "LREAL"
+    },
+    {
+      "field": "aiReactorTempTE_114",
+      "tag": "Main.fbScreening.aiReactorTempTE_114.value",
+      "type": "LREAL"
+    },
+    {
+      "field": "aiReactorTempTE_115",
+      "tag": "Main.fbScreening.aiReactorTempTE_115.value",
+      "type": "LREAL"
+    },
+    {
+      "field": "odProcessTemp",
+      "tag": "Main.fbScreening.odProcessTemp",
+      "type": "LREAL"
+    },
+    {
+      "field": "heater.onPct",
+      "tag": "Main.fbScreening.heater.onPct",
+      "type": "LREAL"
+    },
+    {
+      "field": "state",
+      "tag": "Main.fbScreening.state",
+      "type": "INT"
+    },
+    {
+      "field": "odMainState",
+      "tag": "Main.fbScreening.odMainState",
+      "type": "INT"
+    },
+    {
+      "field": "aiCO2",
+      "tag": "Main.fbScreening.aiCO2.value",
+      "type": "LREAL"
+    },
+    {
+      "field": "aiH2O",
+      "tag": "Main.fbScreening.aiH2O.value",
+      "type": "LREAL"
+    },
+    {
+      "field": "heatRamp.dest",
+      "tag": "Main.fbScreening.heatRamp.dest",
+      "type": "LREAL"
+    },
+    {
+      "field": "heater.tempSetC",
+      "tag": "Main.fbScreening.heater.tempSetC",
+      "type": "LREAL"
+    },
+    {
+      "field": "heater.pid.pOut",
+      "tag": "Main.fbScreening.heater.pid.pOut",
+      "type": "LREAL"
+    },
+    {
+      "field": "heater.pid.iOut",
+      "tag": "Main.fbScreening.heater.pid.iOut",
+      "type": "LREAL"
+    },
+    {
+      "field": "heater.pid.error",
+      "tag": "Main.fbScreening.heater.pid.error",
+      "type": "LREAL"
+    },
+    {
+      "field": "heatPID.setpoint",
+      "tag": "Main.fbScreening.heatPid.setpoint",
+      "type": "LREAL"
+    },
+    {
+      "field": "heatPID.error",
+      "tag": "Main.fbScreening.heatPid.error",
+      "type": "LREAL"
+    },
+    {
+      "field": "heatPID.iOut",
+      "tag": "Main.fbScreening.heatPid.iOut",
+      "type": "LREAL"
+    },
+    {
+      "field": "heatPID.pOut",
+      "tag": "Main.fbScreening.heatPid.pOut",
+      "type": "LREAL"
+    },
+    {
+      "field": "Dry_N2_massFlow",
+      "tag": "Main.fbScreening.fbAlicatSerial.allStatus[6].massFlow",
+      "type": "REAL"
+    },
+    {
+      "field": "Humid_N2_massFlow",
+      "tag": "Main.fbScreening.fbAlicatSerial.allStatus[5].massFlow",
+      "type": "REAL"
+    },
+    {
+      "field": "Dry_Air_massFlow",
+      "tag": "Main.fbScreening.fbAlicatSerial.allStatus[4].massFlow",
+      "type": "REAL"
+    },
+    {
+      "field": "Humid_Air_massFlow",
+      "tag": "Main.fbScreening.fbAlicatSerial.allStatus[3].massFlow",
+      "type": "REAL"
+    },
+    {
+      "field": "Controller.nodeRedLifeCounter",
+      "tag": "Controller.nodeRedLifeCounter",
+      "type": "INT"
+    },
+    {
+      "field": "magnaOhms",
+      "tag": "Main.fbScreening.magnaOhms",
+      "type": "LREAL"
+    },
+    {
+      "field": "magnaAmps",
+      "tag": "Main.fbScreening.magnaAmps",
+      "type": "LREAL"
+    },
+    {
+      "field": "magnaWatts",
+      "tag": "Main.fbScreening.magnaWatts",
+      "type": "LREAL"
+    },
+    {
+      "field": "magnaVolts",
+      "tag": "Main.fbScreening.magnaVolts",
+      "type": "LREAL"
+    },
+    {
+      "field": "remoteTempSet",
+      "tag": "Main.fbScreening.remoteTempSet",
+      "type": "LREAL"
+    },
+    {
+      "field": "aiTTWaterBath",
+      "tag": "Main.fbScreening.aiTTWaterBath.value",
+      "type": "LREAL"
+    },
+    {
+      "field": "aiTTWaterBathOverTemp",
+      "tag": "Main.fbScreening.aiTTWaterBathOverTemp.value",
+      "type": "LREAL"
+    },
+    {
+      "field": "licor.CO2",
+      "tag": "Main.fbScreening.licor.CO2",
+      "type": "LREAL"
+    },
+    {
+      "field": "licor.H2O",
+      "tag": "Main.fbScreening.licor.H2O",
+      "type": "LREAL"
+    },
+    {
+      "field": "licor.pressure",
+      "tag": "Main.fbScreening.licor.pressure",
+      "type": "LREAL"
+    },
+    {
+      "field": "licor.flowrate",
+      "tag": "Main.fbScreening.licor.flowrate",
+      "type": "LREAL"
+    },
+    {
+      "field": "cycleCount",
+      "tag": "Main.fbScreening.cycleCount",
+      "type": "INT"
+    }
+  ]
+}

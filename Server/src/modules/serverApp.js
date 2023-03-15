@@ -73,10 +73,13 @@ export class ServerApp{
         this.dataBroker.on("broadcast", (message) => {
             this.ioServer.emit("broadcast", message);
         })
+        
+        // Logging client
+        this.loggingClient = new LoggingClient("logging", this._serverConfig.subscriptionInterval*0.8, this.dataBroker, loggingConfig);
 
         // Watch clients: create one when a socket client is connected
         this.ioServer.on("connection", socket =>{
-            const client = new WatchClient(socket.id, this._serverConfig.subscriptionInterval/2, this.dataBroker, socket);            
+            const client = new WatchClient(socket.id, this._serverConfig.subscriptionInterval/2, this.dataBroker, socket, this.loggingClient);            
             
             socket.on("disconnect", (reason) => {
                 console.log(`Socket ${socket.id} has disconnected`);
@@ -88,8 +91,6 @@ export class ServerApp{
             console.log(`Socket ${socket.id} has connected`);
         });
 
-        // Logging client
-        this.loggingClient = new LoggingClient("logging", this._serverConfig.subscriptionInterval/2, this.dataBroker, loggingConfig);
 
         // HTTP responses
         this.expressApp.use(express.static(path.join(this._serverConfig.rootPath,'client')));

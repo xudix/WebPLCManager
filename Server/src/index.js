@@ -1,9 +1,9 @@
 const path = require('node:path');
 // setup ADS controller
-const adsconfig851 = require("../ADSLocal851Config.json");
-const adsconfig852 = require("../ADSLocal852Config.json");
-const logging851 = require("../screen1logging.json")
-const logging852 = require("../screen2logging.json")
+const adsconfig851 = require("./configs/ADSLocal851Config.json");
+const adsconfig852 = require("./configs/ADSLocal852Config.json");
+const logging851 = require("./configs/ScreeningReactor1logging.json")
+const logging852 = require("./configs/ScreeningReactor2logging.json")
 
 // Hopefully the rest is platform independent
 // configs, will move to json in the future
@@ -25,9 +25,10 @@ import("./modules/ADSController.js")
     })
     .then(serverModule => {
         let loggingConfig = {
+            configPath: path.join(__dirname, "configs"),  // Configuration file will be stored to this path, with the name [controllerName]logging.json
             logPath: path.join(__dirname, "data"),
-            logFileTime: 10000,
-            logConfigs: [logging851,logging852]
+            logFileTime: 120000,
+            logConfigs: []// [logging851,logging852]
         }
         serverApp = new serverModule.ServerApp(serverConfig, [controller851, controller852], loggingConfig);
     })
