@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Socket } from 'ngx-socket-io';
 import { WatchPage } from '../models/watch-page.model';
-import { ControllerSymbol, ControllerType } from '../models/controller-data-types';
+import { IControllerSymbol, IControllerType } from '../models/controller-data-types';
+import { ILoggingServerConfig, LoggingServerConfig, LoggingConfig } from '../models/logging-config-type';
 
 @Injectable({
   providedIn: 'root'
@@ -20,8 +21,8 @@ export class WatchPageService {
   public currentController: string = ""; 
   public symbolInputStr: string = "";
   public currentPath: string = ""; // The path obtained by resolving the input string
-  public selectedSymbols: ControllerSymbol[] = [];
-  public candidateList: ControllerSymbol[] = []; 
+  public selectedSymbols: IControllerSymbol[] = [];
+  public candidateList: IControllerSymbol[] = []; 
 
   public get controllerStatus(){
     return this._model.controllerStatus;
@@ -42,9 +43,19 @@ export class WatchPageService {
             Object.keys(this._model.symbols).length > 0;
   }
 
-  public get watchList(): Record<string, ControllerSymbol[]>{
+  public get watchList(): Record<string, IControllerSymbol[]>{
     return this._model.watchList;
   };
+
+  public get loggingConfig(): ILoggingServerConfig | undefined{
+    return this._model.loggingConfig;
+  }
+
+  public set loggingConfig(newConfig: ILoggingServerConfig | undefined){
+    this._model.loggingConfig = newConfig;
+  }
+
+
 
   // private variables
   private previousInput: string = "some string"; // just to trigger symbol change at initial run
@@ -100,6 +111,10 @@ export class WatchPageService {
       }
     });
 
+    socket.on("loggingConfigUpdated", (loggingConfig: ILoggingServerConfig | undefined) => {
+      this.loggingConfig = loggingConfig;
+    });
+
     socket.on("connect", () => { // This is actually reestablishing connection. Subscribe to all previous watches.
       socket.emit("requestControllerStatus")
       for(let controllerName in this._model.watchList){
@@ -136,9 +151,35 @@ export class WatchPageService {
     });
   }
 
+  addSymbolToLogging(controllerName: string, symbolName: string): boolean{
+    let newLoggingSymbol = {field: symbolName, tag: symbolName, status: "new"};
+    if (this.loggingConfig === undefined) { this.loggingConfig = new LoggingServerConfig(600000, ""); }
+    for(let config of this.loggingConfig.logConfigs){
+      if(config.name == this.currentController){
+        for(let symbol of config.tags){
+          if(symbol.tag == symbolName){ // this symbol is already in logging. quit.
+            return false;
+          }
+        }
+        // symbol is not in logging config
+        config.tags.push(newLoggingSymbol);
+        return true;
+      }
+    }
+    // No config available for currentController
+    let newConfig = new LoggingConfig(controllerName, controllerName);
+    newConfig.tags.push(newLoggingSymbol)
+    this.loggingConfig.logConfigs.push(newConfig);
+    return true;
+  }
+
   // Request to load symbols list from the controller
   requestSymbols(){
     this.socket.emit("requestSymbols", this.currentController);
+  }
+
+  requestLoggingConfig(){
+    this.socket.emit("requestLoggingConfig");
   }
 
   /**
@@ -171,7 +212,7 @@ export class WatchPageService {
   // When something is double clicked in the candidate window, 
   // if it has sub items, set it as the path
   // if it is a primitive type, add it to watch list
-  symbolDoubleClicked(symbol: ControllerSymbol){
+  symbolDoubleClicked(symbol: IControllerSymbol, currentPage: string){
     let actualName: string;
     if(symbol.name[0] == "["){ // for array
       actualName = (this.currentPath == "") ? symbol.name : this.currentPath + symbol.name;
@@ -195,7 +236,15 @@ export class WatchPageService {
       this.symbolInputChanged();
     }
     else if(this.watchableTypes.has(typeObj.baseType) || typeObj.baseType.includes("STRING")){ // primitive, enum, or string type
-      this.socket.emit("addWatchSymbol", this.currentController, actualName);
+      switch(currentPage){
+        case "watch":
+          this.socket.emit("addWatchSymbol", this.currentController, actualName);
+          break;
+        case "logging":
+          this.addSymbolToLogging(this.currentController, actualName)
+          break;
+
+      }
       this._model.cacheDataType(this.currentController, actualName, symbol.type);
       // symbol.name = actualName;
       // this.watchList.push(symbol)
@@ -292,12 +341,30 @@ export class WatchPageService {
     }
   }
 
-  _getTypeObj(controllerName: string, typeName: string): ControllerType{
+  _getTypeObj(controllerName: string, typeName: string): IControllerType{
     return this._model.getTypeObj(controllerName, typeName);
   }
 
   findPersistentSymbols(){
     this._model.findPersistentSymbols(this.currentController);
   }
+
+  sendLoggingConfig(){
+    //first remove all items labeled as "remove"
+    if(this.loggingConfig != undefined){
+      for(let config of this.loggingConfig.logConfigs){
+        for(let i = 0; i < config.tags.length; i++){
+          if(config.tags[i].status == "remove"){
+            config.tags.splice(i, 1);
+            i--;
+          }
+        }
+      }
+      this.socket.emit("writeLoggingConfig", this.loggingConfig)
+    }
+    
+  }
+
+  
 
 }

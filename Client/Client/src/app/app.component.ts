@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { MatTabChangeEvent } from '@angular/material/tabs';
 import { WatchPageService } from './services/watch-page.service';
 
 @Component({
@@ -34,5 +35,15 @@ export class AppComponent {
   }
 
   constructor(private _service: WatchPageService){}
+
+  /**
+   * 
+   * @param newTab 0: Watch Symbols; 1: Manage Persistents; 2: Manage Logging
+   */
+  selectedIndexChange(newTab: number){
+    if(newTab == 2){ // manage logging page
+      this._service.requestLoggingConfig();
+    }
+  }
 
 }

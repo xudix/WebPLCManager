@@ -1,15 +1,20 @@
-<p>Current Controller: </p>
-<mat-select [(value)]="currentController" >
-  <mat-option *ngFor="let controller of controllerList" [value]="controller" >
-      {{controller + " - " + (controllerStatus[controller]? "Connected" : "Disconnected")}}
-  </mat-option>
-</mat-select>
-<mat-tab-group>
+<div class="currentControllerLabel">
+  Current Controller: 
+  <mat-select [(value)]="currentController" >
+    <mat-option *ngFor="let controller of controllerList" [value]="controller" >
+        {{controller + " - " + (controllerStatus[controller]? "Connected" : "Disconnected")}}
+    </mat-option>
+  </mat-select>
+</div>
+<mat-tab-group (selectedIndexChange)="selectedIndexChange($event)">
   <mat-tab label="Watch Symbols">
     <app-watch-page></app-watch-page>
   </mat-tab>
   <mat-tab label="Manage Persistents">
     <app-persistent-page></app-persistent-page>
+  </mat-tab>
+  <mat-tab label="Manage Logging">
+    <app-logging-page></app-logging-page>
   </mat-tab>
 </mat-tab-group>
 

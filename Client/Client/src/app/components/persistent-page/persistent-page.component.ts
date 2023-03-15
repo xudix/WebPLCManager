@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ControllerSymbol } from 'src/app/models/controller-data-types';
+import { IControllerSymbol } from 'src/app/models/controller-data-types';
 import { WatchPageService } from 'src/app/services/watch-page.service';
 
 @Component({
@@ -11,7 +11,7 @@ export class PersistentPageComponent {
   
   constructor(private _service: WatchPageService){}
 
-  public get persistentList(): ControllerSymbol[]{
+  public get persistentList(): IControllerSymbol[]{
     return this._service.persistentList[this._service.currentController];
   }
 

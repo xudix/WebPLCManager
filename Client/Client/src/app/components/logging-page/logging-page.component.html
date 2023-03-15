@@ -1,0 +1,57 @@
+<div style="height: 90vh; width: 98vw;">
+    <as-split direction="horizontal" unit="percent" [restrictMove]="true" [gutterSize]="10">
+      <as-split-area [size]="50">
+        <app-symbol-selector currentPage="logging"></app-symbol-selector>
+        
+      </as-split-area>
+      <as-split-area [size]="50">
+        <div class="log-list">
+            <button (click)="requestLoggingConfig()">Refresh Logging Configuration</button>
+            <div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50%;">Symbol Name</th>
+                            <th style="width: 25%;">field</th>
+                            <th style="width: 25%;"></th>
+                        </tr>
+                    </thead>
+                    <tbody *ngFor="let config of loggingConfig?.logConfigs">
+                        <tr>Controller: <input
+                            type="text"
+                            [(ngModel)]="config.name"
+                            ></tr>
+                        <tr>Measurement: <input
+                            type="text"
+                            [(ngModel)]="config.measurement"
+                            >
+                        </tr>
+                        <tr *ngFor="let symbol of config.tags">
+                            <td style="width: 50%;">
+                                <textarea style="width: 100%;"
+                                    type="text"
+                                    [(ngModel)]="symbol.tag"
+                                    (change)="symbolModified(symbol)"
+                                ></textarea>
+                            </td>
+                            <td style="width: 25%;">
+                                <textarea style="width: 100%;"
+                                    type="text"
+                                    [(ngModel)]="symbol.field"
+                                    (change)="symbolModified(symbol)"
+                                ></textarea>
+                            </td>
+                            <td style="width: 25%; text-align: center;">
+                                {{symbol.status === undefined? "Unknown":symbol.status}}
+                                <button (click)="removeSymbol(symbol)">Remove</button>
+                            </td>   
+                         </tr>
+                    </tbody>
+                </table>
+            </div>
+            <button (click)="sendLoggingConfig()">Apply New Configuration</button>
+        
+        </div>
+      </as-split-area>
+    </as-split>
+  </div>

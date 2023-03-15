@@ -1,5 +1,10 @@
-mat-select {
-    width: 30%;
-    border: 1px solid black;
-    border-radius: 5px;
+.currentControllerLabel{
+    margin: 5px;
+
+    mat-select {
+        width: 30%;
+        border: 1px solid black;
+        border-radius: 5px;
+    }
 }
+

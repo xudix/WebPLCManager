@@ -174,6 +174,9 @@ export class WatchClient extends DataClient{
         this._socket.on("writeLoggingConfig", (newConfig) => {
             if(newConfig != undefined){
                 this._loggingClient.loggingConfig = newConfig;
+                setTimeout(() => {
+                    this._socket.emit("loggingConfigUpdated", this._loggingClient.loggingConfig);
+                }, 2000);
             }
 
         });
@@ -254,6 +257,7 @@ export class LoggingClient extends DataClient{
         this._loggingConfig.logPath = (newConfig.logPath || this._loggingConfig.logPath);
         this._loggingConfig.logFileTime = (newConfig.logFileTime || this._loggingConfig.logFileTime);
         this._loggingConfig.logConfigs = newConfig.logConfigs;
+        this.restartLogging();
         for(let config of this._loggingConfig.logConfigs){
             FileSystem.writeFile(Path.join(this._loggingConfig.configPath, config.name + "logging.json"), JSON.stringify(config,null,2));
         }
@@ -334,8 +338,7 @@ export class LoggingClient extends DataClient{
         }
         Promise.all(this._promises).then(() => {
             this.autoResubscribe = true;
-        
-            //this._subscribeLogging();
+            this._subscribeLogging();
         })
         
         
@@ -382,6 +385,7 @@ export class LoggingClient extends DataClient{
             })
         }
         else{
+            this._subsHasFailure = false;
             this.loggingConfig.logConfigs.forEach(config => { // iterate all configs (for all controllers)
                 let controllerName = config.name;
                 if(this._dataBroker._controllers[controllerName] !== undefined){ // The specified controller exist
@@ -421,7 +425,7 @@ export class LoggingClient extends DataClient{
             if(this.autoResubscribe){
                 setTimeout(() => {
                     if (this._subsHasFailure) { this._subscribeLogging(false); }
-                }, this.loggingConfig.logFileTime);
+                }, 5000);
             }
         }
         
@@ -483,6 +487,9 @@ export class LoggingClient extends DataClient{
         
     }
 
+    /**
+     * Unsubscribe to all symbols, then resubscribe. Use this after a configuration change.
+     */
     restartLogging(){
         this._subscribeLogging(true);
     }

@@ -1,5 +1,6 @@
 import { __metadata } from "tslib";
-import { ControllerSymbol, ControllerType } from "./controller-data-types";
+import { IControllerSymbol, IControllerType } from "./controller-data-types";
+import { ILoggingConfig, ILoggingServerConfig } from "./logging-config-type";
 
 export class WatchPage {
     /**
@@ -10,19 +11,23 @@ export class WatchPage {
     /**
      * data type info received from controller. {controllerName: {typename: typeObj}}. typename is lower case
      */
-    dataTypes: Record<string, Record<string, ControllerType>> = {};
+    dataTypes: Record<string, Record<string, IControllerType>> = {};
     /**
      * symbol info received from controller. {controllerName: {symbolname: symbolObj}}. symbolname is lower case.
      */
-    symbols: Record<string, Record<string, ControllerSymbol>> = {};
+    symbols: Record<string, Record<string, IControllerSymbol>> = {};
     /**
      * List of variables being watched (subscribed to)
      */
-    watchList: Record<string, ControllerSymbol[]> = {};
+    watchList: Record<string, IControllerSymbol[]> = {};
     /**
      * list of all persistent variables
      */
-    persistentList: Record<string, ControllerSymbol[]> = {};
+    persistentList: Record<string, IControllerSymbol[]> = {};
+    /**
+     * Configurations for data logging on the server. This can be edited in the logging page.
+     */
+    loggingConfig?: ILoggingServerConfig;
 
 
     /**
@@ -36,14 +41,14 @@ export class WatchPage {
         this._dataTypeCache[controllerName][symbolName] = symbolType;
     }
 
-    getTypeObj(controllerName: string, typeName: string): ControllerType{
+    getTypeObj(controllerName: string, typeName: string): IControllerType{
         return this.dataTypes[controllerName][typeName.toLocaleLowerCase()];
     }
 
     // get the symbol type by symbol name
     getTypeByName(controllerName: string, symbolName: string): string{
         if(this._dataTypeCache[controllerName] === undefined || this._dataTypeCache[controllerName][symbolName] === undefined){
-            let list: ControllerSymbol[] = [];
+            let list: IControllerSymbol[] = [];
             let path = this.findSymbolsByInput(controllerName, symbolName.replace(/\]+$/,""), list); // remove the "]" at the end of an array
             if(list.length > 0){
                 this.cacheDataType(controllerName, symbolName, list[0].type);
@@ -57,7 +62,7 @@ export class WatchPage {
     // Find matching symbols according to input string
     // Returns the path with correct lower/upper case
     // The resulting list will be written to the input list
-    findSymbolsByInput(controllerName: string, symbolInputStr: string, list: ControllerSymbol[]): string{ 
+    findSymbolsByInput(controllerName: string, symbolInputStr: string, list: IControllerSymbol[]): string{ 
                 
         list.length = 0;
         if (
@@ -158,7 +163,7 @@ export class WatchPage {
     }
 
     // recursively find persistent symbols. Returns true if a persistent symbol is found.
-    _findPersistentSymbolsRecursive(controllerName: string, symbol: ControllerSymbol): boolean{
+    _findPersistentSymbolsRecursive(controllerName: string, symbol: IControllerSymbol): boolean{
         let typeObj = this.getTypeObj(controllerName, symbol.type);
         let hasPersistentData = false;
         if(typeObj.arrayDimension > 0){

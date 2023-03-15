@@ -1,4 +1,4 @@
-export interface ControllerSymbol{
+export interface IControllerSymbol{
     name: string;
     type: string;
     comment: string;
@@ -7,13 +7,13 @@ export interface ControllerSymbol{
     isPersisted?: boolean;
 }
 
-export interface ControllerType{
+export interface IControllerType{
     name: string;
     baseType: string; // for array, enum, and alis, this gives the underlying data type. For other types, this is the the same as name.
     comment: string;
     size?: number; // size in bytes
     subItemCount: number;
-    subItems: ControllerSymbol[];
+    subItems: IControllerSymbol[];
     arrayDimension: number;
     arrayInfo: {length: number, startIndex: number}[];
     enumInfo: Record<string, any>; // For enumeration type, this object of name-value pair gives the possible values of the enum.
