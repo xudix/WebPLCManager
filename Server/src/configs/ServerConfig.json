@@ -1,5 +1,15 @@
 {
     "port": 2333,
+    "clientPath": "./client/",
     "subscriptionInterval": 1000, 
-    "logFileTime": 120000
+    "cors": {
+        "origin": "http://localhost:4200",
+        "methods": ["GET", "POST", "DELETE"]
+    },
+    "loggingConfig": {
+        "configPath": "./configs/",
+        "logPath": "./data/",
+        "logFileTime": 6000000,
+        "bucket": "DacLab"
+    }
 }

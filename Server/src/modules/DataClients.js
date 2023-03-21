@@ -3,7 +3,6 @@ import { DataBroker } from "./DataBroker.js";
 import * as FileSystem from "node:fs/promises";
 import * as Path from "node:path";
 import { json } from "express";
-import { Console } from "node:console";
 
 /**
  * A generic data client that subscribes data from DataBroker.
@@ -41,7 +40,7 @@ export class DataClient{
 
     /**
      * Timestamp of first data received during the current accumulation.
-     * @type {number} UTC, Unix timestamp. The number of seconds that have elapsed since January 1, 1970
+     * @type {number} UTC, Unix timestamp, ms precision. The number of milliseconds that have elapsed since January 1, 1970
      */
     _dataTime;
 
@@ -69,7 +68,7 @@ export class DataClient{
         { this.subscribedData[controllerName] = {}; }
         this.subscribedData[controllerName][data.symbolName] = data.value;
         if(!this._accumulatingSubsData){ // First data received. Start accumulating them
-            this._dataTime = Math.floor(data.timeStamp.valueOf()/1000);
+            this._dataTime = data.timeStamp.valueOf();
             this._accumulatingSubsData = true;
             setTimeout(() => { // after the subscription interval from receiving the first data, send the accumulated data out.
                 this.sendSubscribedData();
@@ -97,7 +96,7 @@ export class DataClient{
 }
 
 /**
- * A client for communicating with web application over socket.oi
+ * A client for communicating with web application over socket.io
  */
 export class WatchClient extends DataClient{
 
@@ -108,7 +107,7 @@ export class WatchClient extends DataClient{
      * @param {number} accumulationTime 
      * @param {DataBroker} dataBroker 
      * @param {Socket} socket 
-     * @param {LoggingClient} loggingClient The logging client managed by the watch page
+     * @param {PLCLoggingClient} loggingClient The logging client managed by the watch page
      */
     constructor(id, accumulationTime, dataBroker, socket, loggingClient){
         super(id, accumulationTime, dataBroker);
@@ -231,7 +230,7 @@ export class WatchClient extends DataClient{
 } //class WatchClient
 
 
-export class LoggingClient extends DataClient{
+export class PLCLoggingClient extends DataClient{
 
 
     get loggingConfig(){
@@ -264,6 +263,33 @@ export class LoggingClient extends DataClient{
         
     }
 
+    /**
+     * This boolean controls whether the data will be write to files on the PLC.
+     * - if true, the data will be written to local files on the PLC.
+     * - if false, no data will be written to files.
+     * @type {boolean}
+     */
+    writeToLocalFile = true;
+
+    /**
+     * Number of sucessful subscriptions from the controller.
+     */
+    subsSucceeded = 0;
+    /**
+     * Number of failed subscriptions from the controller.
+     */
+    subsFailed = 0;
+
+    /**
+     * A socket.io socket goingn to the remote logging client. If this socket exists, data received by this logging client will be transmitted through the socket.
+     * @type {Socket}
+     */
+    remoteSocket;
+
+
+    /**
+     * Timer that controls the switching of temp file
+     */
     _fileTimer;
     /**
      * File handle for the logging file
@@ -288,8 +314,6 @@ export class LoggingClient extends DataClient{
      */
     _promises = [];
     _subsNumber = 0;
-    _subsSucceeded = 0;
-    _subsFailed = 0;
     _subsHasFailure = false;
     /**
      * Indicate if a fresh subscription should be performed, during which the all symbol will be subscribed to.
@@ -303,7 +327,7 @@ export class LoggingClient extends DataClient{
      * A dictionary for looking up field name by controller name and tag name
      * @type {Record<string, Record<string,string>>} {controllerName: {symbolName: field}}
      */
-    fieldsDict = {};
+    _fieldsDict = {};
 
     /**
      * 
@@ -313,6 +337,7 @@ export class LoggingClient extends DataClient{
      * @param {{configPath: string,
      *          logPath: string, 
     *           logFileTime: number, 
+    *           bucket: string,
     *           logConfigs: {bucket: string,
     *                       measurement: string,
     *                       name: string,
@@ -330,8 +355,10 @@ export class LoggingClient extends DataClient{
         this._loggingConfig = loggingConfig;
         let controllerStatus = dataBroker.getControllerStatus();
         for(let controllerName in controllerStatus){
+            console.log(process.cwd());
             this._promises.push(FileSystem.readFile(Path.join(this._loggingConfig.configPath, controllerName + "logging.json"))
                 .then((data) => {
+                    if(this._loggingConfig.logConfigs == undefined) { this._loggingConfig.logConfigs = []; }
                     this._loggingConfig.logConfigs.push(JSON.parse(data));
                 })
                 .catch(err => console.error(`Failed to load logging configuration for ${controllerName}.`, err)));
@@ -340,31 +367,66 @@ export class LoggingClient extends DataClient{
             this.autoResubscribe = true;
             this._subscribeLogging();
         })
-        
-        
+    }
 
+    /**
+     * Receive data from the server app. Accumulate the data for a while, then send accumulated data out
+     * @param {string} controllerName 
+     * @param {{symbolName: string, value: any, timeStamp: Date}} data 
+    */
+    receiveData(controllerName, data) {
+        // if (this.subscribedData[controllerName] === undefined) { this.subscribedData[controllerName] = {}; }
+        // this.subscribedData[controllerName][data.symbolName] = data.value;
+        // if (!this._accumulatingSubsData) { // First data received. Start accumulating them
+        //     this._dataTime = data.timeStamp.valueOf();
+        //     this._accumulatingSubsData = true;
+        //     setTimeout(() => { // after the subscription interval from receiving the first data, send the accumulated data out.
+        //         this.sendSubscribedData();
+        //         this._accumulatingSubsData = false;
+        //     }, this._accumulationTime);
+        // }
+        super(controllerName, data);
+        if(this.remoteSocket !== undefined){
+            this.remoteSocket.emit("loggingData", controllerName, data);
+        }
     }
 
     /**
      * Write the data accumulated in subscribedData to the buffer, then call _writeToFile.
      */
     sendSubscribedData(){
-        let measurement;
-        for(let controllerName in this.subscribedData){
-            for(let config of this.loggingConfig.logConfigs){
-                if(config.name == controllerName){
-                    measurement = config.measurement;
-                    break;
+        if (this.writeToLocalFile){
+            let measurement;
+            for(let controllerName in this.subscribedData){
+                for(let config of this.loggingConfig.logConfigs){
+                    if(config.name == controllerName){
+                        measurement = config.measurement;
+                        break;
+                    }
                 }
+                this._bufferLength += this._buffer.write(`${measurement} `, this._bufferLength, 'binary');
+                for(let symbolName in this.subscribedData[controllerName]){ 
+                    let data = this.subscribedData[controllerName][symbolName];
+                    switch(typeof data){    // Different format for different type of data
+                        case "object":
+                            if(data.name != undefined && data.value != undefined){ // enum type
+                                this._bufferLength += this._buffer.write(`${this._fieldsDict[controllerName][symbolName]}=${data.value},`, this._bufferLength, 'binary');
+                                this._bufferLength += this._buffer.write(`${this._fieldsDict[controllerName][symbolName]}.name="${data.name.replaceAll("\\","\\\\").replaceAll("\"","\\\"")}",`, this._bufferLength, 'binary');   // record name and value at the same time
+                            }
+                            break;
+                        case "string":
+                            data = data.replaceAll("\\","\\\\").replaceAll("\"","\\\"");
+                            this._bufferLength += this._buffer.write(`${this._fieldsDict[controllerName][symbolName]}="${data}",`, this._bufferLength, 'binary');   // need to add double quotation to string
+                            break;
+                        default:
+                            this._bufferLength += this._buffer.write(`${this._fieldsDict[controllerName][symbolName]}=${data},`, this._bufferLength, 'binary');
+                    }
+                }
+                this._bufferLength += (this._buffer.write(` ${this._dataTime}\n`, this._bufferLength-1, 'binary') - 1); // -1 in offset to remove the last comma
             }
-            this._bufferLength += this._buffer.write(`${measurement} `, this._bufferLength, 'binary');
-            for(let symbolName in this.subscribedData[controllerName]){
-                this._bufferLength += this._buffer.write(`${this.fieldsDict[controllerName][symbolName]}=${this.subscribedData[controllerName][symbolName]},`, this._bufferLength, 'binary');
-            }
-            this._bufferLength += (this._buffer.write(` ${this._dataTime}\n`, this._bufferLength-1, 'binary') - 1); // -1 in offset to remove the last comma
+            this.subscribedData = {};
+            this._writeToFile();
         }
-        this.subscribedData = {};
-        this._writeToFile();
     }
 
     /**
@@ -377,42 +439,43 @@ export class LoggingClient extends DataClient{
                 this.sendSubscribedData();  // purge out current accumulated data
                 this.subscriptions = {};
                 this._subsNumber = 0;
-                this._subsFailed = 0;
+                this.subsFailed = 0;
                 this._subsHasFailure = false;
-                this._subsSucceeded = 0;
+                this.subsSucceeded = 0;
                 this._freshSubscription = true;
                 this._subscribeLogging(false);
             })
         }
         else{
             this._subsHasFailure = false;
+            this._promises = [];
             this.loggingConfig.logConfigs.forEach(config => { // iterate all configs (for all controllers)
                 let controllerName = config.name;
                 if(this._dataBroker._controllers[controllerName] !== undefined){ // The specified controller exist
-                    if(this.fieldsDict[controllerName] === undefined){
-                        this.fieldsDict[controllerName] = {};
+                    if(this._fieldsDict[controllerName] === undefined){
+                        this._fieldsDict[controllerName] = {};
                     }
                     if(this.subscriptions[controllerName] === undefined){
                         this.subscriptions[controllerName] = [];
                     }
                     config.tags.forEach(tag => { // iterate all symbols defined
                         let symbolName = tag.tag;
-                        this.fieldsDict[controllerName][symbolName] = tag.field;
+                        this._fieldsDict[controllerName][symbolName] = tag.field.replaceAll(" ","\\ ").replaceAll(",","\\,").replaceAll("=","\\=");
                         if(this._freshSubscription) {this._subsNumber += 1;} // just cound the number of defined tags, for allocating the buffer.
                         if(this._freshSubscription || (tag.status === undefined) || tag.status != "success"){  // If it's not a fresh subscription, only subscribe to the ones that failed previously.
-                            this._dataBroker.subscribeCyclic(this.id, controllerName, symbolName)
+                            this._promises.push(this._dataBroker.subscribeCyclic(this.id, controllerName, symbolName)
                                 .then(() => {
                                     this.subscriptions[controllerName].push(symbolName);
                                     tag.status = "success";
-                                    //this._subsSucceeded += 1;
-                                    //if(!this._freshSubscription) {this._subsFailed -= 1;} // If this is to go over the failed subscriptions again, reduce the fail number
+                                    this.subsSucceeded += 1;
+                                    if(!this._freshSubscription) {this.subsFailed -= 1;} // If this is to go over the failed subscriptions again, reduce the fail number
                                 })
                                 .catch(err => {
-                                    //if(this._freshSubscription) {this._subsFailed += 1;}
+                                    if(this._freshSubscription) {this.subsFailed += 1;}
                                     tag.status = "fail";
                                     this._subsHasFailure = true;
-                                    console.error(`LoggingClient: Failed to subscribe to symbol ${symbolName} from ${controllerName}`, err)
-                                });
+                                    //console.error(`LoggingClient: Failed to subscribe to symbol ${symbolName} from ${controllerName}`, err)
+                                }));
                         }
                         
                     })
@@ -421,12 +484,16 @@ export class LoggingClient extends DataClient{
             if(this._freshSubscription){ // Consider to re-allocate the buffer
                 this._buffer = Buffer.alloc((this._subsNumber+1)*100);
             }
-            this._freshSubscription = false;
-            if(this.autoResubscribe){
-                setTimeout(() => {
-                    if (this._subsHasFailure) { this._subscribeLogging(false); }
-                }, 5000);
+            Promise.all(this._promises).then(() => {
+                this._freshSubscription = false;
+                console.log(`Logging subscriptions: ${this.subsSucceeded} succeeded, ${this.subsFailed} failed.`)
+                if(this.autoResubscribe){
+                    setTimeout(() => {
+                        if (this._subsHasFailure) { this._subscribeLogging(false); }
+                    }, 5000);
             }
+            });
+            
         }
         
     }
@@ -469,21 +536,47 @@ export class LoggingClient extends DataClient{
 
     /**
      * Close the current logging file and rename it. The next write operation will be on a new file.
+     * @returns {Promise<string>} New file name is returned if resolved.
      */
     switchFile(){
-        this._fileAvaileble = false;
-        this._fileHandle.close()
-        .then(() => {
-            FileSystem.rename(this.tempFilePath, Path.join(this.loggingConfig.logPath, this._dataTime+".data"))
-            .then(() => {
-            })
-            .catch(err =>{
-                console.error("Failed to rename file.");
-            })
-            .finally(() => {
-                this._fileHandle = null;
-            })
+        clearTimeout(this._fileTimer);
+        return new Promise((resolve, reject) => {
+            if(this._fileHandle == null){
+                resolve("");
+                return;
+            }
+            if(this._fileAvaileble){
+                this._fileAvaileble = false;
+                this._fileHandle.close()
+                    .then(() => {
+                        let newFileName = `${Math.floor(this._dataTime / 1000)}_${this.loggingConfig.bucket}.lp`;
+                        FileSystem.rename(this.tempFilePath, Path.join(this.loggingConfig.logPath, newFileName))
+                            .then(() => {
+                                resolve(newFileName);
+                            })
+                            .catch(err => {
+                                console.error("Failed to rename temp file.");
+                                reject(err);
+                            })
+                            .finally(() => {
+                                this._fileHandle = null;
+                            })
+                    })
+                    .catch(err => {
+                        console.error("Failed to close temp file.", err);
+                        reject(err);
+                    });
+            }
+            else{
+                setTimeout(() => {
+                    this.switchFile()
+                        .then((newFileName) => resolve(newFileName))
+                        .catch(err => reject(err));
+                }, 5000);
+            }
+            
         });
+        
         
     }
 
@@ -492,6 +585,10 @@ export class LoggingClient extends DataClient{
      */
     restartLogging(){
         this._subscribeLogging(true);
+    }
+
+    deleteDataFile(fileName){
+        return FileSystem.unlink(Path.join(this.loggingConfig.logPath, fileName));
     }
 
     

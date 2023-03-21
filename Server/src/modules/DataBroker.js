@@ -358,6 +358,7 @@ export class DataBroker extends EventEmitter{
      * @param {{value: any, symbolName: string, type: string, timeStamp: Time}} data 
      */
     dispatchSubscriptions(controllerName, data){ // 
+        data.timeStamp = new Date();
         if(typeof data.symbolName != "string")
             throw new  Error("Not Implemented in dispatchSubscriptions(): Unable to dispatch subscriptions without symbol name.");
         // put values to the client objects

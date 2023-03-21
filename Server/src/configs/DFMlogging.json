@@ -1,0 +1,375 @@
+{
+    "name": "DFM",
+    "port": 853,
+    "org": "Susteon",
+    "bucket": "PlasmaLab",
+    "measurement": "DfmReactor",
+    "tags": [
+      {
+        "tag": "Controller.lifeCounter",
+        "type": "INT",
+        "field": "Controller.lifeCounter"
+      },
+      {
+        "tag": "Controller.nodeRedLifeCounter",
+        "type": "INT",
+        "field": "Controller.nodeRedLifeCounter"
+      },
+      {
+        "tag": "Main.dfmReactor.state",
+        "type": "INT",
+        "field": "state"
+      },
+      {
+        "tag": "Main.dfmReactor.odMode",
+        "type": "INT",
+        "field": "odMode"
+      },
+      {
+        "tag": "Main.dfmReactor.sv100.solenoid.state",
+        "type": "INT",
+        "field": "sv100.solenoid.state"
+      },
+      {
+        "tag": "Main.dfmReactor.sv200.solenoid.state",
+        "type": "INT",
+        "field": "sv200.solenoid.state"
+      },
+      {
+        "tag": "Main.dfmReactor.sv300.solenoid.state",
+        "type": "INT",
+        "field": "sv300.solenoid.state"
+      },
+      {
+        "tag": "Main.dfmReactor.sv400.solenoid.state",
+        "type": "INT",
+        "field": "sv400.solenoid.state"
+      },
+      {
+        "tag": "Main.dfmReactor.sv500.solenoid.state",
+        "type": "INT",
+        "field": "sv500.solenoid.state"
+      },
+      {
+        "tag": "Main.dfmReactor.sv600.solenoid.state",
+        "type": "INT",
+        "field": "sv600.solenoid.state"
+      },
+      {
+        "tag": "Main.dfmReactor.sv700.solenoid.state",
+        "type": "INT",
+        "field": "sv700.solenoid.state"
+      },
+      {
+        "tag": "Main.dfmReactor.ai401_Humidity.value",
+        "type": "LREAL",
+        "field": "ai401_Humidity"
+      },
+      {
+        "tag": "Main.dfmReactor.ai301_Oxygen.value",
+        "type": "LREAL",
+        "field": "ai301_Oxygen"
+      },
+      {
+        "tag": "Main.dfmReactor.ai101_MFM.value",
+        "type": "LREAL",
+        "field": "ai101_MFM"
+      },
+      {
+        "tag": "Main.dfmReactor.aiTT104.value",
+        "type": "LREAL",
+        "field": "aiTT104"
+      },
+      {
+        "tag": "Main.dfmReactor.aiTT104.value",
+        "type": "LREAL",
+        "field": "aiTT401"
+      },
+      {
+        "tag": "Main.dfmReactor.aiPT101.value",
+        "type": "LREAL",
+        "field": "aiPT101"
+      },
+      {
+        "tag": "Main.dfmReactor.aiPT102.value",
+        "type": "LREAL",
+        "field": "aiPT102"
+      },
+      {
+        "tag": "Main.dfmReactor.heater101.aiTemp1.value",
+        "type": "LREAL",
+        "field": "heater101.aiTemp1"
+      },
+      {
+        "tag": "Main.dfmReactor.heater102.aiTemp1.value",
+        "type": "LREAL",
+        "field": "heater102.aiTemp1"
+      },
+      {
+        "tag": "Main.dfmReactor.heater103.aiTemp1.value",
+        "type": "LREAL",
+        "field": "heater103.aiTemp1"
+      },
+      {
+        "tag": "Main.dfmReactor.heater101.set",
+        "type": "LREAL",
+        "field": "heater101.heater.set"
+      },
+      {
+        "tag": "Main.dfmReactor.heater101.heater.onPct",
+        "type": "LREAL",
+        "field": "heater101.heater.onPct"
+      },
+      {
+        "tag": "Main.dfmReactor.heater101.heater.tempSetC",
+        "type": "LREAL",
+        "field": "heater101.heater.tempSetC"
+      },
+      {
+        "tag": "Main.dfmReactor.heater101.ramp.dest",
+        "type": "LREAL",
+        "field": "heater101.ramp.dest"
+      },
+      {
+        "tag": "Main.dfmReactor.heater102.set",
+        "type": "LREAL",
+        "field": "heater102.heater.set"
+      },
+      {
+        "tag": "Main.dfmReactor.heater102.heater.onPct",
+        "type": "LREAL",
+        "field": "heater102.heater.onPct"
+      },
+      {
+        "tag": "Main.dfmReactor.heater101.heater.tempSetC",
+        "type": "LREAL",
+        "field": "heater102.heater.tempSetC"
+      },
+      {
+        "tag": "Main.dfmReactor.heater102.ramp.dest",
+        "type": "LREAL",
+        "field": "heater102.ramp.dest"
+      },
+      {
+        "tag": "Main.dfmReactor.heater103.set",
+        "type": "LREAL",
+        "field": "heater103.heater.set"
+      },
+      {
+        "tag": "Main.dfmReactor.heater103.heater.onPct",
+        "type": "LREAL",
+        "field": "heater103.heater.onPct"
+      },
+      {
+        "tag": "Main.dfmReactor.heater103.heater.tempSetC",
+        "type": "LREAL",
+        "field": "heater103.heater.tempSetC"
+      },
+      {
+        "tag": "Main.dfmReactor.heater103.ramp.dest",
+        "type": "LREAL",
+        "field": "heater103.ramp.dest"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[1].gasType",
+        "type": "UINT",
+        "field": "alicat.allStatus[1].gasType"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[1].status",
+        "type": "DWORD",
+        "field": "alicat.allStatus[1].status"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[1].pressure",
+        "type": "REAL",
+        "field": "alicat.allStatus[1].pressure"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[1].temp",
+        "type": "REAL",
+        "field": "alicat.allStatus[1].temp"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[1].volFlow",
+        "type": "REAL",
+        "field": "alicat.allStatus[1].volFlow"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[1].massFlow",
+        "type": "REAL",
+        "field": "alicat.allStatus[1].massFlow"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[1].massFlowSet",
+        "type": "REAL",
+        "field": "alicat.allStatus[1].massFlowSet"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[2].gasType",
+        "type": "UINT",
+        "field": "alicat.allStatus[2].gasType"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[2].status",
+        "type": "DWORD",
+        "field": "alicat.allStatus[2].status"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[2].pressure",
+        "type": "REAL",
+        "field": "alicat.allStatus[2].pressure"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[2].temp",
+        "type": "REAL",
+        "field": "alicat.allStatus[2].temp"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[2].volFlow",
+        "type": "REAL",
+        "field": "alicat.allStatus[2].volFlow"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[2].massFlow",
+        "type": "REAL",
+        "field": "alicat.allStatus[2].massFlow"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[2].massFlowSet",
+        "type": "REAL",
+        "field": "alicat.allStatus[2].massFlowSet"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[3].gasType",
+        "type": "UINT",
+        "field": "alicat.allStatus[3].gasType"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[3].status",
+        "type": "DWORD",
+        "field": "alicat.allStatus[3].status"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[3].pressure",
+        "type": "REAL",
+        "field": "alicat.allStatus[3].pressure"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[3].temp",
+        "type": "REAL",
+        "field": "alicat.allStatus[3].temp"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[3].volFlow",
+        "type": "REAL",
+        "field": "alicat.allStatus[3].volFlow"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[3].massFlow",
+        "type": "REAL",
+        "field": "alicat.allStatus[3].massFlow"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[3].massFlowSet",
+        "type": "REAL",
+        "field": "alicat.allStatus[3].massFlowSet"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[4].gasType",
+        "type": "UINT",
+        "field": "alicat.allStatus[4].gasType"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[4].status",
+        "type": "DWORD",
+        "field": "alicat.allStatus[4].status"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[4].pressure",
+        "type": "REAL",
+        "field": "alicat.allStatus[4].pressure"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[4].temp",
+        "type": "REAL",
+        "field": "alicat.allStatus[4].temp"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[4].volFlow",
+        "type": "REAL",
+        "field": "alicat.allStatus[4].volFlow"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[4].massFlow",
+        "type": "REAL",
+        "field": "alicat.allStatus[4].massFlow"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[4].massFlowSet",
+        "type": "REAL",
+        "field": "alicat.allStatus[4].massFlowSet"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[5].gasType",
+        "type": "UINT",
+        "field": "alicat.allStatus[5].gasType"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[5].status",
+        "type": "DWORD",
+        "field": "alicat.allStatus[5].status"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[5].pressure",
+        "type": "REAL",
+        "field": "alicat.allStatus[5].pressure"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[5].temp",
+        "type": "REAL",
+        "field": "alicat.allStatus[5].temp"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[5].volFlow",
+        "type": "REAL",
+        "field": "alicat.allStatus[5].volFlow"
+      },
+      {
+        "tag": "Main.dfmReactor.alicat.allStatus[5].massFlow",
+        "type": "REAL",
+        "field": "alicat.allStatus[5].massFlow"
+      },
+      
+      {
+        "tag": "Main.dfmReactor.odCurrentStepName",
+        "type": "STRING",
+        "field": "CurrentStepName"
+      },
+      {
+        "tag": "Main.dfmReactor.stepNum",
+        "type": "UINT",
+        "field": "stepNum"
+      },
+      {
+        "tag": "Main.dfmReactor.odCyclesCompleted",
+        "type": "UINT",
+        "field": "CyclesCompleted"
+      },
+      {
+        "tag": "Main.dfmReactor.heater_SCR.onPct",
+        "type": "LREAL",
+        "field": "heater_SCR.onPct"
+      },
+      {
+        "tag": "Main.dfmReactor.heater_SCR.tempSetC",
+        "type": "LREAL",
+        "field": "heater_SCR.tempSetC"
+      },
+      {
+        "tag": "Main.dfmReactor.heater_SCR.ramp.out",
+        "type": "LREAL",
+        "field": "heater_SCR.ramp.out"
+      }
+    ]
+  }

@@ -1,0 +1,1204 @@
+{
+    "name" : "BenchScale",
+    "port": 851,
+    "org": "Sustaera",
+    "bucket": "DacLab",
+    "measurement": "BenchScale",
+    "tags": [
+      {
+        "tag": "Controller.lifeCounter",
+        "type": "INT",
+        "field": "Controller.lifeCounter"
+      },
+      {
+        "tag": "Main.benchScale.aiAE211Humidity.value",
+        "type": "LREAL",
+        "field": "aiAE211Humidity.value"
+      },
+      {
+        "tag": "Main.benchScale.aiAE211Temp.value",
+        "type": "LREAL",
+        "field": "aiAE211Temp.value"
+      },
+      {
+        "tag": "Main.benchScale.aiTT242.value",
+        "type": "LREAL",
+        "field": "aiTT242.value"
+      },
+      {
+        "tag": "Main.benchScale.aiTT243.value",
+        "type": "LREAL",
+        "field": "aiTT243.value"
+      },
+      {
+        "tag": "Main.benchScale.aiTT244.value",
+        "type": "LREAL",
+        "field": "aiTT244.value"
+      },
+      {
+        "tag": "Main.benchScale.aiTT245.value",
+        "type": "LREAL",
+        "field": "aiTT245.value"
+      },
+      {
+        "tag": "Main.benchScale.aiTT351.value",
+        "type": "LREAL",
+        "field": "aiTT351.value"
+      },
+      {
+        "tag": "Main.benchScale.aiTT352.value",
+        "type": "LREAL",
+        "field": "aiTT352.value"
+      },
+      {
+        "tag": "Main.benchScale.aiTT381.value",
+        "type": "LREAL",
+        "field": "aiTT381.value"
+      },
+      {
+        "tag": "Main.benchScale.aiTT382.value",
+        "type": "LREAL",
+        "field": "aiTT382.value"
+      },
+      {
+        "tag": "Main.benchScale.aiTT212.value",
+        "type": "LREAL",
+        "field": "aiTT212.value"
+      },
+      {
+        "tag": "Main.benchScale.aiTT251.value",
+        "type": "LREAL",
+        "field": "aiTT251.value"
+      },
+      {
+        "tag": "Main.benchScale.aiCO2.value",
+        "type": "LREAL",
+        "field": "aiCO2.value"
+      },
+      {
+        "tag": "Main.benchScale.aiH2O.value",
+        "type": "LREAL",
+        "field": "aiH2O.value"
+      },
+      {
+        "tag": "Main.benchScale.aiPIT351.value",
+        "type": "LREAL",
+        "field": "aiPIT351.value"
+      },
+      {
+        "tag": "Main.benchScale.aiPIT381.value",
+        "type": "LREAL",
+        "field": "aiPIT381.value"
+      },
+      {
+        "tag": "Main.benchScale.aiPDIT351.value",
+        "type": "LREAL",
+        "field": "aiPDIT351.value"
+      },
+      {
+        "tag": "Main.benchScale.aiFIT381.value",
+        "type": "LREAL",
+        "field": "aiFIT381.value"
+      },
+      {
+        "tag": "Main.benchScale.svTW131.solenoid.state",
+        "type": "INT",
+        "field": "svTW131.state"
+      },
+      {
+        "tag": "Main.benchScale.svTW132.solenoid.state",
+        "type": "INT",
+        "field": "svTW132.state"
+      },
+      {
+        "tag": "Main.benchScale.svTW381.solenoid.state",
+        "type": "INT",
+        "field": "svTW381.state"
+      },
+      {
+        "tag": "Main.benchScale.svXV111.solenoid.state",
+        "type": "INT",
+        "field": "svXV111.state"
+      },
+      {
+        "tag": "Main.benchScale.svXV231.solenoid.state",
+        "type": "INT",
+        "field": "svXV231.state"
+      },
+      {
+        "tag": "Main.benchScale.svXV213.solenoid.state",
+        "type": "INT",
+        "field": "svXV213.state"
+      },
+      {
+        "tag": "Main.benchScale.svXV212.solenoid.state",
+        "type": "INT",
+        "field": "svXV212.state"
+      },
+      {
+        "tag": "Main.benchScale.svXV381.solenoid.state",
+        "type": "INT",
+        "field": "svXV381.state"
+      },
+      {
+        "tag": "Main.benchScale.svXV371.solenoid.state",
+        "type": "INT",
+        "field": "svXV371.state"
+      },
+      {
+        "tag": "Main.benchScale.svXV213.solenoid.dqState1.diReached.diRawIn",
+        "type": "INT",
+        "field": "svXV213.diFullOpened"
+      },
+      {
+        "tag": "Main.benchScale.svXV213.solenoid.dqState2.diReached.diRawIn",
+        "type": "INT",
+        "field": "svXV213.diFullClosed"
+      },
+      {
+        "tag": "Main.benchScale.svXV212.solenoid.dqState1.diReached.diRawIn",
+        "type": "BOOL",
+        "field": "svXV212.diFullOpened"
+      },
+      {
+        "tag": "Main.benchScale.svXV212.solenoid.dqState2.diReached.diRawIn",
+        "type": "BOOL",
+        "field": "svXV212.diFullClosed"
+      },
+      {
+        "tag": "Main.benchScale.svXV381.solenoid.dqState1.diReached.diRawIn",
+        "type": "BOOL",
+        "field": "svXV381.diFullOpened"
+      },
+      {
+        "tag": "Main.benchScale.svXV381.solenoid.dqState2.diReached.diRawIn",
+        "type": "BOOL",
+        "field": "svXV381.diFullClosed"
+      },
+      {
+        "tag": "Main.benchScale.heater8.status.opCondWord",
+        "type": "WORD",
+        "field": "heater8.status.opCondWord"
+      },
+      {
+        "tag": "Main.benchScale.heater8.boCommsLoss",
+        "type": "BOOL",
+        "field": "heater8.boCommsLoss"
+      },
+      {
+        "tag": "Main.benchScale.heater8.status.volts",
+        "type": "LREAL",
+        "field": "heater8.status.volts"
+      },
+      {
+        "tag": "Main.benchScale.heater8.status.amps",
+        "type": "LREAL",
+        "field": "heater8.status.amps"
+      },
+      {
+        "tag": "Main.benchScale.heater8.cmdStatus.volts",
+        "type": "LREAL",
+        "field": "heater8.cmdStatus.volts"
+      },
+      {
+        "tag": "Main.benchScale.heater8.cmd.volts",
+        "type": "LREAL",
+        "field": "heater8.cmd.volts"
+      },
+      {
+        "tag": "Main.benchScale.heater8.cmd.amps",
+        "type": "LREAL",
+        "field": "heater8.cmd.amps"
+      },
+      {
+        "tag": "Main.benchScale.heater8.cmdStatus.amps",
+        "type": "LREAL",
+        "field": "heater8.cmdStatus.amps"
+      },
+      {
+        "tag": "Main.benchScale.heater8.status.questCondWord",
+        "type": "WORD",
+        "field": "heater8.status.questCondWord"
+      },
+      {
+        "tag": "Main.benchScale.heater8.status.active",
+        "type": "BOOL",
+        "field": "heater8.status.active"
+      },
+      {
+        "tag": "Main.benchScale.heater8.cmd.run",
+        "type": "BOOL",
+        "field": "heater8.cmd.run"
+      },
+      {
+        "tag": "Main.benchScale.heater8.mode",
+        "type": "INT",
+        "field": "heater8.mode"
+      },
+      {
+        "tag": "Main.benchScale.heater8.status.watts",
+        "type": "LREAL",
+        "field": "heater8.status.watts"
+      },
+      {
+        "tag": "Main.benchScale.heater8.cmd.watts",
+        "type": "LREAL",
+        "field": "heater8.cmd.watts"
+      },
+      {
+        "tag": "Main.benchScale.heater8.cmdStatus.amps",
+        "type": "LREAL",
+        "field": "heater8.cmdStatus.amps"
+      },
+      {
+        "tag": "Main.benchScale.horiba412.CO2meas",
+        "type": "REAL",
+        "field": "Horiba.CO2meas"
+      },
+      {
+        "tag": "Main.benchScale.horiba412.O2meas",
+        "type": "REAL",
+        "field": "Horiba.O2meas"
+      },
+      {
+        "tag": "Main.benchScale.stgHumid121.status.boilingPoint",
+        "type": "REAL",
+        "field": "stgHumid121.status.boilingPoint"
+      },
+      {
+        "tag": "Main.benchScale.aiPT351.value",
+        "type": "LREAL",
+        "field": "aiPT351.value"
+      },
+      {
+        "tag": "Main.benchScale.stgHumid121.status.flow",
+        "type": "REAL",
+        "field": "stgHumid121.status.flow"
+      },
+      {
+        "tag": "Main.benchScale.stgRegen131.status.boilingPoint",
+        "type": "REAL",
+        "field": "stgRegen131.status.boilingPoint"
+      },
+      {
+        "tag": "Main.benchScale.stgRegen131.status.flow",
+        "type": "REAL",
+        "field": "stgRegen131.status.flow"
+      },
+      {
+        "tag": "Main.benchScale.mfc211.status.massFlow",
+        "type": "REAL",
+        "field": "mfc211.status.flow"
+      },
+      {
+        "tag": "Main.benchScale.mfc361.status.massFlow",
+        "type": "REAL",
+        "field": "mfc361.status.flow"
+      },
+      {
+        "tag": "Main.benchScale.centerHeaterCtrl.enable",
+        "type": "BOOL",
+        "field": "centerHeaterCtrl.enable"
+      },
+      {
+        "tag": "Main.benchScale.mfc211.status.temp",
+        "type": "REAL",
+        "field": "mfc211.status.temp"
+      },
+      {
+        "tag": "Main.benchScale.aiTT371.value",
+        "type": "LREAL",
+        "field": "aiTT371.value"
+      },
+      {
+        "tag": "Main.benchScale.aiTT221.value",
+        "type": "LREAL",
+        "field": "aiTT221.value"
+      },
+      {
+        "tag": "Main.benchScale.aiTTSp7_1.value",
+        "type": "LREAL",
+        "field": "aiTTB-3.value"
+      },
+      {
+        "tag": "Main.benchScale.dqVacPump.value",
+        "type": "BOOL",
+        "field": "vacPump_value"
+      },
+      {
+        "tag": "Main.benchScale.aiTTSp12_3.value",
+        "type": "LREAL",
+        "field": "aiRoomTemp"
+      },
+      {
+        "tag": "Main.benchScale.adsorbCO2_Stat.integral",
+        "type": "LREAL",
+        "field": "adsorbCO2_Stat.integral"
+      },
+      {
+        "tag": "Main.benchScale.adsorbH2O_Stat.integral",
+        "type": "LREAL",
+        "field": "adsorbH2O_Stat.integral"
+      },
+      {
+        "tag": "Main.benchScale.licorCO2_Stat.smoothed_value",
+        "type": "LREAL",
+        "field": "licorCO2_Stat.mean"
+      },
+      {
+        "tag": "Main.benchScale.licorCO2_Stat.integral",
+        "type": "LREAL",
+        "field": "licorCO2_Stat.integral"
+      },
+      {
+        "tag": "Main.benchScale.licorH2O_Stat.smoothed_value",
+        "type": "LREAL",
+        "field": "licorH2O_Stat.mean"
+      },
+      {
+        "tag": "Main.benchScale.licorH2O_Stat.integral",
+        "type": "LREAL",
+        "field": "licorH2O_Stat.integral"
+      },
+      {
+        "tag": "Main.benchScale.outerHeaterCtrl.onPct",
+        "type": "LREAL",
+        "field": "outerHeaterCtrl.onPct"
+      },
+      {
+        "tag": "Main.benchScale.stgHumid121.status.pressure",
+        "type": "REAL",
+        "field": "stgHumid121.status.pressure"
+      },
+      {
+        "tag": "Main.benchScale.orManualHeatEnable",
+        "type": "BOOL",
+        "field": "Main.benchScale.orManualHeatEnableBool"
+      },
+      {
+        "tag": "Main.benchScale.aiTT_DACTEMP.value",
+        "type": "LREAL",
+        "field": "aiTT_DACTEMP.value"
+      },
+      {
+        "tag": "Main.benchScale.aiTT_LICOR.value",
+        "type": "LREAL",
+        "field": "aiTT_LICOR.value"
+      },
+      {
+        "tag": "Main.benchScale.mfc361.status.pressure",
+        "type": "REAL",
+        "field": "mfc361.status.pressure"
+      },
+      {
+        "tag": "Main.benchScale.odCenterTemp",
+        "type": "LREAL",
+        "field": "odCenterTemp"
+      },
+      {
+        "tag": "Main.benchScale.lunaReader.nPeaksFound",
+        "type": "UINT",
+        "field": "LunaNumOfPeaks"
+      },
+      {
+        "tag": "Main.benchScale.aiTT_MFM.value",
+        "type": "LREAL",
+        "field": "aiTT_MFM.value"
+      },
+      {
+        "tag": "Main.benchScale.aiTT_WatCal.value",
+        "type": "LREAL",
+        "field": "aiTT_WatCal.value"
+      },
+      {
+        "tag": "Main.benchScale.inletVaisala.CO2ppm",
+        "type": "LREAL",
+        "field": "inletCO2"
+      },
+      {
+        "tag": "Main.benchScale.state",
+        "type": "INT",
+        "field": "Bench.state"
+      },
+      {
+        "tag": "Main.benchScale.adsorbCO2_avg_Stat.integral",
+        "type": "LREAL",
+        "field": "adsorbCO2AvgStat.integral"
+      },
+      {
+        "tag": "Main.benchScale.centerHtrModel.coef1.v",
+        "type": "LREAL",
+        "field": "centerHtrModel.coef1.v"
+      },
+      {
+        "tag": "Main.benchScale.centerHtrModel.coef2.v",
+        "type": "LREAL",
+        "field": "centerHtrModel.coef2.v"
+      },
+      {
+        "tag": "Main.benchScale.centerHtrModel.estimate1",
+        "type": "LREAL",
+        "field": "centerHtrModel.estimate1"
+      },
+      {
+        "tag": "Main.benchScale.centerHtrModel.estimate2",
+        "type": "LREAL",
+        "field": "centerHtrModel.estimate2"
+      },
+      {
+        "tag": "Main.benchScale.centerHtrModel.error1",
+        "type": "LREAL",
+        "field": "centerHtrModel.error1"
+      },
+      {
+        "tag": "Main.benchScale.centerHtrModel.error2",
+        "type": "LREAL",
+        "field": "centerHtrModel.error2"
+      },
+      {
+        "tag": "Main.benchScale.centerTempRamp.rampRate",
+        "type": "LREAL",
+        "field": "CenterTempRampRate(deg/sec)"
+      },
+      {
+        "tag": "Main.benchScale.aiTTWaterCal.value",
+        "type": "LREAL",
+        "field": "aiTTWaterCal"
+      },
+      {
+        "tag": "Main.benchScale.odLicorCO2",
+        "type": "LREAL",
+        "field": "odLicorCO2"
+      },
+      {
+        "tag": "Main.benchScale.odLicorH2O",
+        "type": "LREAL",
+        "field": "odLicorH2O"
+      },
+      {
+        "tag": "Main.benchScale.licor.pressure",
+        "type": "LREAL",
+        "field": "licorPressure"
+      },
+      {
+        "tag": "Main.benchScale.licor.flowrate",
+        "type": "LREAL",
+        "field": "licorFlowrate"
+      },
+      {
+        "tag": "Main.benchScale.scale.weight",
+        "type": "LREAL",
+        "field": "scale.weight"
+      },
+      {
+        "tag": "Main.benchScale.aiTT_PolySci_Chiller.value",
+        "type": "LREAL",
+        "field": "TT_PolySci_Chiller"
+      },
+      {
+        "tag": "Main.benchScale.chiller.status.pumpSpeed",
+        "type": "LREAL",
+        "field": "inlet air chiller pump speed (RPM)"
+      },
+      {
+        "tag": "Main.benchScale.chiller.status.chillerTemp",
+        "type": "LREAL",
+        "field": "inlet air chiller temp (degC)"
+      },
+      {
+        "tag": "Main.benchScale.chiller.status.boPumpActive",
+        "type": "BOOL",
+        "field": "inlet air chiller pump on"
+      },
+      {
+        "tag": "Main.benchScale.chiller.status.boTempActive",
+        "type": "BOOL",
+        "field": "inlet air chiller tempering on"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.dacVol",
+        "type": "LREAL",
+        "field": "dacVolume(L)"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.dacVolIntermediate",
+        "type": "LREAL",
+        "field": "dacVolumeIntermediate(L)"
+      },
+      {
+        "tag": "Main.benchScale.magnaWatts_Stat.integral",
+        "type": "LREAL",
+        "field": "Desorb Energy (J)"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.specificHumidity",
+        "type": "LREAL",
+        "field": "specificHumidityVaisala _(mmol/mol)"
+      },
+      {
+        "tag": "Main.benchScale.avgAdsorbRH",
+        "type": "LREAL",
+        "field": "avgAdsorbRH"
+      },
+      {
+        "tag": "Main.benchScale.avgInletAirTemp",
+        "type": "LREAL",
+        "field": "avgInletAirTemp"
+      },
+      {
+        "tag": "Main.benchScale.tmRegen.done",
+        "type": "BOOL",
+        "field": "tmRegen.done"
+      },
+      {
+        "tag": "Main.benchScale.avgCalcSpecificHumidity",
+        "type": "LREAL",
+        "field": "avgcalcSpecificHumidity"
+      },
+      {
+        "tag": "Main.benchScale.horibaCO2_Stat.integral",
+        "type": "LREAL",
+        "field": "horibaCO2_Stat.integral"
+      },
+      {
+        "tag": "Main.benchScale.preAdsorbVaisalaSH",
+        "type": "LREAL",
+        "field": "preAdsorbVaisalaSH"
+      },
+      {
+        "tag": "Main.benchScale.avgAdsorbFlowRate",
+        "type": "LREAL",
+        "field": "avgAdsorbFlowRate"
+      },
+      {
+        "tag": "Main.benchScale.avgSorbentWHSV",
+        "type": "LREAL",
+        "field": "avgSorbentWHSV"
+      },
+      {
+        "tag": "Main.benchScale.avgWashCoatWHSV",
+        "type": "LREAL",
+        "field": "avgWashCoatWHSV"
+      },
+      {
+        "tag": "Main.benchScale.captureDensity_CO2",
+        "type": "LREAL",
+        "field": "captureDensity_CO2"
+      },
+      {
+        "tag": "Main.benchScale.captureDensity_CO2_avg",
+        "type": "LREAL",
+        "field": "captureDensity_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.sorbentCaptureCapacity_CO2",
+        "type": "LREAL",
+        "field": "sorbentCaptureCapacity_CO2"
+      },
+      {
+        "tag": "Main.benchScale.washcoatCaptureCapacity_CO2",
+        "type": "LREAL",
+        "field": "washcoatCaptureCapacity_CO2"
+      },
+      {
+        "tag": "Main.benchScale.sorbentCaptureCapacity_CO2_avg",
+        "type": "LREAL",
+        "field": "sorbentCaptureCapacity_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.washcoatCaptureCapacity_CO2_avg",
+        "type": "LREAL",
+        "field": "washcoatCaptureCapacity_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.captureEfficiency_CO2",
+        "type": "LREAL",
+        "field": "captureEfficiency_CO2"
+      },
+      {
+        "tag": "Main.benchScale.adsorptionRate_CO2",
+        "type": "LREAL",
+        "field": "adsorptionRate_CO2"
+      },
+      {
+        "tag": "Main.benchScale.captureEfficiency_CO2_avg",
+        "type": "LREAL",
+        "field": "captureEfficiency_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.adsorptionRate_CO2_avg",
+        "type": "LREAL",
+        "field": "adsorptionRate_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.adsorptionRate_H2O",
+        "type": "LREAL",
+        "field": "adsorptionRate_H2O"
+      },
+      {
+        "tag": "Main.benchScale.avgDrySorbentWHSV",
+        "type": "LREAL",
+        "field": "avgDrySorbentWHSV"
+      },
+      {
+        "tag": "Main.benchScale.avgDryWashCoatWHSV",
+        "type": "LREAL",
+        "field": "avgDryWashCoatWHSV"
+      },
+      {
+        "tag": "Main.benchScale.dryCaptureDensity_CO2",
+        "type": "LREAL",
+        "field": "dryCaptureDensity_CO2"
+      },
+      {
+        "tag": "Main.benchScale.dryCaptureDensity_CO2_avg",
+        "type": "LREAL",
+        "field": "dryCaptureDensity_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.drySorbentCaptureCapacity_CO2",
+        "type": "LREAL",
+        "field": "drySorbentCaptureCapacity_CO2"
+      },
+      {
+        "tag": "Main.benchScale.captureDensity_H2O",
+        "type": "LREAL",
+        "field": "captureDensity_H2O"
+      },
+      {
+        "tag": "Main.benchScale.drySorbentCaptureCapacity_CO2_avg",
+        "type": "LREAL",
+        "field": "drySorbentCaptureCapacity_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.sorbentCaptureCapacity_H2O",
+        "type": "LREAL",
+        "field": "sorbentCaptureCapacity_H2O"
+      },
+      {
+        "tag": "Main.benchScale.dryWashcoatCaptureCapacity_CO2",
+        "type": "LREAL",
+        "field": "dryWashcoatCaptureCapacity_CO2"
+      },
+      {
+        "tag": "Main.benchScale.dryWashcoatCaptureCapacity_CO2_avg",
+        "type": "LREAL",
+        "field": "dryWashcoatCaptureCapacity_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.washcoatCaptureCapacity_H2O",
+        "type": "LREAL",
+        "field": "washcoatCaptureCapacity_H2O"
+      },
+      {
+        "tag": "Main.benchScale.dryCaptureEfficiency_CO2",
+        "type": "LREAL",
+        "field": "dryCaptureEfficiency_CO2"
+      },
+      {
+        "tag": "Main.benchScale.dryCaptureEfficiency_CO2_avg",
+        "type": "LREAL",
+        "field": "dryCaptureEfficiency_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.captureEfficiency_H2O",
+        "type": "LREAL",
+        "field": "captureEfficiency_H2O"
+      },
+      {
+        "tag": "Main.benchScale.dryAdsorptionRate_CO2",
+        "type": "LREAL",
+        "field": "dryAdsorptionRate_CO2"
+      },
+      {
+        "tag": "Main.benchScale.dryAdsorptionRate_CO2_avg",
+        "type": "LREAL",
+        "field": "dryAdsorptionRate_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.dryAdsorbCO2_Stat.integral",
+        "type": "LREAL",
+        "field": "dryAdsorbCO2_Stat.integral"
+      },
+      {
+        "tag": "Main.benchScale.dryAdsorbCO2_avg_Stat.integral",
+        "type": "LREAL",
+        "field": "dryAdsorbCO2_avg_Stat.integral"
+      },
+      {
+        "tag": "Main.benchScale.dryOdLicorCO2",
+        "type": "LREAL",
+        "field": "dryOdLicorCO2"
+      },
+      {
+        "tag": "Main.benchScale.licorCO2perJoule",
+        "type": "LREAL",
+        "field": "licorCO2perJoule"
+      },
+      {
+        "tag": "Main.benchScale.horibaCO2perJoule",
+        "type": "LREAL",
+        "field": "horibaCO2perJoule"
+      },
+      {
+        "tag": "Main.benchScale.H2OperJoule",
+        "type": "LREAL",
+        "field": "H2OperJoule"
+      },
+      {
+        "tag": "Main.benchScale.totalDesorbedH2O",
+        "type": "LREAL",
+        "field": "totalDesorbedH2O"
+      },
+      {
+        "tag": "Main.benchScale.heater8.status.ohms",
+        "type": "LREAL",
+        "field": "heater8.status.ohms"
+      },
+      {
+        "tag": "Main.benchScale.orClosedVesselDesorb",
+        "type": "BOOL",
+        "field": "orClosedVesselDesorb"
+      },
+      {
+        "tag": "Main.benchScale.massWetAdsorbRatio",
+        "type": "LREAL",
+        "field": "massWetAdsorbRatio"
+      },
+      {
+        "tag": "Main.benchScale.massWetAdsorbRatio_avg",
+        "type": "LREAL",
+        "field": "massWetAdsorbRatio_avg"
+      },
+      {
+        "tag": "Main.benchScale.massDryAdsorbRatio",
+        "type": "LREAL",
+        "field": "massDryAdsorbRatio"
+      },
+      {
+        "tag": "Main.benchScale.massDryAdsorbRatio_avg",
+        "type": "LREAL",
+        "field": "massDryAdsorbRatio_avg"
+      },
+      {
+        "tag": "Main.benchScale.avgDryAdsorbFlowRate",
+        "type": "LREAL",
+        "field": "avgDryAdsorbFlowRate"
+      },
+      {
+        "tag": "Main.benchScale.adsorbSH_Stat.integral",
+        "type": "LREAL",
+        "field": "adsorbSH_Stat.integral"
+      },
+      {
+        "tag": "Main.benchScale.inletCO2_Stat.integral",
+        "type": "LREAL",
+        "field": "inletCO2_Stat.integral"
+      },
+      {
+        "tag": "Main.benchScale.licorMassDesorbRatio",
+        "type": "LREAL",
+        "field": "licorMassDesorbRatio"
+      },
+      {
+        "tag": "Main.benchScale.horibaMassDesorbRatio",
+        "type": "LREAL",
+        "field": "horibaMassDesorbRatio"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.preAdsorbVaisalaSH",
+        "type": "LREAL",
+        "field": "preAdsorbVaisalaSH"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.avgAdsorbRH",
+        "type": "LREAL",
+        "field": "avgAdsorbRH"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.avgInletAirTemp",
+        "type": "LREAL",
+        "field": "avgInletAirTemp"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.avgCalcSpecificHumidity",
+        "type": "LREAL",
+        "field": "avgcalcSpecificHumidity"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.avgAdsorbFlowRate",
+        "type": "LREAL",
+        "field": "avgAdsorbFlowRate"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.avgDryAdsorbFlowRate",
+        "type": "LREAL",
+        "field": "avgDryAdsorbFlowRate"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.avgSorbentWHSV",
+        "type": "LREAL",
+        "field": "avgSorbentWHSV"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.avgWashCoatWHSV",
+        "type": "LREAL",
+        "field": "avgWashCoatWHSV"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.avgDrySorbentWHSV",
+        "type": "LREAL",
+        "field": "avgDrySorbentWHSV"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.avgDryWashCoatWHSV",
+        "type": "LREAL",
+        "field": "avgDryWashCoatWHSV"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.captureDensity_CO2",
+        "type": "LREAL",
+        "field": "captureDensity_CO2"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.captureDensity_CO2_avg",
+        "type": "LREAL",
+        "field": "captureDensity_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.dryCaptureDensity_CO2",
+        "type": "LREAL",
+        "field": "dryCaptureDensity_CO2"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.dryCaptureDensity_CO2_avg",
+        "type": "LREAL",
+        "field": "dryCaptureDensity_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.captureDensity_H2O",
+        "type": "LREAL",
+        "field": "captureDensity_H2O"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.sorbentCaptureCapacity_CO2",
+        "type": "LREAL",
+        "field": "sorbentCaptureCapacity_CO2"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.sorbentCaptureCapacity_CO2_avg",
+        "type": "LREAL",
+        "field": "sorbentCaptureCapacity_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.drySorbentCaptureCapacity_CO2",
+        "type": "LREAL",
+        "field": "drySorbentCaptureCapacity_CO2"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.drySorbentCaptureCapacity_CO2_avg",
+        "type": "LREAL",
+        "field": "drySorbentCaptureCapacity_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.sorbentCaptureCapacity_H2O",
+        "type": "LREAL",
+        "field": "sorbentCaptureCapacity_H2O"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.washcoatCaptureCapacity_CO2",
+        "type": "LREAL",
+        "field": "washcoatCaptureCapacity_CO2"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.washcoatCaptureCapacity_CO2_avg",
+        "type": "LREAL",
+        "field": "washcoatCaptureCapacity_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.dryWashcoatCaptureCapacity_CO2",
+        "type": "LREAL",
+        "field": "dryWashcoatCaptureCapacity_CO2"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.dryWashcoatCaptureCapacity_CO2_avg",
+        "type": "LREAL",
+        "field": "dryWashcoatCaptureCapacity_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.washcoatCaptureCapacity_H2O",
+        "type": "LREAL",
+        "field": "washcoatCaptureCapacity_H2O"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.captureEfficiency_CO2",
+        "type": "LREAL",
+        "field": "captureEfficiency_CO2"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.adsorptionRate_CO2",
+        "type": "LREAL",
+        "field": "adsorptionRate_CO2"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.captureEfficiency_CO2_avg",
+        "type": "LREAL",
+        "field": "captureEfficiency_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.adsorptionRate_CO2_avg",
+        "type": "LREAL",
+        "field": "adsorptionRate_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.adsorptionRate_H2O",
+        "type": "LREAL",
+        "field": "adsorptionRate_H2O"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.dryCaptureEfficiency_CO2",
+        "type": "LREAL",
+        "field": "dryCaptureEfficiency_CO2"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.dryCaptureEfficiency_CO2_avg",
+        "type": "LREAL",
+        "field": "dryCaptureEfficiency_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.captureEfficiency_H2O",
+        "type": "LREAL",
+        "field": "captureEfficiency_H2O"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.dryAdsorptionRate_CO2",
+        "type": "LREAL",
+        "field": "dryAdsorptionRate_CO2"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.dryAdsorptionRate_CO2_avg",
+        "type": "LREAL",
+        "field": "dryAdsorptionRate_CO2_avg"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.adsorbCO2_Stat.integral",
+        "type": "LREAL",
+        "field": "adsorbCO2_Stat.integral"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.adsorbH2O_Stat.integral",
+        "type": "LREAL",
+        "field": "adsorbH2O_Stat.integral"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.licorCO2_Stat.smoothed_value",
+        "type": "LREAL",
+        "field": "licorCO2_Stat.mean"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.adsorbCO2_avg_Stat.integral",
+        "type": "LREAL",
+        "field": "adsorbCO2AvgStat.integral"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.dryAdsorbCO2_Stat.integral",
+        "type": "LREAL",
+        "field": "dryAdsorbCO2_Stat.integral"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.dryAdsorbCO2_avg_Stat.integral",
+        "type": "LREAL",
+        "field": "dryAdsorbCO2_avg_Stat.integral"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.dryOdLicorCO2",
+        "type": "LREAL",
+        "field": "dryOdLicorCO2"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.adsorbSH_Stat.integral",
+        "type": "LREAL",
+        "field": "adsorbSH_Stat.integral"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.inletCO2_Stat.integral",
+        "type": "LREAL",
+        "field": "inletCO2_Stat.integral"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.massWetAdsorbRatio",
+        "type": "LREAL",
+        "field": "massWetAdsorbRatio"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.massWetAdsorbRatio_avg",
+        "type": "LREAL",
+        "field": "massWetAdsorbRatio_avg"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.massDryAdsorbRatio",
+        "type": "LREAL",
+        "field": "massDryAdsorbRatio"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.massDryAdsorbRatio_avg",
+        "type": "LREAL",
+        "field": "massDryAdsorbRatio_avg"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.licorCO2_Stat.integral",
+        "type": "LREAL",
+        "field": "licorCO2_Stat.integral"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.licorH2O_Stat.smoothed_value",
+        "type": "LREAL",
+        "field": "licorH2O_Stat.mean"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.licorH2O_Stat.integral",
+        "type": "LREAL",
+        "field": "licorH2O_Stat.integral"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.horibaCO2_Stat.integral",
+        "type": "LREAL",
+        "field": "horibaCO2_Stat.integral"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.licorCO2perJoule",
+        "type": "LREAL",
+        "field": "licorCO2perJoule"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.horibaCO2perJoule",
+        "type": "LREAL",
+        "field": "horibaCO2perJoule"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.H2OperJoule",
+        "type": "LREAL",
+        "field": "H2OperJoule"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.totalDesorbedH2O",
+        "type": "LREAL",
+        "field": "totalDesorbedH2O"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.licorMassDesorbRatio",
+        "type": "LREAL",
+        "field": "licorMassDesorbRatio"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.horibaMassDesorbRatio",
+        "type": "LREAL",
+        "field": "horibaMassDesorbRatio"
+      },
+      {
+        "tag": "Main.benchScale.scale.weight",
+        "type": "LREAL",
+        "field": "scale.weight"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.magnaWatts_Stat.integral",
+        "type": "LREAL",
+        "field": "DesorbEnergy(J)"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.adsorbCO2_StatMinus_licorCO2_Stat",
+        "type": "LREAL",
+        "field": "adsorbCO2_StatMinus_licorCO2_Stat"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.adsorbCO2_avg_StatMinus_licorCO2_Stat",
+        "type": "LREAL",
+        "field": "adsorbCO2_avg_StatMinus_licorCO2_Stat"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.dryAdsorbCO2_StatMinus_licorCO2_Stat",
+        "type": "LREAL",
+        "field": "dryAdsorbCO2_StatMinus_licorCO2_Stat"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.dryAdsorbCO2_avg_StatMinus_licorCO2_Stat",
+        "type": "LREAL",
+        "field": "dryAdsorbCO2_avg_StatMinus_licorCO2_Stat"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.adsorbCO2_StatMinus_horibaCO2_Stat",
+        "type": "LREAL",
+        "field": "adsorbCO2_StatMinus_horibaCO2_Stat"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.adsorbCO2_avg_StatMinus_horibaCO2_Stat",
+        "type": "LREAL",
+        "field": "adsorbCO2_avg_StatMinus_horibaCO2_Stat"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.dryAdsorbCO2_StatMinus_horibaCO2_Stat",
+        "type": "LREAL",
+        "field": "dryAdsorbCO2_StatMinus_horibaCO2_Stat"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.dryAdsorbCO2_avg_StatMinus_horibaCO2_Stat",
+        "type": "LREAL",
+        "field": "dryAdsorbCO2_avg_StatMinus_horibaCO2_Stat"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.adsorbH2O_StatMinus_licorH2O_Stat",
+        "type": "LREAL",
+        "field": "adsorbH2O_StatMinus_licorH2O_Stat"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.totalLicorCO2",
+        "type": "LREAL",
+        "field": "totalLicorCO2"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.totalHoribaCO2",
+        "type": "LREAL",
+        "field": "totalHoribaCO2"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.totalVaporH2O",
+        "type": "LREAL",
+        "field": "totalVaporH2O"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.totalLiquidWeight",
+        "type": "LREAL",
+        "field": "totalLiquidWeight"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.totalTotalH2O",
+        "type": "LREAL",
+        "field": "totalTotalH2O"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.purgeTotalH2O",
+        "type": "LREAL",
+        "field": "purgeTotalH2O"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.purgeLiquidWeight",
+        "type": "LREAL",
+        "field": "purgeLiquidWeight"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.purgeLicorH2O",
+        "type": "LREAL",
+        "field": "purgeLicorH2O"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.purgeHoribaCO2",
+        "type": "LREAL",
+        "field": "purgeHoribaCO2"
+      },
+      {
+        "tag": "Main.benchScale.dacCalculation.purgeLicorCO2",
+        "type": "LREAL",
+        "field": "purgeLicorCO2"
+      }
+    ]
+  }

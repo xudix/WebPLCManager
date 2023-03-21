@@ -1,0 +1,484 @@
+{
+    "name": "Plasma",
+    "port": 852,
+    "org": "Susteon",
+    "bucket": "PlasmaLab",
+    "measurement": "PlasmaReactor",
+    "tags": [
+      {
+        "tag": "Controller.lifeCounter",
+        "type": "INT",
+        "field": "Controller.lifeCounter"
+      },
+      {
+        "tag": "Main.plasma.aiPress122.value",
+        "type": "LREAL",
+        "field": "aiPress122"
+      },
+      {
+        "tag": "Main.plasma.aiTemp124.value",
+        "type": "LREAL",
+        "field": "aiTemp124"
+      },
+      {
+        "tag": "Main.plasma.aiTemp125.value",
+        "type": "LREAL",
+        "field": "aiTemp125"
+      },
+      {
+        "tag": "Main.plasma.aiTemp126.value",
+        "type": "LREAL",
+        "field": "aiTemp126"
+      },
+      {
+        "tag": "Main.plasma.aiTemp127.value",
+        "type": "LREAL",
+        "field": "aiTemp127"
+      },
+      {
+        "tag": "Main.plasma.aiTemp128.value",
+        "type": "LREAL",
+        "field": "aiTemp128"
+      },
+      {
+        "tag": "Main.plasma.aiTemp170.value",
+        "type": "LREAL",
+        "field": "aiTemp170"
+      },
+      {
+        "tag": "Main.plasma.aiTemp171.value",
+        "type": "LREAL",
+        "field": "aiTemp171"
+      },
+      {
+        "tag": "Main.plasma.aiTemp180A.value",
+        "type": "LREAL",
+        "field": "aiTemp180A"
+      },
+      {
+        "tag": "Main.plasma.aiTemp180B.value",
+        "type": "LREAL",
+        "field": "aiTemp180B"
+      },
+      {
+        "tag": "Main.plasma.aiTemp190.value",
+        "type": "LREAL",
+        "field": "aiTemp190"
+      },
+      {
+        "tag": "Main.plasma.aiTemp191.value",
+        "type": "LREAL",
+        "field": "aiTemp191"
+      },
+      {
+        "tag": "Main.plasma.heater121.aiTemp1.value",
+        "type": "LREAL",
+        "field": "heater121.aiTemp1"
+      },
+      {
+        "tag": "Main.plasma.heater121.aiTemp2.value",
+        "type": "LREAL",
+        "field": "heater121.aiTemp2"
+      },
+      {
+        "tag": "Main.plasma.heater123.aiTemp1.value",
+        "type": "LREAL",
+        "field": "heater123.aiTemp1"
+      },
+      {
+        "tag": "Main.plasma.heater123.aiTemp2.value",
+        "type": "LREAL",
+        "field": "heater123.aiTemp2"
+      },
+      {
+        "tag": "Main.plasma.heater131.aiTemp1.value",
+        "type": "LREAL",
+        "field": "heater131.aiTemp1"
+      },
+      {
+        "tag": "Main.plasma.heater131.aiTemp2.value",
+        "type": "LREAL",
+        "field": "heater131.aiTemp2"
+      },
+      {
+        "tag": "Main.plasma.steamHtr111.aiTemp1.value",
+        "type": "LREAL",
+        "field": "steamHtr111.aiTemp1"
+      },
+      {
+        "tag": "Main.plasma.steamHtr111.aiTemp2.value",
+        "type": "LREAL",
+        "field": "steamHtr111.aiTemp2"
+      },
+      {
+        "tag": "Main.plasma.steamHtr113.aiTemp1.value",
+        "type": "LREAL",
+        "field": "steamHtr113.aiTemp1"
+      },
+      {
+        "tag": "Main.plasma.steamHtr113.aiTemp2.value",
+        "type": "LREAL",
+        "field": "steamHtr113.aiTemp2"
+      },
+      {
+        "tag": "Main.plasma.fcv101.aiFlow.value",
+        "type": "LREAL",
+        "field": "fcv101.aiFlow"
+      },
+      {
+        "tag": "Main.plasma.fcv102.aiFlow.value",
+        "type": "LREAL",
+        "field": "fcv102.aiFlow"
+      },
+      {
+        "tag": "Main.plasma.fcv103.aiFlow.value",
+        "type": "LREAL",
+        "field": "fcv103.aiFlow"
+      },
+      {
+        "tag": "Main.plasma.fcv104.aiFlow.value",
+        "type": "LREAL",
+        "field": "fcv104.aiFlow"
+      },
+      {
+        "tag": "Main.plasma.heater121.set",
+        "type": "LREAL",
+        "field": "heater121.set"
+      },
+      {
+        "tag": "Main.plasma.heater121.enable",
+        "type": "BOOL",
+        "field": "heater121.enable"
+      },
+      {
+        "tag": "Main.plasma.heater121.heater.onPct",
+        "type": "REAL",
+        "field": "heater121.heater.onPct"
+      },
+      {
+        "tag": "Main.plasma.heater121.heater.running",
+        "type": "BOOL",
+        "field": "heater121.heater.running"
+      },
+      {
+        "tag": "Main.plasma.heater121.heater.tempSetC",
+        "type": "LREAL",
+        "field": "heater121.heater.tempSetC"
+      },
+      {
+        "tag": "Main.plasma.heater121.ramp.dest",
+        "type": "LREAL",
+        "field": "heater121.ramp.dest"
+      },
+      {
+        "tag": "Main.plasma.heater121.ramp.rampRate",
+        "type": "LREAL",
+        "field": "heater121.ramp.rampRate"
+      },
+      {
+        "tag": "Main.plasma.heater121.ramp.out",
+        "type": "LREAL",
+        "field": "heater121.ramp.out"
+      },
+      {
+        "tag": "Controller.nodeRedLifeCounter",
+        "type": "INT",
+        "field": "Controller.nodeRedLifeCounter"
+      },
+      {
+        "tag": "Main.plasma.heater122.enable",
+        "type": "BOOL",
+        "field": "heater122.enable"
+      },
+      {
+        "tag": "Main.plasma.heater122.heater.onPct",
+        "type": "REAL",
+        "field": "heater122.heater.onPct"
+      },
+      {
+        "tag": "Main.plasma.heater122.heater.running",
+        "type": "BOOL",
+        "field": "heater122.heater.running"
+      },
+      {
+        "tag": "Main.plasma.heater122.heater.tempSetC",
+        "type": "LREAL",
+        "field": "heater122.heater.tempSetC"
+      },
+      {
+        "tag": "Main.plasma.heater122.ramp.dest",
+        "type": "LREAL",
+        "field": "heater122.ramp.dest"
+      },
+      {
+        "tag": "Main.plasma.heater122.ramp.rampRate",
+        "type": "LREAL",
+        "field": "heater122.ramp.rampRate"
+      },
+      {
+        "tag": "Main.plasma.heater122.ramp.out",
+        "type": "LREAL",
+        "field": "heater122.ramp.out"
+      },
+      {
+        "tag": "Main.plasma.heater122.set",
+        "type": "LREAL",
+        "field": "heater122.set"
+      },
+      {
+        "tag": "Main.plasma.heater123.set",
+        "type": "LREAL",
+        "field": "heater123.set"
+      },
+      {
+        "tag": "Main.plasma.heater123.enable",
+        "type": "BOOL",
+        "field": "heater123.enable"
+      },
+      {
+        "tag": "Main.plasma.heater123.heater.onPct",
+        "type": "REAL",
+        "field": "heater123.heater.onPct"
+      },
+      {
+        "tag": "Main.plasma.heater123.heater.running",
+        "type": "BOOL",
+        "field": "heater123.heater.running"
+      },
+      {
+        "tag": "Main.plasma.heater123.heater.tempSetC",
+        "type": "LREAL",
+        "field": "heater123.heater.tempSetC"
+      },
+      {
+        "tag": "Main.plasma.heater123.ramp.dest",
+        "type": "LREAL",
+        "field": "heater123.ramp.dest"
+      },
+      {
+        "tag": "Main.plasma.heater123.ramp.rampRate",
+        "type": "LREAL",
+        "field": "heater123.ramp.rampRate"
+      },
+      {
+        "tag": "Main.plasma.heater123.ramp.out",
+        "type": "LREAL",
+        "field": "heater123.ramp.out"
+      },
+      {
+        "tag": "Main.plasma.steamHtr111.set",
+        "type": "LREAL",
+        "field": "steamHtr111.set"
+      },
+      {
+        "tag": "Main.plasma.steamHtr111.enable",
+        "type": "BOOL",
+        "field": "steamHtr111.enable"
+      },
+      {
+        "tag": "Main.plasma.steamHtr111.heater.onPct",
+        "type": "REAL",
+        "field": "steamHtr111.heater.onPct"
+      },
+      {
+        "tag": "Main.plasma.steamHtr111.heater.running",
+        "type": "LREAL",
+        "field": "steamHtr111.heater.running"
+      },
+      {
+        "tag": "Main.plasma.steamHtr111.heater.tempSetC",
+        "type": "LREAL",
+        "field": "steamHtr111.heater.tempSetC"
+      },
+      {
+        "tag": "Main.plasma.steamHtr111.ramp.dest",
+        "type": "LREAL",
+        "field": "steamHtr111.ramp.dest"
+      },
+      {
+        "tag": "Main.plasma.steamHtr111.ramp.rampRate",
+        "type": "LREAL",
+        "field": "steamHtr111.ramp.rampRate"
+      },
+      {
+        "tag": "Main.plasma.steamHtr111.ramp.out",
+        "type": "LREAL",
+        "field": "steamHtr111.ramp.out"
+      },
+      {
+        "tag": "Main.plasma.steamHtr113.set",
+        "type": "LREAL",
+        "field": "steamHtr113.set"
+      },
+      {
+        "tag": "Main.plasma.steamHtr113.enable",
+        "type": "BOOL",
+        "field": "steamHtr113.enable"
+      },
+      {
+        "tag": "Main.plasma.steamHtr113.heater.onPct",
+        "type": "REAL",
+        "field": "steamHtr113.heater.onPct"
+      },
+      {
+        "tag": "Main.plasma.steamHtr113.heater.running",
+        "type": "LREAL",
+        "field": "steamHtr113.heater.running"
+      },
+      {
+        "tag": "Main.plasma.steamHtr113.heater.tempSetC",
+        "type": "LREAL",
+        "field": "steamHtr113.heater.tempSetC"
+      },
+      {
+        "tag": "Main.plasma.steamHtr113.ramp.dest",
+        "type": "LREAL",
+        "field": "steamHtr113.ramp.dest"
+      },
+      {
+        "tag": "Main.plasma.steamHtr113.ramp.rampRate",
+        "type": "LREAL",
+        "field": "steamHtr113.ramp.rampRate"
+      },
+      {
+        "tag": "Main.plasma.steamHtr113.ramp.out",
+        "type": "LREAL",
+        "field": "steamHtr113.ramp.out"
+      },
+      {
+        "tag": "Main.plasma.heater131.set",
+        "type": "LREAL",
+        "field": "heater131.set"
+      },
+      {
+        "tag": "Main.plasma.heater131.enable",
+        "type": "BOOL",
+        "field": "heater131.enable"
+      },
+      {
+        "tag": "Main.plasma.heater131.heater.onPct",
+        "type": "REAL",
+        "field": "heater131.heater.onPct"
+      },
+      {
+        "tag": "Main.plasma.heater131.heater.running",
+        "type": "BOOL",
+        "field": "heater131.heater.running"
+      },
+      {
+        "tag": "Main.plasma.heater131.heater.tempSetC",
+        "type": "LREAL",
+        "field": "heater131.heater.tempSetC"
+      },
+      {
+        "tag": "Main.plasma.heater131.ramp.dest",
+        "type": "LREAL",
+        "field": "heater131.ramp.dest"
+      },
+      {
+        "tag": "Main.plasma.heater131.ramp.rampRate",
+        "type": "LREAL",
+        "field": "heater131.ramp.rampRate"
+      },
+      {
+        "tag": "Main.plasma.heater131.ramp.out",
+        "type": "LREAL",
+        "field": "heater131.ramp.out"
+      },
+      {
+        "tag": "Main.plasma.heater121.heater.pid.pOut",
+        "type": "LREAL",
+        "field": "heater121.heater.pid.pOut"
+      },
+      {
+        "tag": "Main.plasma.heater121.heater.pid.iOut",
+        "type": "LREAL",
+        "field": "heater121.heater.pid.iOut"
+      },
+      {
+        "tag": "Main.plasma.heater121.heater.pid.error",
+        "type": "LREAL",
+        "field": "heater121.heater.pid.error"
+      },
+      {
+        "tag": "Main.plasma.heater122.heater.pid.pOut",
+        "type": "LREAL",
+        "field": "heater122.heater.pid.pOut"
+      },
+      {
+        "tag": "Main.plasma.heater122.heater.pid.iOut",
+        "type": "LREAL",
+        "field": "heater122.heater.pid.iOut"
+      },
+      {
+        "tag": "Main.plasma.heater122.heater.pid.error",
+        "type": "LREAL",
+        "field": "heater122.heater.pid.error"
+      },
+      {
+        "tag": "Main.plasma.heater123.heater.pid.pOut",
+        "type": "LREAL",
+        "field": "heater123.heater.pid.pOut"
+      },
+      {
+        "tag": "Main.plasma.heater123.heater.pid.iOut",
+        "type": "LREAL",
+        "field": "heater123.heater.pid.iOut"
+      },
+      {
+        "tag": "Main.plasma.heater123.heater.pid.error",
+        "type": "LREAL",
+        "field": "heater123.heater.pid.error"
+      },
+      {
+        "tag": "Main.plasma.heater131.heater.pid.pOut",
+        "type": "LREAL",
+        "field": "heater131.heater.pid.pOut"
+      },
+      {
+        "tag": "Main.plasma.heater131.heater.pid.iOut",
+        "type": "LREAL",
+        "field": "heater131.heater.pid.iOut"
+      },
+      {
+        "tag": "Main.plasma.heater131.heater.pid.error",
+        "type": "LREAL",
+        "field": "heater131.heater.pid.error"
+      },
+      {
+        "tag": "Main.plasma.steamHtr111.heater.pid.pOut",
+        "type": "LREAL",
+        "field": "steamHtr111.heater.pid.pOut"
+      },
+      {
+        "tag": "Main.plasma.steamHtr111.heater.pid.iOut",
+        "type": "LREAL",
+        "field": "steamHtr111.heater.pid.iOut"
+      },
+      {
+        "tag": "Main.plasma.steamHtr111.heater.pid.error",
+        "type": "LREAL",
+        "field": "steamHtr111.heater.pid.error"
+      },
+      {
+        "tag": "Main.plasma.steamHtr113.heater.pid.pOut",
+        "type": "LREAL",
+        "field": "steamHtr113.heater.pid.pOut"
+      },
+      {
+        "tag": "Main.plasma.steamHtr113.heater.pid.iOut",
+        "type": "LREAL",
+        "field": "steamHtr113.heater.pid.iOut"
+      },
+      {
+        "tag": "Main.plasma.steamHtr113.heater.pid.error",
+        "type": "LREAL",
+        "field": "steamHtr113.heater.pid.error"
+      },
+      {
+        "tag": "Main.plasma.aiAmps120.value",
+        "type": "LREAL",
+        "field": "aiAmps120"
+      }
+    ]
+  }

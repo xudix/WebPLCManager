@@ -1,0 +1,114 @@
+{
+  "port": 851,
+  "org": "Susteon",
+  "bucket": "PlasmaLab",
+  "name": "StirTank",
+  "measurement": "stirTank",
+  "tags": [
+    {
+      "tag": "Controller.lifeCounter",
+      "type": "INT",
+      "field": "Controller.lifeCounter"
+    },
+    {
+      "tag": "Main.stirTank.aiPress111.value",
+      "type": "LREAL",
+      "field": "aiPress111"
+    },
+    {
+      "tag": "Main.stirTank.aiPress112.value",
+      "type": "LREAL",
+      "field": "aiPress112"
+    },
+    {
+      "tag": "Main.stirTank.aiPress201.value",
+      "type": "LREAL",
+      "field": "aiPress201"
+    },
+    {
+      "tag": "Main.stirTank.aiPress101.value",
+      "type": "LREAL",
+      "field": "aiPress101"
+    },
+    {
+      "tag": "Main.stirTank.aiTemp111.value",
+      "type": "LREAL",
+      "field": "aiTemp111"
+    },
+    {
+      "tag": "Main.stirTank.aiTemp112.value",
+      "type": "LREAL",
+      "field": "aiTemp112"
+    },
+    {
+      "tag": "Main.stirTank.aiTemp201.value",
+      "type": "LREAL",
+      "field": "aiTemp201"
+    },
+    {
+      "tag": "Main.stirTank.aiTemp101.value",
+      "type": "LREAL",
+      "field": "aiTemp101"
+    },
+    {
+      "tag": "Main.stirTank.aiPress102.value",
+      "type": "LREAL",
+      "field": "aiPress102"
+    },
+    {
+      "tag": "Main.stirTank.sv101.solenoid.dqState1.dqOut.value",
+      "type": "BOOL",
+      "field": "sv101.opencmd"
+    },
+    {
+      "tag": "Main.stirTank.sv102.solenoid.dqState1.dqOut.value",
+      "type": "BOOL",
+      "field": "sv102.opencmd"
+    },
+    {
+      "tag": "Main.stirTank.sv111.solenoid.dqState1.dqOut.value",
+      "type": "BOOL",
+      "field": "sv111.opencmd"
+    },
+    {
+      "tag": "Main.stirTank.sv201.solenoid.dqState1.dqOut.value",
+      "type": "BOOL",
+      "field": "sv201.opencmd"
+    },
+    {
+      "tag": "Main.stirTank.sv202.solenoid.dqState1.dqOut.value",
+      "type": "BOOL",
+      "field": "sv202.opencmd"
+    },
+    {
+      "tag": "Main.stirTank.sv203.solenoid.dqState1.dqOut.value",
+      "type": "BOOL",
+      "field": "sv203.opencmd"
+    },
+    {
+      "tag": "Main.stirTank.sv222.solenoid.dqState1.dqOut.value",
+      "type": "BOOL",
+      "field": "sv222.opencmd"
+    },
+    {
+      "tag": "Main.stirTank.sv333.solenoid.dqState1.dqOut.value",
+      "type": "BOOL",
+      "field": "sv333.opencmd"
+    },
+    {
+      "tag": "Main.stirTank.odMode",
+      "type": "INT",
+      "field": "odMode"
+    },
+    {
+      "tag": "Main.stirTank.state",
+      "type": "INT",
+      "field": "state"
+    },
+    {
+      "tag": "Controller.nodeRedLifeCounter",
+      "type": "INT",
+      "field": "Controller"
+    }
+  ]
+}

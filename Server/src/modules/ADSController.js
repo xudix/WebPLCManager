@@ -24,8 +24,10 @@ export class ADSController extends GenericController{
 
 
     get isConnected(){
-        return this.client.connection.connected;
+        return this._isConnected && this.client.connection.connected;
     }
+
+    _isConnected = false;
 
     /**
      * 
@@ -36,8 +38,25 @@ export class ADSController extends GenericController{
         this._config = config;
         this.name = config.name || config.targetAdsPort.toString();  // use the port number as controller name here
         this.client = new ads.Client(config);
+        this._addEventHandlers();
         this._connect();
         
+    }
+
+    _addEventHandlers(){
+        this.client.on('connectionLost', () => {
+            this._isConnected = false;
+        });
+        this.client.on('reconnect', () => {
+            this._isConnected = true;
+        });
+        this.client.on('disconnect', () => {
+            this._isConnected = false;
+        });
+        this.client.on('connect', connectionInfo => {
+            console.log(connectionInfo);
+            this._isConnected = true;
+        });
     }
     
 
