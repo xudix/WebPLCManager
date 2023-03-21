@@ -3,6 +3,8 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AngularSplitModule } from 'angular-split';
 import { MatTabsModule } from '@angular/material/tabs'
 import { MatSelectModule } from '@angular/material/select';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
 
 import { AppComponent } from './app.component';
 
@@ -34,6 +36,8 @@ const config_SameDomain: SocketIoConfig = {url: "", options: {}};
     BrowserAnimationsModule,
     MatTabsModule,
     MatSelectModule,
+    MatFormFieldModule,
+    MatInputModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

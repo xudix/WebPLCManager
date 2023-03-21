@@ -3,6 +3,7 @@ import { IControllerSymbol } from 'src/app/models/controller-data-types';
 import { ILoggingConfig } from 'src/app/models/logging-config-type';
 import { WatchPageService } from 'src/app/services/watch-page.service';
 
+
 @Component({
   selector: 'app-logging-page',
   templateUrl: './logging-page.component.html',
@@ -61,6 +62,19 @@ export class LoggingPageComponent {
 
   sendLoggingConfig(){
     this._service.sendLoggingConfig();
+  }
+
+  async testFunc(){
+    console.log(await fetch("http://localhost:2333/api/log-status"));
+    let options = {
+      method: 'POST',
+      headers: {
+        "Content-Type": "text/plain"
+      },
+      body: "testFileName.lp"
+    }
+    fetch("http://localhost:2333/api/log-file", options);
+    fetch("http://localhost:2333/api/log-file/testFileName2.lp", {method: "DELETE"})
   }
 
 

@@ -1,13 +1,43 @@
-<div style="height: 90vh; width: 98vw;">
+<div class="topLevel">
     <as-split direction="horizontal" unit="percent" [restrictMove]="true" [gutterSize]="10">
-      <as-split-area [size]="50">
+      <as-split-area [size]="40">
         <app-symbol-selector currentPage="logging"></app-symbol-selector>
         
       </as-split-area>
-      <as-split-area [size]="50">
-        <div class="log-list">
+      <as-split-area class="log-disp-split" [size]="60">
+        <div class="log-disp">
             <button (click)="requestLoggingConfig()">Refresh Logging Configuration</button>
-            <div>
+            <button (click)="testFunc()">Test button</button>
+            <div class="log-list" >
+                <div class="list-head">
+                    <div class="firstColTitle">SymbolName</div>
+                    <div class="secondColTitle">field</div>
+                    <div class="thirdColTitle">Status</div>
+                </div>
+                <div class="list-body">
+                    <div class="controller-level" *ngFor="let config of loggingConfig?.logConfigs">
+                        <div class="controller-config">
+                            <div>Controller: {{config.name}}</div>
+                            <div>
+                                    <mat-form-field>
+                                        <input matInput type="text" placeholder="Measurement" >
+                                    </mat-form-field>
+                                
+                            </div>
+                            
+                            
+                        </div>
+                        <div class="symbol-config" *ngFor="let symbol of config.tags">
+    
+    
+                        </div>
+    
+                    </div>
+                </div>
+                
+
+            </div>
+            <!-- <div>
                 <table>
                     <thead>
                         <tr>
@@ -17,38 +47,26 @@
                         </tr>
                     </thead>
                     <tbody *ngFor="let config of loggingConfig?.logConfigs">
-                        <tr>Controller: <input
-                            type="text"
-                            [(ngModel)]="config.name"
-                            ></tr>
-                        <tr>Measurement: <input
-                            type="text"
-                            [(ngModel)]="config.measurement"
-                            >
+                        <tr>Controller: <input type="text" [(ngModel)]="config.name"></tr>
+                        <tr>Measurement: <input type="text" [(ngModel)]="config.measurement">
                         </tr>
                         <tr *ngFor="let symbol of config.tags">
                             <td style="width: 50%;">
-                                <textarea style="width: 100%;"
-                                    type="text"
-                                    [(ngModel)]="symbol.tag"
-                                    (change)="symbolModified(symbol)"
-                                ></textarea>
+                                <textarea style="width: 100%;" type="text" [(ngModel)]="symbol.tag"
+                                    (change)="symbolModified(symbol)"></textarea>
                             </td>
                             <td style="width: 25%;">
-                                <textarea style="width: 100%;"
-                                    type="text"
-                                    [(ngModel)]="symbol.field"
-                                    (change)="symbolModified(symbol)"
-                                ></textarea>
+                                <textarea style="width: 100%;" type="text" [(ngModel)]="symbol.field"
+                                    (change)="symbolModified(symbol)"></textarea>
                             </td>
                             <td style="width: 25%; text-align: center;">
                                 {{symbol.status === undefined? "Unknown":symbol.status}}
                                 <button (click)="removeSymbol(symbol)">Remove</button>
-                            </td>   
-                         </tr>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
-            </div>
+            </div> -->
             <button (click)="sendLoggingConfig()">Apply New Configuration</button>
         
         </div>

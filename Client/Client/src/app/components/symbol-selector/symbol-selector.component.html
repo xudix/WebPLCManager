@@ -1,13 +1,24 @@
 <div class="symbol-selector">
     <div class="flex-container">
-        <input 
+        <mat-form-field>
+            <input matInput
+                class="symbol-input"
+                type="text" 
+                [(ngModel)]="symbolInputStr"
+                (change)="symbolInputChanged()"
+                (keyup)="symbolInputChanged()"
+                [disabled]="!symbolInfoAvailable"
+                [placeholder]="symbolInfoAvailable?'Type Symbol Name Here':'Symbol Information Is Not Available.'"
+            >
+        </mat-form-field>
+        <!-- <input matInput
                 type="text" 
                 [(ngModel)]="symbolInputStr"
                 (change)="symbolInputChanged()"
                 (keyup)="symbolInputChanged()"
                 [disabled]="!symbolInfoAvailable"
                 [placeholder]="symbolInfoAvailable?'':'Symbol Information Is Not Available.'"
-            >
+            > -->
         <button (click)="clearInput()" >Clear Input</button>
         <p id="currentPathDisp">
             Current Path: <span>{{currentPath}}</span>

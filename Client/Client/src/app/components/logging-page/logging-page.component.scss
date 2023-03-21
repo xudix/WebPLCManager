@@ -1,17 +1,60 @@
-as-split-area {
+.topLevel {
+  height: 85vh;
+  width: 98vw;
+
+  .log-disp-split {
     background-color: black;
     border: 1px solid black;
-    
-    app-symbol-selector {
-        height: 100%;
-    }
 
-    .log-list {
+
+    .log-disp {
       width: 100%;
       height: 100%;
       background-color: rgb(047 035 033);
       color: rgb(254, 216, 117);
+      margin: 0px;
+
+      .log-list{
+        width: 100%;
+        height: auto;
+        border: 1px solid rgb(170 079 035);
+        border-radius: 10px;
+        margin: 0px;
+        text-align: center;
+
+        .list-head{
+          display: grid;
+          grid-template-columns: 50% 25% 25%;
+          .firstColTitle, .secondColTitle, .thirdColTitle{
+            width: 100%;
+            height: auto;
+            font-size: large;
+            color: rgb(248 235 220);
+            background-color: rgb(170 079 035);
             margin: 0px;
+  
+          }
+        }
+        
+
+        .list-body{
+          .controller-level{
+            .controller-config{
+              display: grid;
+              grid-template-columns: 25% 75%;
+              height: auto;
+
+              input {
+                width: 100%;
+              }
+  
+            }
+          }
+        }
+        
+
+        
+      }
   
       table {
   
@@ -55,3 +98,6 @@ as-split-area {
   
     // .watch-list
   }
+
+}
+

@@ -8,12 +8,16 @@
     //padding-top: 20px;
 
     .flex-container {
-
-      input {
-        font-size: large;
-        width: 80%;
-        margin: 1%;
+      mat-form-field {
+        width: 100%;
+        .symbol-input {
+          font-size: large;
+          width: 80%;
+          margin: 1%;
+        }
       }
+
+      
 
       #currentPathDisp {
         width: 80%;
