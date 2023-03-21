@@ -1,0 +1,15 @@
+{
+    "influx" : {
+        "local" : {  
+            "token" : "IQtKLp8ObHEnN6s0V3BGzH6VsizeYYTCWA4gjRB4OMVQ6crLrvupEsqzT9AhDTCcJznj1YPHmgOBj3p1XiY-qw==",
+            "bucket" : "DacLab",
+            "URL": "http://10.10.0.10:8086",
+            "org": "Sustaera"
+        }
+       
+    },
+    "source" : {
+       "password" : "Su$teon123",
+       "username" : "administrator"
+    }
+ }

@@ -1,0 +1,21 @@
+{
+    "influx" : {
+        "local" : {
+            "token" : "RinH505KUFDwkaujopEaGUy3iiFLWN5i2JlUMW9zuuIra4Bp9beP5Sx3a8woutYgXmB0R82BaKYg0zfX2ezLDg==",
+            "bucket" : "PlasmaLab",
+            "URL": "http://10.10.0.30:8087",
+            "org" : "Susteon"
+        },
+        "cloud" : {  
+            "token" : "UQsl7_Dg48LGBtc-l04nZV3gsd7pbrrHmNqRTM0HLjFDPIyG0Ag7e6C_wzCQpyVGxkFGkqomT7XpndaAdjEcrQ==",
+            "bucket" : "PlasmaLab",
+            "URL": "https://influx.sustaeon.com",
+            "org": "Sustaera"
+        }
+       
+    },
+    "source" : {
+       "password" : "dy7uGcxZ",
+       "username" : "plasmalab"
+    }
+ }

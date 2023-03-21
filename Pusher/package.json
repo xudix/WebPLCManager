@@ -1,0 +1,15 @@
+{
+  "name": "pusher",
+  "version": "1.0.0",
+  "description": "Get logging files from the PLC and push them to the InfluxDB",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@marsaud/smb2": "^0.18.0",
+    "node-fetch": "^3.3.1"
+  }
+}
