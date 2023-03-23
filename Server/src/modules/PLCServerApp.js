@@ -77,7 +77,10 @@ export class ServerApp{
 
         // Watch clients: create one when a socket client is connected
         this.ioServer.on("connection", socket =>{
+
+            // This is for browser client
             socket.on("createWatchClient", () => {
+                console.log("Watch Client Requested.");
                 new WatchClient(socket.id, this._serverConfig.subscriptionInterval/2, this.dataBroker, socket, this.loggingClient);            
                 socket.on("disconnect", (reason) => {
                     console.log(`Socket ${socket.id} has disconnected`);
@@ -85,12 +88,14 @@ export class ServerApp{
                 });
             })
             
+            // This is for remote logger
             socket.on("createRemoteLoggingClient", () => {
                 this.loggingClient.remoteSocket = socket;
                 console.log("Remote logging client connected.")
 
                 socket.on("remoteLoggingStarted", () => {
                     this.loggingClient.writeToLocalFile = false;
+                    this.loggingClient.switchFile();
                 })
 
                 socket.on("disconnect", () => {

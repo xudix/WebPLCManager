@@ -53,8 +53,10 @@ export class DataClient{
     constructor(id, accumulationTime, dataBroker){
         this.id = id;
         this._accumulationTime = accumulationTime;
-        this._dataBroker = dataBroker;
-        dataBroker.registerClient(this);
+        if(dataBroker != undefined){
+            this._dataBroker = dataBroker;
+            dataBroker.registerClient(this);
+        }
 
     }
 
@@ -367,65 +369,49 @@ export class PLCLoggingClient extends DataClient{
             this.autoResubscribe = true;
             this._subscribeLogging();
         })
-    }
-
-    /**
-     * Receive data from the server app. Accumulate the data for a while, then send accumulated data out
-     * @param {string} controllerName 
-     * @param {{symbolName: string, value: any, timeStamp: Date}} data 
-    */
-    receiveData(controllerName, data) {
-        // if (this.subscribedData[controllerName] === undefined) { this.subscribedData[controllerName] = {}; }
-        // this.subscribedData[controllerName][data.symbolName] = data.value;
-        // if (!this._accumulatingSubsData) { // First data received. Start accumulating them
-        //     this._dataTime = data.timeStamp.valueOf();
-        //     this._accumulatingSubsData = true;
-        //     setTimeout(() => { // after the subscription interval from receiving the first data, send the accumulated data out.
-        //         this.sendSubscribedData();
-        //         this._accumulatingSubsData = false;
-        //     }, this._accumulationTime);
-        // }
-        super(controllerName, data);
-        if(this.remoteSocket !== undefined){
-            this.remoteSocket.emit("loggingData", controllerName, data);
-        }
+        this._clearOldTempFiles();
     }
 
     /**
      * Write the data accumulated in subscribedData to the buffer, then call _writeToFile.
      */
     sendSubscribedData(){
-        if (this.writeToLocalFile){
-            let measurement;
-            for(let controllerName in this.subscribedData){
-                for(let config of this.loggingConfig.logConfigs){
-                    if(config.name == controllerName){
-                        measurement = config.measurement;
-                        break;
-                    }
+        let measurement;
+        for (let controllerName in this.subscribedData) {
+            for (let config of this.loggingConfig.logConfigs) {
+                if (config.name == controllerName) {
+                    measurement = config.measurement;
+                    break;
                 }
-                this._bufferLength += this._buffer.write(`${measurement} `, this._bufferLength, 'binary');
-                for(let symbolName in this.subscribedData[controllerName]){ 
-                    let data = this.subscribedData[controllerName][symbolName];
-                    switch(typeof data){    // Different format for different type of data
-                        case "object":
-                            if(data.name != undefined && data.value != undefined){ // enum type
-                                this._bufferLength += this._buffer.write(`${this._fieldsDict[controllerName][symbolName]}=${data.value},`, this._bufferLength, 'binary');
-                                this._bufferLength += this._buffer.write(`${this._fieldsDict[controllerName][symbolName]}.name="${data.name.replaceAll("\\","\\\\").replaceAll("\"","\\\"")}",`, this._bufferLength, 'binary');   // record name and value at the same time
-                            }
-                            break;
-                        case "string":
-                            data = data.replaceAll("\\","\\\\").replaceAll("\"","\\\"");
-                            this._bufferLength += this._buffer.write(`${this._fieldsDict[controllerName][symbolName]}="${data}",`, this._bufferLength, 'binary');   // need to add double quotation to string
-                            break;
-                        default:
-                            this._bufferLength += this._buffer.write(`${this._fieldsDict[controllerName][symbolName]}=${data},`, this._bufferLength, 'binary');
-                    }
-                }
-                this._bufferLength += (this._buffer.write(` ${this._dataTime}\n`, this._bufferLength-1, 'binary') - 1); // -1 in offset to remove the last comma
             }
-            this.subscribedData = {};
+            this._bufferLength += this._buffer.write(`${measurement} `, this._bufferLength, 'binary');
+            for (let symbolName in this.subscribedData[controllerName]) {
+                let data = this.subscribedData[controllerName][symbolName];
+                switch (typeof data) {    // Different format for different type of data
+                    case "object":
+                        if (data.name != undefined && data.value != undefined) { // enum type
+                            this._bufferLength += this._buffer.write(`${this._fieldsDict[controllerName][symbolName]}=${data.value},`, this._bufferLength, 'binary');
+                            this._bufferLength += this._buffer.write(`${this._fieldsDict[controllerName][symbolName]}.name="${data.name.replaceAll("\\", "\\\\").replaceAll("\"", "\\\"")}",`, this._bufferLength, 'binary');   // record name and value at the same time
+                        }
+                        break;
+                    case "string":
+                        data = data.replaceAll("\\", "\\\\").replaceAll("\"", "\\\"");
+                        this._bufferLength += this._buffer.write(`${this._fieldsDict[controllerName][symbolName]}="${data}",`, this._bufferLength, 'binary');   // need to add double quotation to string
+                        break;
+                    default:
+                        this._bufferLength += this._buffer.write(`${this._fieldsDict[controllerName][symbolName]}=${data},`, this._bufferLength, 'binary');
+                }
+            }
+            this._bufferLength += (this._buffer.write(` ${this._dataTime}\n`, this._bufferLength - 1, 'binary') - 1); // -1 in offset to remove the last comma
+        }
+        this.subscribedData = {};
+        // Depending on whether a remote logger is connected, write to local file or send data to remote.
+        if (this.writeToLocalFile || this.remoteSocket === undefined){
             this._writeToFile();
+        }
+        if (this.remoteSocket != undefined){
+            this.remoteSocket.emit("lpData", this._buffer.toString("binary", 0, this._bufferLength));
+            this._bufferLength = 0;
         }
     }
 
@@ -505,9 +491,9 @@ export class PLCLoggingClient extends DataClient{
                 this._fileHandle = {};  // to prevent another file creation operation before this one is done.
                 this.tempFilePath = Path.join(this.loggingConfig.logPath, this._dataTime+".temp")
                 await FileSystem.open(this.tempFilePath, "a+")
-                .then(fileHandle => {
+                .then(async fileHandle => {
                     this._fileHandle = fileHandle;
-                    this._writeLine()
+                    await this._writeData()
                     this._fileTimer = setTimeout(() => {
                         this.switchFile();
                     }, this.loggingConfig.logFileTime);
@@ -518,20 +504,37 @@ export class PLCLoggingClient extends DataClient{
                 })
             }
             else if(this._fileAvaileble){
-                await this._writeLine();
+                await this._writeData();
             }
         }
     }
 
-    async _writeLine(){
+    async _writeData(){
         this._fileAvaileble = false;
         await this._fileHandle.write(this._buffer,0,this._bufferLength)
         .then((res) => {
             //console.log(`Written ${res.bytesWritten} bytes.`);
             this._bufferLength = 0;
-            this._fileAvaileble = true;
         })
-        .catch(err => console.error(`Failed to write to file.`, err));
+        .catch(err => console.error(`Failed to write to file.`, err))
+        .finally(() => {
+            this._fileAvaileble = true;
+        });
+    }
+
+    /**
+     * Look in the data folder, and convert all existing .temp files to .lp file.
+     */
+    async _clearOldTempFiles(){
+        await FileSystem.readdir(this._loggingConfig.logPath)
+            .then(async (files) => {
+                for(let fileName of files){
+                    if (fileName.endsWith(".temp")){
+                        let oldName = Path.join(this.loggingConfig.logPath, fileName);
+                        await FileSystem.rename(oldName, oldName.replace(".temp", ".lp"));
+                    }
+                }
+            })
     }
 
     /**
@@ -549,13 +552,16 @@ export class PLCLoggingClient extends DataClient{
                 this._fileAvaileble = false;
                 this._fileHandle.close()
                     .then(() => {
-                        let newFileName = `${Math.floor(this._dataTime / 1000)}_${this.loggingConfig.bucket}.lp`;
-                        FileSystem.rename(this.tempFilePath, Path.join(this.loggingConfig.logPath, newFileName))
+                        let newFileName = this.tempFilePath.replace(".temp", `_${this.loggingConfig.bucket}.lp`);
+                        FileSystem.rename(this.tempFilePath, newFileName)
                             .then(() => {
                                 resolve(newFileName);
                             })
                             .catch(err => {
-                                console.error("Failed to rename temp file.");
+                                console.error("Failed to rename temp file.", err);
+                                setTimeout(() => {
+                                    this._clearOldTempFiles();
+                                }, 1000);
                                 reject(err);
                             })
                             .finally(() => {

@@ -1,0 +1,14 @@
+{
+    "port": 23333,
+    "clientPath": "./client/",
+    "cors": {
+        "origin": "http://localhost:4200",
+        "methods": ["GET", "POST", "DELETE"]
+    },
+    "PLCURL": "http://localhost:2333",
+    "loggingConfig": {
+        "logPath": "./data/",
+        "logFileTime": 6000000,
+        "bucket": "DacLab"
+    }
+}

@@ -1,7 +1,7 @@
 // setup ADS controller
 const adsconfig851 = require("./configs/ADSLocal851Config.json");
 const adsconfig852 = require("./configs/ADSLocal852Config.json");
-const serverConfig = require("./configs/ServerConfig.json");
+const serverConfig = require("./configs/PLCServerConfig.json");
 
 // Create controller instance here so that the ServerApp is not specific to ADS
 import("./modules/ADSController.js")

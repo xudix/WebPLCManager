@@ -34,7 +34,10 @@
   "node-ads": "^1.5.1",
   
     
-  "socket.io": "^4.6.1"
+  "socket.io": "^4.6.1",
+  
+    
+  "socket.io-client": "^4.6.1"
   
   }
 }
