@@ -125,7 +125,7 @@ export class DataBroker extends EventEmitter{
             })
             .catch(err => {
                 //console.error(`Failed to read data types from ${controllerName}.`, err);
-                this.emit("error", new Error(`Failed to read data types from ${controllerName}.`));
+                //this.emit("error", new Error(`Failed to read data types from ${controllerName}.`));
                 reject(err);
             });
         });
@@ -156,7 +156,7 @@ export class DataBroker extends EventEmitter{
             })
             .catch(err => {
                 //console.error(`Failed to read symbols from ${controllerName}.`, err);
-                this.emit("error", new Error(`Failed to read symbols from ${controllerName}.`));
+                //this.emit("error", new Error(`Failed to read symbols from ${controllerName}.`));
                 reject(err);
             });
         });

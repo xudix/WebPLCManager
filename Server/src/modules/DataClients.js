@@ -166,8 +166,8 @@ export class WatchClient extends DataClient{
             .finally(() => this.subscriptions = {});
         });
         this._socket.on("requestSymbols", (controllerName) => {
-            this._dataBroker.getDataTypes(controllerName);
-            this._dataBroker.getSymbols(controllerName);
+            this._dataBroker.getDataTypes(controllerName).catch(err => console.error(err));
+            this._dataBroker.getSymbols(controllerName).catch(err => console.error(err));
         });
         this._socket.on("requestLoggingConfig", () => {
             this._socket.emit("loggingConfigUpdated", this._loggingClient.loggingConfig);
@@ -271,7 +271,7 @@ export class PLCLoggingClient extends DataClient{
      * - if false, no data will be written to files.
      * @type {boolean}
      */
-    writeToLocalFile = true;
+    writeToLocalFile = false;
 
     /**
      * Number of sucessful subscriptions from the controller.
@@ -355,12 +355,12 @@ export class PLCLoggingClient extends DataClient{
     constructor(id, accumulationTime, dataBroker, loggingConfig){
         super(id, accumulationTime, dataBroker);
         this._loggingConfig = loggingConfig;
+        if(this._loggingConfig.logConfigs == undefined) { this._loggingConfig.logConfigs = []; }
         let controllerStatus = dataBroker.getControllerStatus();
         for(let controllerName in controllerStatus){
-            console.log(process.cwd());
+            //console.log(process.cwd());
             this._promises.push(FileSystem.readFile(Path.join(this._loggingConfig.configPath, controllerName + "logging.json"))
                 .then((data) => {
-                    if(this._loggingConfig.logConfigs == undefined) { this._loggingConfig.logConfigs = []; }
                     this._loggingConfig.logConfigs.push(JSON.parse(data));
                 })
                 .catch(err => console.error(`Failed to load logging configuration for ${controllerName}.`, err)));

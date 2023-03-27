@@ -1,4 +1,4 @@
-let serverConfig = require("./config").get("PushServer_Plasma");
+let serverConfig = require("./config").get("PushServer_BenchScale");
 
 import("./modules/RemoteServerApp.js")
 .then(serverModule => {
