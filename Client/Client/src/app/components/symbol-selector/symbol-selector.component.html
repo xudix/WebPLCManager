@@ -1,30 +1,31 @@
 <div class="symbol-selector">
-    <div class="flex-container">
-        <mat-form-field>
-            <input matInput
-                class="symbol-input"
-                type="text" 
-                [(ngModel)]="symbolInputStr"
-                (change)="symbolInputChanged()"
-                (keyup)="symbolInputChanged()"
-                [disabled]="!symbolInfoAvailable"
-                [placeholder]="symbolInfoAvailable?'Type Symbol Name Here':'Symbol Information Is Not Available.'"
-            >
-        </mat-form-field>
-        <!-- <input matInput
-                type="text" 
-                [(ngModel)]="symbolInputStr"
-                (change)="symbolInputChanged()"
-                (keyup)="symbolInputChanged()"
-                [disabled]="!symbolInfoAvailable"
-                [placeholder]="symbolInfoAvailable?'':'Symbol Information Is Not Available.'"
-            > -->
-        <button (click)="clearInput()" >Clear Input</button>
-        <p id="currentPathDisp">
-            Current Path: <span>{{currentPath}}</span>
-        </p>
-        <button (click)="previousLevel()">Previous Level</button>
-    </div>
+    <mat-form-field class="input-form-field">
+        <mat-label>
+            {{symbolInfoAvailable?'Symbol Name':'Symbol Information Is Not Available.'}}
+        </mat-label>
+        <input matInput
+            class="symbol-input"
+            type="text" 
+            [(ngModel)]="symbolInputStr"
+            (change)="symbolInputChanged()"
+            (keyup)="symbolInputChanged()"
+            [disabled]="!symbolInfoAvailable"
+            
+        >
+        <button *ngIf="symbolInputStr" matSuffix mat-icon-button (click)="clearInput()" color="primary">
+            <mat-icon>close</mat-icon>
+        </button>
+    </mat-form-field>
+    <mat-card class="current-path-disp">
+        <mat-card-header>
+            <mat-card-subtitle>Current Path</mat-card-subtitle>
+            <mat-card-title> {{currentPath}}</mat-card-title>
+        </mat-card-header>
+        <mat-card-actions align="end">
+            <button mat-raised-button color="warn" (click)="previousLevel()">Previous Level</button>
+        </mat-card-actions>
+    </mat-card>
+    
 
     <div class="symbol-list-body">
         <div *ngFor='let item of candidateList' 

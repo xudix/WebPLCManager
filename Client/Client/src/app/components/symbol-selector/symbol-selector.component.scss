@@ -1,101 +1,99 @@
 .symbol-selector {
-    background-color: rgb(58, 27, 25);
-    color: rgb(252, 240, 225);
-    height: 100%;
-    overflow: hidden;
-    width: 100%;
-    //overflow-x: hidden;
-    //padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  
+  background-color: rgb(58, 27, 25);
+  color: rgb(252, 240, 225);
+  height: 100%;
+  overflow: hidden;
+  width: 100%;
+  //overflow-x: hidden;
+  //padding-top: 20px;
 
-    .flex-container {
-      mat-form-field {
-        width: 100%;
-        .symbol-input {
-          font-size: large;
-          width: 80%;
-          margin: 1%;
+  .input-form-field {
+    flex: 0 0 auto;
+    background-color: rgb(58, 27, 25);
+    width: 100%;
+
+  }
+
+  .current-path-disp {
+    flex: 0 0 auto;
+    background-color: rgb(58, 27, 25);
+    width: 100%;
+
+    mat-card-subtitle {
+      color: rgb(252, 240, 225);
+    }
+    mat-card-title{
+      font-size: large;
+      color: rgb(254, 216, 117);
+    }
+  }
+
+  .symbol-list-body {
+    flex: 10 10 100px;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: 5px 0px 5px 0px;
+
+    .symbol-item {
+
+      margin: 0px 5px 0px 5px;
+      padding: 2px 2px 2px 5px;
+      word-wrap: break-word;
+
+      .symbol-item-name {
+        margin: 0px
+      }
+
+      .symbol-item-info {
+        margin-left: 10px;
+        visibility: collapse;
+        height: 0px;
+
+        .symbol-item-type {
+          margin: 0px;
+          padding-left: 5px;
+          visibility: inherit;
+          height: 0px;
+        }
+
+        .symbol-item-comment {
+          margin: 0px;
+          padding-left: 5px;
+          visibility: inherit;
+          height: 0px;
+          vertical-align: top;
         }
       }
 
-      
 
-      #currentPathDisp {
-        width: 80%;
-        padding: 2px;
-        margin: 5px;
-        font-size: large;
+
+      &:hover {
         border: 2px solid rgb(201 071 055);
         border-radius: 5px;
-        span{
-          color: rgb(254, 216, 117);
-        }
-      }
-
-    }
-
-    
-
-    .symbol-list-body {
-      width: 100%;
-      overflow-y: auto;
-      height: 78%;
-      margin: 5px 0px 5px 0px;
-
-      .symbol-item {
-
-        margin: 0px 5px 0px 5px;
-        padding: 2px 2px 2px 5px;
-        word-wrap: break-word;
-
-        .symbol-item-name {
-          margin: 0px
-        }
+        background-color: rgb(123 089 094);
 
         .symbol-item-info {
-          margin-left: 10px;
-          visibility: collapse;
-          height: 0px;
+          visibility: visible;
+          height: auto;
 
           .symbol-item-type {
-            margin: 0px;
-            padding-left: 5px;
-            visibility: inherit;
-            height: 0px;
+            height: auto;
           }
 
           .symbol-item-comment {
-            margin: 0px;
-            padding-left: 5px;
-            visibility: inherit;
-            height: 0px;
-            vertical-align: top;
-          }
-        }
-
-
-
-        &:hover {
-          border: 2px solid rgb(201 071 055);
-          border-radius: 5px;
-          background-color: rgb(123 089 094);
-
-          .symbol-item-info {
-            visibility: visible;
             height: auto;
-
-            .symbol-item-type {
-              height: auto;
-            }
-
-            .symbol-item-comment {
-              height: auto;
-            }
           }
         }
       }
     }
-
-    //.symbol-list-body   
   }
 
-  // .symbol-list
+  //.symbol-list-body   
+}
+
+// .symbol-list

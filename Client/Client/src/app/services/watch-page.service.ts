@@ -38,9 +38,9 @@ export class WatchPageService {
 
   public get symbolInfoAvailable(): boolean{
     return this._model.dataTypes[this.currentController] !== undefined && 
-            Object.keys(this._model.dataTypes).length > 0 &&
-            this._model.symbols[this.currentController] !== undefined && 
-            Object.keys(this._model.symbols).length > 0;
+      Object.keys(this._model.dataTypes).length > 0 &&
+      this._model.symbols[this.currentController] !== undefined && 
+      Object.keys(this._model.symbols).length > 0;
   }
 
   public get watchList(): Record<string, IControllerSymbol[]>{
@@ -116,6 +116,7 @@ export class WatchPageService {
     });
 
     socket.on("connect", () => { // This is actually reestablishing connection. Subscribe to all previous watches.
+      socket.emit("createWatchClient");
       socket.emit("requestControllerStatus")
       for(let controllerName in this._model.watchList){
         this._model.watchList[controllerName].forEach((symbol) => {

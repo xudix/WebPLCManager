@@ -1,13 +1,28 @@
-<div style="height: 88vh; width: 98vw;">
+<div class="topLevel">
     <as-split direction="horizontal" unit="percent" [restrictMove]="true" [gutterSize]="10">
       <as-split-area [size]="50">
         <app-symbol-selector currentPage="watch"></app-symbol-selector>
       </as-split-area>
       <as-split-area [size]="50">
         <div class="watch-list">
-            <button (click)="clear()">Clear Watch List</button>
-            <div>
-                <table>
+            <button mat-raised-button color="warn" (click)="clear()">Clear Watch List</button>
+            <div class="table-container">
+                <div class="table-head">
+                    <div>Symbol</div>
+                    <div>Value</div>
+                    <div>NewValue</div>
+                </div>
+                <div class="table-body">
+                    <div class="controller-level" *ngFor="let controllerName of controllerList">
+                        <p>{{controllerName}}</p>
+                        <div class="symbol-row" *ngFor="let item of watchList[controllerName]">
+                            <div class="symbol-name">{{item.name}}</div>
+                            <div class="symbol-value">{{item.value}}</div>
+                            <input class="symbol-new-value" [(ngModel)]="item.newValueStr">
+                        </div>
+                    </div>
+                </div>
+                <!-- <table>
                     <thead>
                         <tr>
                             <th style="width: 50%;">Symbol</th>
@@ -22,11 +37,13 @@
                             <td style="width: 25%; text-align: center;">{{item.value}}</td>
                             <td style="width: 25%; text-align: center;">
                                 <input [(ngModel)]="item.newValueStr">
-                            </td>    </tr>
+                            </td>
+                        </tr>
                     </tbody>
-                </table>
+                </table> -->
             </div>
-            <button (click)="writeNewValues()">Write New Values</button>
+            
+            <button mat-raised-button color="warn" (click)="writeNewValues()">Write New Values</button>
         
         </div>
       </as-split-area>

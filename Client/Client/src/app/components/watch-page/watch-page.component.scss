@@ -1,26 +1,96 @@
-as-split-area {
-  background-color: black;
-  border: 1px solid black;
+.topLevel {
+  height: 100%;
+  width: 100%;
 
-  app-symbol-selector {
-    height: 100%;
-  }
+  
+as-split-area {
+  height: 100%;
+
 
   .watch-list {
     width: 100%;
     height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     background-color: rgb(047 035 033);
     color: rgb(254, 216, 117);
+    margin: 0px;
+    
+    button {
+      flex: 0 0 auto;
+    }
+
+    .table-container{
+      width: 100%;
+      flex: 1 1 1px;
+      border: 2px solid rgb(170 079 035);
+      border-radius: 10px;
+      margin: 0px;
+      display: flex;
+      flex-direction: column;
+      .table-head{
+        width: 100%;
+        display: grid;
+        grid-template-columns: 50% 25% 25%;
+        background-color: rgb(170 079 035);
+        //border: 2px solid rgb(170 079 035);
+        color: rgb(248 235 220);
+        font-size: large;
+        div{
+          margin: auto;
+        }
+      }
+      .table-body{
+        flex: 1 1 50px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        width: 100%;
+        .controller-level{
+          width: 100%;
+          padding-left: 5px;
+          padding-right: 5px;
           margin: 0px;
+          p{
+            color: rgb(248 235 220);
+            margin: 0px;
+          }
+          .symbol-row{
+            width: 100%;
+            display: grid;
+            grid-template-columns: 50% 25% 25%;
+            word-wrap: break-word;
+            .symbol-value{
+              text-align: center;
+            }
+            .symbol-new-value{
+              text-align: center;
+            }
+            *{
+              width: 100%;
+              padding-left: 10px;
+            }
+          }
+        }
+        
+      }
+
+    }
 
     table {
 
+      flex: 1 1 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
       width: 100%;
       border: 2px solid rgb(170 079 035);
       border-radius: 10px;
       margin: 0px;
 
       thead {
+        flex: 0 0 auto;
         width: 100%;
         font-size: large;
         color: rgb(248 235 220);
@@ -38,7 +108,8 @@ as-split-area {
       tbody {
         width: 100%;
         vertical-align: top;
-        overflow: auto;
+        flex: 1 1 1px;
+        overflow-y: auto;
 
         tr {
           width: 100%;
@@ -46,6 +117,10 @@ as-split-area {
 
           td {
             padding-left: 5px;
+            word-break: break-word;
+            input {
+              width: 100%;
+            }
           }
         }
       }
@@ -54,4 +129,7 @@ as-split-area {
   }
 
   // .watch-list
+}
+
+
 }

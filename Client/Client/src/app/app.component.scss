@@ -1,10 +1,24 @@
-.currentControllerLabel{
-    margin: 5px;
+.flex-container{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    height: 100%;
 
-    mat-select {
-        width: 30%;
-        border: 1px solid black;
-        border-radius: 5px;
+    .currentControllerLabel{
+        margin: 5px;
+        width: 50%;
+        flex: 0 0 auto;
+    
+        mat-select {
+            border: 1px solid blueviolet;
+            border-radius: 5px;
+            width: 50%;
+        }
+    }
+
+    mat-tab-group{
+        width: 100%;
     }
 }
+
 

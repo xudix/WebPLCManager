@@ -1,22 +1,25 @@
-<div class="currentControllerLabel">
-  Current Controller: 
-  <mat-select [(value)]="currentController" >
-    <mat-option *ngFor="let controller of controllerList" [value]="controller" >
-        {{controller + " - " + (controllerStatus[controller]? "Connected" : "Disconnected")}}
-    </mat-option>
-  </mat-select>
+<div class="flex-container">
+  <div class="currentControllerLabel">
+    Current Controller: 
+    <mat-select [(value)]="currentController" >
+      <mat-option *ngFor="let controller of controllerList" [value]="controller" >
+          {{controller + " - " + (controllerStatus[controller]? "Connected" : "Disconnected")}}
+      </mat-option>
+    </mat-select>
+  </div>
+  <mat-tab-group class="mat-tab-fill-height" (selectedIndexChange)="selectedIndexChange($event)" dynamicHeight [selectedIndex]="0">
+    <mat-tab label="Watch Symbols">
+      <app-watch-page></app-watch-page>
+    </mat-tab>
+    <mat-tab label="Manage Persistents">
+      <app-persistent-page></app-persistent-page>
+    </mat-tab>
+    <mat-tab label="Manage Logging">
+      <app-logging-page></app-logging-page>
+    </mat-tab>
+  </mat-tab-group>
 </div>
-<mat-tab-group (selectedIndexChange)="selectedIndexChange($event)" [selectedIndex]="2">
-  <mat-tab label="Watch Symbols">
-    <app-watch-page></app-watch-page>
-  </mat-tab>
-  <mat-tab label="Manage Persistents">
-    <app-persistent-page></app-persistent-page>
-  </mat-tab>
-  <mat-tab label="Manage Logging">
-    <app-logging-page></app-logging-page>
-  </mat-tab>
-</mat-tab-group>
+
 
 
 
