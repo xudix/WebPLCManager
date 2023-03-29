@@ -80,6 +80,25 @@ export class DataBroker extends EventEmitter{
             this.getControllerStatus();
         }, (5000));
 
+        // object for emitting message
+        this.log = {
+            info : (...args) => {
+                let msg = "";
+                args.forEach(arg => msg += arg.toString() + "\n");
+                this.emit("log", "info", msg);
+            },
+            warn : (...args) => {
+                let msg = "";
+                args.forEach(arg => msg += arg.toString() + "\n");
+                this.emit("log", "warn", msg);
+            },
+            error : (...args) => {
+                let msg = "";
+                args.forEach(arg => msg += arg.toString() + "\n");
+                this.emit("log", "error", msg);
+            }
+        }
+
     }
 
     /**
@@ -120,7 +139,7 @@ export class DataBroker extends EventEmitter{
                     data: dataTypes,
                 });
                 this._dataTypes[controllerName] = dataTypes;
-                console.log(`Data types updated from ${controllerName}: ${Object.keys(dataTypes).length} data types found.`)
+                this.log.info(`Data types updated from ${controllerName}: ${Object.keys(dataTypes).length} data types found.`)
                 resolve(dataTypes);
             })
             .catch(err => {
@@ -151,7 +170,7 @@ export class DataBroker extends EventEmitter{
                     data: symbols,
                 });
                 this._symbols[controllerName] = symbols;
-                console.log(`Symbols updated from ${controllerName}: ${Object.keys(symbols).length} symbols found.`)
+                this.log.info(`Symbols updated from ${controllerName}: ${Object.keys(symbols).length} symbols found.`)
                 resolve(symbols);
             })
             .catch(err => {
@@ -173,52 +192,34 @@ export class DataBroker extends EventEmitter{
      * @returns Promise. If resolved, the data to the resolve function is a subscription object.
      */
     subscribeCyclic(clientID, controllerName, symbolName){
-        return new Promise((resolve, reject) => {
-            if(this._subscriptionsBySymbol[controllerName][symbolName] === undefined || this._subscriptionsBySymbol[controllerName][symbolName].length == 0){ // This symbol was not subscribed to
-                if(this._controllers[controllerName] == undefined){
-                    reject(new Error(`Controller ${controllerName} is not defined.`))
-                }
-                else if(!this._controllers[controllerName].isConnected){
-                    reject(new Error(`Controller ${controllerName} is not connected.`))
-                }
-                else{
-                    this._controllers[controllerName].subscribeCyclic(symbolName, (data) => this.dispatchSubscriptions.call(this, controllerName, data), this.config.subscriptionInterval)
-                        .then((res) => {
-                            this._subscriptionsBySymbol[controllerName][symbolName] = [clientID];
-                            if (this._subscriptionsByClient[clientID] == undefined) { this._subscriptionsByClient[clientID] = {} }
-                            if (this._subscriptionsByClient[clientID][controllerName] == undefined) { this._subscriptionsByClient[clientID][controllerName] = []; }
-                            this._subscriptionsByClient[clientID][controllerName].push(symbolName);
-                            resolve(res);
-                        })
-                        .catch(err => {
-                            reject(err);
-                        });
-                }
-            }
-            else{
-                if(!this._subscriptionsBySymbol[controllerName][symbolName].includes(clientID)){ // this symbol is not already subscribed by this client
-                    this._subscriptionsBySymbol[controllerName][symbolName].push(clientID);
-                    if (this._subscriptionsByClient[clientID] == undefined) 
-                    { this._subscriptionsByClient[clientID] = {} }
-                    if (this._subscriptionsByClient[clientID][controllerName] == undefined) 
-                    { this._subscriptionsByClient[clientID][controllerName] = []; }
-                    this._subscriptionsByClient[clientID][controllerName].push(symbolName);
-                    resolve()
-                }
-            }
-        });
-        
+        return this._subscribe(clientID, controllerName, symbolName, false);
     }
 
 
     /**
      * Try to subscribe to a symbol for changes from the target system.
+        If the symbol is already subscribed to, just add the client to the symbol item under subscriptions object.
+        If the symbol is not subscribed to, ask the controller to subscribe.
      * @param {string} clientID 
      * @param {string} controllerName
      * @param {string} symbolName 
      * @returns Promise. If resolved, the data to the resolve function is a subscription object.
      */
     subscribeOnChange(clientID, controllerName, symbolName){
+        return this._subscribe(clientID, controllerName, symbolName, true); 
+    }
+
+    /**
+     * Try to subscribe to a symbol for cyclic reading from the target system.
+        If the symbol is already subscribed to, just add the client to the symbol item under subscriptions object.
+        If the symbol is not subscribed to, ask the controller to subscribe.
+     * @param {string} clientID
+     * @param {string} controllerName 
+     * @param {string} symbolName
+     * @param {boolean} onChange    Indicate if the symbol should be subscribed to with OnChange mode. If false, it will be cyclic mode.
+     * @returns Promise. If resolved, the data to the resolve function is a subscription object.
+     */
+    _subscribe(clientID, controllerName, symbolName, onChange = false){
         return new Promise((resolve, reject) => {
             if(this._subscriptionsBySymbol[controllerName][symbolName] === undefined || this._subscriptionsBySymbol[controllerName][symbolName].length == 0){ // This symbol was not subscribed to
                 if(this._controllers[controllerName] == undefined){
@@ -228,20 +229,24 @@ export class DataBroker extends EventEmitter{
                     reject(new Error(`Controller ${controllerName} is not connected.`))
                 }
                 else{
-                    this._controllers[controllerName].subscribeOnChange(symbolName, (data) => this.dispatchSubscriptions.call(this, controllerName, data))
-                        .then((res) => {
+                    let subscriptionPromise;
+                    if(onChange){
+                        subscriptionPromise = this._controllers[controllerName].subscribeOnChange(symbolName, (data) => this.dispatchSubscriptions(controllerName, data));
+                    }
+                    else{
+                        subscriptionPromise = this._controllers[controllerName].subscribeCyclic(symbolName, (data) => this.dispatchSubscriptions(controllerName, data), this.config.subscriptionInterval);
+                    }
+                    subscriptionPromise.then((res) => {
                             this._subscriptionsBySymbol[controllerName][symbolName] = [clientID];
                             if (this._subscriptionsByClient[clientID] == undefined) { this._subscriptionsByClient[clientID] = {} }
                             if (this._subscriptionsByClient[clientID][controllerName] == undefined) { this._subscriptionsByClient[clientID][controllerName] = []; }
-                            this._subscriptionsByClient[clientID][controllerName].push(symbolName);
-
+                            if (!this._subscriptionsByClient[clientID][controllerName].includes(symbolName)) { this._subscriptionsByClient[clientID][controllerName].push(symbolName); }                            
                             resolve(res);
                         })
                         .catch(err => {
                             reject(err);
                         });
                 }
-                
             }
             else{
                 if(!this._subscriptionsBySymbol[controllerName][symbolName].includes(clientID)){ // this symbol is not already subscribed by this client
@@ -275,7 +280,7 @@ export class DataBroker extends EventEmitter{
                 }
                 if (this._subscriptionsBySymbol[controllerName][symbolName].length == 0) { // no one is subscribing to this anymore
                     this._controllers[controllerName].unsubscribe(symbolName).catch(err => {
-                        console.error(`Failed to unsubscribe to ${symbolName}`, err)
+                        this.log.error(`Failed to unsubscribe to ${symbolName}`, err)
                         reject(err);
                         return;
                     });
@@ -307,7 +312,7 @@ export class DataBroker extends EventEmitter{
                             this._subscriptionsBySymbol[controllerName][symbolName].splice(idx, 1);
                         }
                         if (this._subscriptionsBySymbol[controllerName][symbolName].length == 0) { // no one is subscribing to this anymore
-                            this._controllers[controllerName].unsubscribe(symbolName).catch(err => console.error(`Failed to subscribe to ${symbolName}`, err));
+                            this._controllers[controllerName].unsubscribe(symbolName).catch(err => this.log.error(`Failed to subscribe to ${symbolName}`, err));
                         }
                     });
                 }
@@ -392,13 +397,13 @@ export class DataBroker extends EventEmitter{
             }
             this.unsubscribeAll(clientID)
             .catch((err) => {
-                console.error(err);
+                this.log.error(err);
             }).finally( () => {
                 delete this._clients[clientID];
             });
         }
         catch(err){
-            console.error(err);
+            this.log.error(err);
         }
     }
 

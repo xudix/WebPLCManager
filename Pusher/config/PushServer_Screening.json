@@ -1,0 +1,23 @@
+{
+    "port" : "2333",
+    "PLCloggerURL" : "http://172.16.0.100:2333",
+    "pushInterval" : 10000,
+    "loggingConfig" : {
+        "bucket" : "DacLab",
+        "logPath" : "./data/",
+        "logFileTime" : 600000
+    },
+    "influx" : {
+        "local" : {  
+            "token" : "pWVtvoh1yTlNVC0W4ABTURsjAn2rPajDKKQgfk_fxg4VGG8oPrlpLElqP3sHABfLnLH6vMxDxzWzH_Xo6aB8rQ==",
+            "bucket" : "DacLab",
+            "URL": "http://localhost:8087",
+            "org": "Sustaera"
+        }
+    },
+    "smb2source" : {
+       "share" : "\\\\172.16.0.100\\data",
+       "password" : "Su$teon123",
+       "username" : "administrator"
+    }
+ }

@@ -1,15 +1,15 @@
 {
     "port": 2333,
-    "clientPath": "./client/",
+    "clientDir": "./client/",
     "subscriptionInterval": 1000, 
     "cors": {
         "origin": "*",
         "methods": ["GET", "POST", "DELETE"]
     },
     "loggingConfig": {
-        "configPath": "./configs/",
-        "logPath": "./data/",
-        "logFileTime": 6000000,
+        "configPath": "./configs/SRlogging.json",
+        "logDir": "./data/",
+        "logFileTime": 600000,
         "bucket": "DacLab"
     }
 }
