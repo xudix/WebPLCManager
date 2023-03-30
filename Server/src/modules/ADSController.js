@@ -290,7 +290,7 @@ export class ADSController extends GenericController{
                             timeStamp: data.timeStamp
                         });
                     }
-                    this.client.subscribe(symbolName, adsCallBack, interval, false)
+                    this.client.subscribe(symbolName, adsCallBack, interval, onChange)
                         .then(res => {
                             this.subscriptions[symbolName] = res;
                             resolve(res);
