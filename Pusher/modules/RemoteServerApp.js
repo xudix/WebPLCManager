@@ -73,20 +73,27 @@ export class RemoveServerApp{
      */
     logMessage(args){
         let msgType = args[0];
+        let msg;
         switch(msgType){
             case "info":
                 while (this.infoQueue.length >= this.maxLog) { this.infoQueue.shift(); }
-                this.infoQueue.push("Info " + new Date() + ": " + args[1]);
+                msg = "Info " + new Date() + ": " + args[1];
+                console.info(msg);
+                this.infoQueue.push(msg);
                 break;
 
             case "warn":
                 while (this.warnQueue.length >= this.maxLog) { this.warnQueue.shift(); }
-                this.warnQueue.push("Warn " + new Date() + ": " + args[1]);
+                msg = "Warn " + new Date() + ": " + args[1];
+                console.warn(msg);
+                this.warnQueue.push(msg);
                 break;
 
             case "error":
                 while (this.errorQueue.length >= this.maxLog) { this.errorQueue.shift(); }
-                this.errorQueue.push("ERROR " + new Date() + ": " + args[1]);
+                msg = "ERROR " + new Date() + ": " + args[1];
+                console.error(msg)
+                this.errorQueue.push(msg);
                 break;
         }
     }

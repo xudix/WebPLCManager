@@ -396,13 +396,15 @@ export class PLCLoggingClient extends DataClient{
      * Write the data accumulated in subscribedData to the buffer, then call _writeToFile.
      */
     sendSubscribedData(){
-        //let count = 0;
+        
         for (let config of this._loggingConfig.logConfigs){
-            this._bufferLength += this._buffer.write(`${config.measurement} `, this._bufferLength, 'binary'); // measurement
+            let foundData = false;
+            let measurementLen = this._buffer.write(`${config.measurement} `, this._bufferLength, 'binary'); // measurement
+            this._bufferLength += measurementLen;
             for(let symbol of config.tags){ // go through all symbols
                 if(symbol.status == "success" && this.subscribedData[config.name] != undefined && this.subscribedData[config.name][symbol.tag] != undefined){ // if the data exist for this symbol
                     let data = this.subscribedData[config.name][symbol.tag];
-                    //count++;
+                    foundData = true;
                     switch (typeof data) {    // Different format for different type of data
                         case "object":
                             if (data.name != undefined && data.value != undefined) { // enum type
@@ -419,18 +421,26 @@ export class PLCLoggingClient extends DataClient{
                     }
                 }
             }
-            // log the time stamp
-            this._bufferLength += (this._buffer.write(` ${this._dataTime}\n`, this._bufferLength - 1, 'binary') - 1); // -1 in offset to remove the last comma
+            if (foundData){
+                // log the time stamp
+                this._bufferLength += (this._buffer.write(` ${this._dataTime}\n`, this._bufferLength - 1, 'binary') - 1); // -1 in offset to remove the last comma
+            }
+            else{
+                // if no data written, remove the "measurement" written.
+                this._bufferLength -= measurementLen; 
+            }
         }
         // this.log.info(`written ${count} data`);
         this.subscribedData = {};
-        // Depending on whether a remote logger is connected, write to local file or send data to remote.
-        if (this.writeToLocalFile || this.remoteSocket === undefined){
-            this._writeToFile();
-        }
-        if (this.remoteSocket != undefined){
-            this.remoteSocket.emit("lpData", this._buffer.toString("binary", 0, this._bufferLength));
-            this._bufferLength = 0;
+        if (this._bufferLength > 0) {
+            // Depending on whether a remote logger is connected, write to local file or send data to remote.
+            if (this.writeToLocalFile || this.remoteSocket === undefined) {
+                this._writeToFile();
+            }
+            if (this.remoteSocket != undefined) {
+                this.remoteSocket.emit("lpData", this._buffer.toString("binary", 0, this._bufferLength));
+                this._bufferLength = 0;
+            }
         }
     }
 
