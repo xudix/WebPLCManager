@@ -7,7 +7,7 @@
         "methods": ["GET", "POST", "DELETE"]
     },
     "loggingConfig": {
-        "configPath": "./configs/SRlogging.json",
+        "configPath": "./configs/BenchScalelogging.json",
         "logDir": "./data/",
         "logFileTime": 600000,
         "bucket": "DacLab"

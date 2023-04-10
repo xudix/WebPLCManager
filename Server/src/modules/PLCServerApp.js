@@ -9,6 +9,7 @@ import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import path from 'path';
 import cors from 'cors';
+import * as FileSystem from "node:fs/promises";
 
 
 // New version of server.js. Changing the structure of things
@@ -117,51 +118,71 @@ export class ServerApp{
 
 
         // HTTP routers
-        this.expressApp.use(express.static(this._serverConfig.clientDir));
-        this.expressApp.use(express.text());
-        this.expressApp.use(cors())
-
-        this.expressApp.get("/api/log-status", (req, res) => {
-            res.json({subsSucceeded: this.loggingClient.subsSucceeded, subsFailed: this.loggingClient.subsFailed});
-        });
-
-        /**
-         * The GET method for /api/log-file/ will perform a switch file, then return the new data file name
-         */
-        this.expressApp.get("/api/log-file", (req, res) => {
-            if(this.loggingClient !== undefined){
-                this.loggingClient.switchFile()
-                    .then((newFileName) => {
-                        res.status(200).send(newFileName);
-                    })
-                    .catch((err) => {
-                        res.status(500).send(err);
-                    })
-            }
-        });
-
-        this.expressApp.delete("/api/log-file/:fileName",(req, res) => {
-            let fileName = req.params.fileName;
-            if(this.loggingClient !== undefined){
-                this.loggingClient.deleteDataFile(fileName)
-                    .then(() => {
-                        res.sendStatus(200);
-                    })
-                    .catch((err) => res.status(500).send(`Delete ${fileName} failed.`));
-            }
-            else{
-                res.status(400).send("Logging Client is not running.");
-            }
+        this.loadAPIs()
+        this.expressApp.put("api/load-api", (req, res) => {
+            this.loadAPIs();
         })
+        // this.expressApp.use(express.static(this._serverConfig.clientDir));
+        // this.expressApp.use(express.text());
+        // this.expressApp.use(cors())
 
-        this.expressApp.get("/", (req, res) => {
-            res.sendFile(path.join(this._serverConfig.clientDir, 'index.html'));
-          });
+        // this.expressApp.get("/api/log-status", (req, res) => {
+        //     res.json({subsSucceeded: this.loggingClient.subsSucceeded, subsFailed: this.loggingClient.subsFailed});
+        // });
+
+        // /**
+        //  * The GET method for /api/log-file/ will perform a switch file, then return the new data file name
+        //  */
+        // this.expressApp.get("/api/log-file", (req, res) => {
+        //     if(this.loggingClient !== undefined){
+        //         this.loggingClient.switchFile()
+        //             .then((newFileName) => {
+        //                 res.status(200).send(newFileName);
+        //             })
+        //             .catch((err) => {
+        //                 res.status(500).send(err);
+        //             })
+        //     }
+        // });
+
+        // this.expressApp.delete("/api/log-file/:fileName",(req, res) => {
+        //     let fileName = req.params.fileName;
+        //     if(this.loggingClient !== undefined){
+        //         this.loggingClient.deleteDataFile(fileName)
+        //             .then(() => {
+        //                 res.sendStatus(200);
+        //             })
+        //             .catch((err) => res.status(500).send(`Delete ${fileName} failed.`));
+        //     }
+        //     else{
+        //         res.status(400).send("Logging Client is not running.");
+        //     }
+        // })
+
+        // this.expressApp.get("/", (req, res) => {
+        //     res.sendFile(path.join(this._serverConfig.clientDir, 'index.html'));
+        //   });
 
         this.httpServer.listen(this._serverConfig.port, () => {
             this.logMessage(["info", `Listening on port ${this._serverConfig.port}`]);
         })
         
+
+    }
+
+    async loadAPIs(){
+        FileSystem.readdir("./modules/APIs/").then(async (files) => {
+            files.forEach((file) => {
+                if(file.endsWith(".js")){
+                    console.log(`Importing ${file}`);
+                    import("./APIs/"+file)
+                        .then((module) => {
+                            console.log(module);
+                            module.load.call(this);
+                        })
+                }
+            })
+        })
 
     }
 

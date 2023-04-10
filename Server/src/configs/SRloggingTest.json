@@ -1,0 +1,53 @@
+[
+  {
+    "bucket": "DacLab",
+    "measurement": "ScreeningReactor1",
+    "org": "Sustaera",
+    "port": 851,
+    "name": "ScreeningReactor1",
+    "tags": [
+      {
+        "field": "Controller.lifeCounter",
+        "tag": "Controller.lifeCounter",
+        "status": "modified",
+        "disabled": true
+      }
+    ]
+  },
+  {
+    "measurement": "test2",
+    "name": "ScreeningReactor1",
+    "tags": [
+      {
+        "field": "Main.stirTank.lifeCounter",
+        "tag": "Main.stirTank.lifeCounter",
+        "status": "modified",
+        "disabled": true
+      },
+      {
+        "field": "Main.stirTank.OPEN",
+        "tag": "Main.stirTank.OPEN",
+        "status": "modified",
+        "disabled": true
+      }
+    ]
+  },
+  {
+    "measurement": "daser",
+    "name": "ScreeningReactor1",
+    "tags": [
+      {
+        "field": "Controller.inWarn",
+        "tag": "Controller.inWarn",
+        "status": "modified",
+        "disabled": false
+      },
+      {
+        "field": "Controller.inAlarm",
+        "tag": "Controller.inAlarm",
+        "status": "modified",
+        "disabled": false
+      }
+    ]
+  }
+]

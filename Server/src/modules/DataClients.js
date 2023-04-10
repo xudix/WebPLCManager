@@ -474,6 +474,10 @@ export class PLCLoggingClient extends DataClient{
                     //     this.subscriptions[controllerName] = [];
                     // }
                     config.tags.forEach(tag => { // iterate all symbols defined
+                        if (tag.disabled) {
+                            tag.status = "disabled";
+                            return;
+                        }
                         let symbolName = tag.tag;
                         if(this._freshSubscription) {this._subsNumber += 1;} // just cound the number of defined tags, for allocating the buffer.
                         if(this._freshSubscription || (tag.status === undefined) || tag.status != "success"){  // If it's not a fresh subscription, only subscribe to the ones that failed previously.
