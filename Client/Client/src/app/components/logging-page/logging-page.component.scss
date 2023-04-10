@@ -7,6 +7,39 @@
     width: 100%;
     height: 100%;
 
+    as-split-area{
+      padding-top: 5px;
+      padding-bottom: 5px;
+      background-color: rgb(047 035 033);
+    }
+
+    .log-select-split{
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+
+      .meas-input{
+        flex: 0 0 auto;
+        .meas-select-field{
+          width: 50%;
+      
+          mat-select{
+            margin-top: -10px
+          }
+        }
+      
+        .meas-input-field{
+          width: 50%;
+        }
+
+      }
+
+      app-symbol-selector{
+        flex: 1 1 100px;
+      }
+      
+    }
+
     .log-disp-split {
   
       .log-disp {
@@ -33,7 +66,7 @@
           .list-head{
             flex: 0 0 auto;
             display: grid;
-            grid-template-columns: 50% 25% 25%;
+            grid-template-columns: 40% 30% 30%;
             .firstColTitle, .secondColTitle, .thirdColTitle{
               width: 100%;
               height: auto;
@@ -52,7 +85,7 @@
             .controller-level{
               .controller-config{
                 display: grid;
-                grid-template-columns: 40% 60%;
+                grid-template-columns: 35% 50% 15%;
                 height: auto;
   
                 .controller-name{
@@ -76,7 +109,7 @@
   
               .symbol-config{
                 display: grid;
-                grid-template-columns: 50% 25% 25%;
+                grid-template-columns: 40% 30% 30%;
   
                 .symbol-name{
                   margin-left: 5px;
@@ -90,7 +123,7 @@
   
                 .symbol-status{
                   margin: auto;
-                  button{
+                  .status-icon-button{
                     background-color: inherit;
                     color: rgb(248 235 220);
                   }

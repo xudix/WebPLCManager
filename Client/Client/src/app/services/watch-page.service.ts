@@ -19,6 +19,10 @@ export class WatchPageService {
    * Current controller name. All search and subscription operation will be done to this controller.
    */
   public currentController: string = ""; 
+  /**
+   * New symbol for logging will use this measurement
+   */
+  public currentMeasurement: string = "";
   public symbolInputStr: string = "";
   public currentPath: string = ""; // The path obtained by resolving the input string
   public selectedSymbols: IControllerSymbol[] = [];
@@ -54,8 +58,6 @@ export class WatchPageService {
   public set loggingConfig(newConfig: ILoggingServerConfig | undefined){
     this._model.loggingConfig = newConfig;
   }
-
-
 
   // private variables
   private previousInput: string = "some string"; // just to trigger symbol change at initial run
@@ -152,11 +154,12 @@ export class WatchPageService {
     });
   }
 
-  addSymbolToLogging(controllerName: string, symbolName: string): boolean{
+  addSymbolToLogging(controllerName: string, measurement: string, symbolName: string): boolean{
+    if (measurement == "") return false;
     let newLoggingSymbol = {field: symbolName, tag: symbolName, status: "new"};
-    if (this.loggingConfig === undefined) { this.loggingConfig = new LoggingServerConfig(600000, ""); }
+    if (this.loggingConfig === undefined) { this.loggingConfig = new LoggingServerConfig(600000, "./data/"); }
     for(let config of this.loggingConfig.logConfigs){
-      if(config.name == this.currentController){
+      if(config.name == controllerName && config.measurement == measurement){
         for(let symbol of config.tags){
           if(symbol.tag == symbolName){ // this symbol is already in logging. quit.
             return false;
@@ -167,8 +170,8 @@ export class WatchPageService {
         return true;
       }
     }
-    // No config available for currentController
-    let newConfig = new LoggingConfig(controllerName, controllerName);
+    // No config available for the particular controller and measurement
+    let newConfig = new LoggingConfig(controllerName, measurement);
     newConfig.tags.push(newLoggingSymbol)
     this.loggingConfig.logConfigs.push(newConfig);
     return true;
@@ -242,7 +245,7 @@ export class WatchPageService {
           this.socket.emit("addWatchSymbol", this.currentController, actualName);
           break;
         case "logging":
-          this.addSymbolToLogging(this.currentController, actualName)
+          this.addSymbolToLogging(this.currentController, this.currentMeasurement, actualName)
           break;
 
       }

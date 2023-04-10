@@ -29,6 +29,14 @@ export interface ILoggingConfig{
          * whether this symbol is sucessfully subscribed to from the controller
          */
         status?:string;
+        /**
+         * Indicate whether this symbol should be logged in "On Change" mode, i.e. only log when value changes. If undefinded or false, it will be cyclic mode.
+         */
+        onChange?: boolean;
+        /**
+         * If disabled is true, the symbol will not be logged.
+         */
+        disabled?: boolean;
     }[]
 
 }
@@ -68,9 +76,17 @@ export class LoggingConfig implements ILoggingConfig{
          * Indicate whether this symbol is sucessfully subscribed to from the controller
          */
         status?: string;
+        /**
+         * Indicate whether this symbol should be logged in "On Change" mode, i.e. only log when value changes. If undefinded or false, it will be cyclic mode.
+         */
+        onChange?: boolean;
+        /**
+        * If disabled is true, the symbol will not be logged.
+        */
+        disabled?: boolean;
     }[];
 
-    constructor(measurement: string, controllerName: string){
+    constructor(controllerName: string, measurement: string){
         this.measurement = measurement;
         this.name = controllerName;
         this.tags = [];

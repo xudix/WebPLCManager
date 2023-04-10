@@ -1,6 +1,40 @@
 <div class="topLevel">
     <as-split direction="horizontal" unit="percent" [restrictMove]="true" [gutterSize]="10">
-      <as-split-area [size]="40">
+      <as-split-area class="log-select-split" [size]="40">
+        <div class="meas-input">
+            <mat-form-field class="meas-select-field">
+                <mat-label>
+                    Select Measurement For New Logging
+                </mat-label>
+                <mat-select [(value)]="currentMeasurement">
+                    <mat-option *ngFor="let measurement of measurements" [value]="measurement">{{measurement}}</mat-option>
+                </mat-select>
+            </mat-form-field>
+            <mat-form-field class="meas-input-field">
+                <mat-label>
+                    Create New Measurement
+                </mat-label>
+                <input matInput type="text" [(ngModel)]="newMeasurementName"/>
+                <button
+                    *ngIf="newMeasurementName"
+                    matSuffix
+                    mat-icon-button
+                    aria-label="ClearNewMeasurement"
+                    (click)="newMeasurementName=''"
+                >
+                    <mat-icon>close</mat-icon>
+                </button>
+                <button
+                    *ngIf="newMeasurementName"
+                    matSuffix
+                    mat-icon-button
+                    aria-label="AddNewMeasurement"
+                    (click)="addNewMeasurement()"
+                >
+                    <mat-icon>add</mat-icon>
+                </button>
+            </mat-form-field>
+        </div>
         <app-symbol-selector currentPage="logging"></app-symbol-selector>
         
       </as-split-area>
@@ -29,6 +63,22 @@
                                         <input matInput type="text" [(ngModel)]="config.measurement">
                                     </mat-form-field>
                             </div>
+                            <div class="actions">
+                                <button mat-icon-button aria-label="disable-meas" 
+                                            matTooltip="Enable / Disable All" 
+                                            matTooltipPosition="above"
+                                            (click)="toggleGroupEnable(config)"
+                                            class="status-icon-button">
+                                        <mat-icon>sync_disabled</mat-icon>
+                                    </button>
+                                <button mat-icon-button aria-label="delete-meas"
+                                            matTooltip="Delete Measurement"
+                                            matTooltipPosition="above"
+                                            (click)="removeGroup(config)"
+                                            class="status-icon-button">
+                                        <mat-icon>delete</mat-icon>
+                                    </button>
+                            </div>
                         </div>
                         <div class="symbol-container" *ngIf="isExpanded(config.name+config.measurement)">
 
@@ -40,17 +90,29 @@
                                     <textarea tpe="text" [(ngModel)]="symbol.field" (change)="symbolModified(symbol)"></textarea>
                                 </div>
                                 <div class="symbol-status">
+                                    <button mat-fab extended color="warn" (click)="toggleOnChange(symbol)">
+                                        {{symbol.onChange?"On Change":"Cyclic"}}
+                                      </button>
                                     {{symbol.status === undefined? "Unknown":symbol.status}}
                                     <button mat-icon-button aria-label="duplicate-symbol" 
                                             matTooltip="Duplicate Symbol" 
                                             matTooltipPosition="above"
-                                            (click)="duplicateSymbol(configIdx, symbolIdx)">
+                                            (click)="duplicateSymbol(configIdx, symbolIdx)"
+                                            class="status-icon-button">
                                         <mat-icon>content_copy</mat-icon>
+                                    </button>
+                                    <button mat-icon-button aria-label="disable-symbol" 
+                                            [matTooltip]="symbol.disabled?'Enable':'Disable'" 
+                                            matTooltipPosition="above"
+                                            (click)="toggleEnable(symbol)"
+                                            class="status-icon-button">
+                                        <mat-icon>{{symbol.disabled?'sync':'sync_disabled'}}</mat-icon>
                                     </button>
                                     <button mat-icon-button aria-label="delete-symbol"
                                             matTooltip="Delete Symbol"
                                             matTooltipPosition="above"
-                                            (click)="removeSymbol(symbol)">
+                                            (click)="removeSymbol(symbol)"
+                                            class="status-icon-button">
                                         <mat-icon>delete</mat-icon>
                                     </button>
                                 </div>
