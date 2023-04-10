@@ -286,13 +286,13 @@ export class PLCLoggingClient extends DataClient{
         
     }
 
-    /**
-     * This boolean controls whether the data will be write to files on the PLC.
-     * - if true, the data will be written to local files on the PLC.
-     * - if false, no data will be written to files.
-     * @type {boolean}
-     */
-    writeToLocalFile = false;
+    // /**
+    //  * This boolean controls whether the data will be write to files on the PLC.
+    //  * - if true, the data will be written to local files on the PLC.
+    //  * - if false, no data will be written to files.
+    //  * @type {boolean}
+    //  */
+    // writeToLocalFile = false;
 
     /**
      * Number of sucessful subscriptions from the controller.
@@ -303,11 +303,11 @@ export class PLCLoggingClient extends DataClient{
      */
     subsFailed = 0;
 
-    /**
-     * A socket.io socket goingn to the remote logging client. If this socket exists, data received by this logging client will be transmitted through the socket.
-     * @type {Socket}
-     */
-    remoteSocket;
+    // /**
+    //  * A socket.io socket goingn to the remote logging client. If this socket exists, data received by this logging client will be transmitted through the socket.
+    //  * @type {Socket}
+    //  */
+    // remoteSocket;
 
 
     /**
@@ -433,14 +433,7 @@ export class PLCLoggingClient extends DataClient{
         // this.log.info(`written ${count} data`);
         this.subscribedData = {};
         if (this._bufferLength > 0) {
-            // Depending on whether a remote logger is connected, write to local file or send data to remote.
-            if (this.writeToLocalFile || this.remoteSocket === undefined) {
-                this._writeToFile();
-            }
-            if (this.remoteSocket != undefined) {
-                this.remoteSocket.emit("lpData", this._buffer.toString("binary", 0, this._bufferLength));
-                this._bufferLength = 0;
-            }
+            this._writeToFile();
         }
     }
 

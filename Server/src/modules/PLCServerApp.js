@@ -92,23 +92,23 @@ export class ServerApp{
                 });
             })
             
-            // This is for remote logger
-            socket.on("createRemoteLoggingClient", () => {
-                this.loggingClient.remoteSocket = socket;
-                this.logMessage(["info", "Remote logging client connected."]);
+            // // This is for remote logger
+            // socket.on("createRemoteLoggingClient", () => {
+            //     this.loggingClient.remoteSocket = socket;
+            //     this.logMessage(["info", "Remote logging client connected."]);
 
-                socket.on("remoteLoggingStarted", () => {
-                    this.loggingClient.writeToLocalFile = false;
-                    this.loggingClient.switchFile();
-                })
+            //     socket.on("remoteLoggingStarted", () => {
+            //         this.loggingClient.writeToLocalFile = false;
+            //         this.loggingClient.switchFile();
+            //     })
 
-                socket.on("disconnect", () => {
-                    this.loggingClient.writeToLocalFile = true;
-                    this.loggingClient.remoteSocket = undefined;
-                    this.logMessage(["info", "Remote logging client disconnected."]);
-                })
+            //     socket.on("disconnect", () => {
+            //         this.loggingClient.writeToLocalFile = true;
+            //         this.loggingClient.remoteSocket = undefined;
+            //         this.logMessage(["info", "Remote logging client disconnected."]);
+            //     })
 
-            })
+            // })
             
 
             this.dataBroker.getControllerStatus();
@@ -119,8 +119,9 @@ export class ServerApp{
 
         // HTTP routers
         this.loadAPIs()
-        this.expressApp.put("api/load-api", (req, res) => {
+        this.expressApp.put("/api/load-api", (req, res) => {
             this.loadAPIs();
+            res.sendStatus(200);
         })
         // this.expressApp.use(express.static(this._serverConfig.clientDir));
         // this.expressApp.use(express.text());
