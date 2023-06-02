@@ -1,6 +1,8 @@
-import SMB2 from '@marsaud/smb2';
+//import SMB2 from '@marsaud/smb2';
 import * as fsync from 'fs';
 import * as fs from "fs/promises";
+import { Readable } from 'stream';
+import { finished } from 'stream/promises';
 import * as path from "node:path";
 import fetch from 'node-fetch';
 import { RemoteLogger } from './RemoteLogger.js';
@@ -33,16 +35,16 @@ export class Pusher extends EventEmitter {
         this.dataDir = this.conf.loggingConfig.logPath;
         this.tempFile = path.join(this.dataDir, ".temp_");
         this.api = "/api/v2/write?precision=ms&bucket=";
-        this.conf.smb2source = {
-            domain: 'WORKGROUP',
-            path: '',
-            autoCloseTimeout: 0,    //make this zero?!
-            ...this.conf.smb2source
-        }
-        /**
-         * SMB2 client is used to get files from the PLC
-         */
-        this.smbClient = new SMB2(this.conf.smb2source);
+        // this.conf.smb2source = {
+        //     domain: 'WORKGROUP',
+        //     path: '',
+        //     autoCloseTimeout: 0,    //make this zero?!
+        //     ...this.conf.smb2source
+        // }
+        // /**
+        //  * SMB2 client is used to get files from the PLC
+        //  */
+        // this.smbClient = new SMB2(this.conf.smb2source);
         this.log = {
             info : (...args) => {
                 let msg = "";
@@ -77,28 +79,29 @@ export class Pusher extends EventEmitter {
     }
 
     async run() {
-        // query the local data dir
-        this.remoteLogger.switchFile()
-            .then((fileName) => {
-                if(fileName != "")
-                    this.log.info(`Switched file. New file: ${fileName}`);
-                this.processLocalFiles(this.fileCount);
-            })
-            .catch((err) => {
-                this.log.error(`Failed to switch file.`, err);
-            });
+        // // query the local data dir
+        // this.remoteLogger.switchFile()
+        //     .then((fileName) => {
+        //         if(fileName != "")
+        //             this.log.info(`Switched file. New file: ${fileName}`);
+        //         this.processLocalFiles(this.fileCount);
+        //     })
+        //     .catch((err) => {
+        //         this.log.error(`Failed to switch file.`, err);
+        //     });
         // query the PLC
+        this.processLocalFiles(this.fileCount);
         fetch(this.conf.PLCloggerURL+"/api/log-status").then(res => {
             res.json().then((result) => {
                 this.log.info("PLC Logging status: ", JSON.stringify(result));
                 this.loggingStatus = result;
             });
+            this.processPLCFiles();
         }).catch(err => {
             //console.error(`Failed to connect to logger ${loggerURL}. `, err);
             this.loggingStatus = err;
             this.log.error(`Failed to connect to PLC logger ${this.conf.PLCloggerURL}. `)
         });
-
     }
 
     /**
@@ -106,118 +109,144 @@ export class Pusher extends EventEmitter {
      */
     async processPLCFiles(){
         // Ask the PLC logger to stop the current file
-        fetch(this.conf.PLCloggerURL+"/api/log-file").then( res => {
-            
-        })
-        .catch(err => this.log.error(`Failed to get log file info.`, err))
-        .finally(() => {
-            this.listRemoteFiles(Infinity)
-            .then(async (files) => {
-                if (files.length > 0){
-                    for (let filename of files){
-                        await this.copyFileFromRemote(filename);
+        return fetch(this.conf.PLCloggerURL+"/api/log-files").then( res => {
+            if(res.ok){
+                res.json().then(async fileNames => {
+                    for(let i = 0; i < Math.max(fileNames.length, this.fileCount); i++){
+                        await this.fetchPLCFile(fileNames[i]).then(async () => {
+                            await this.deletePLCFile(fileNames[i]);
+                        }).catch(err => {
+                            this.log.error(`Failed to get file ${fileNames[i]}`, err);
+                        });
                     }
-                    this.smbClient.disconnect();
-                }
-            }).catch(err => this.log.error(`Failed to get file from PLC.`, err));
-        });
-    }
-
-    async listRemoteFiles(maxFiles) {
-        return this.smbReaddirAsync(this.conf.smb2source.path)
-            .then(files => {
-                let found = [];
-                for (let filename of files){
-                    if(found.length >= maxFiles){break;}
-                    if (filename.endsWith('.lp')){
-                        found.push(filename);
-                    }
-                }
-                return found;
-            })
-            .catch((err) => this.log.error(`Error reading PLC files.`, err))
-    }
-
-    //copies the file with filename from the remote to the local file system and inserts all the influx targets into the name
-    async copyFileFromRemote(filename) {
-        return new Promise(async (resolve, reject) => {
-            let readStream = await this.smbClient.createReadStream(filename);
-            let writeStream = fsync.createWriteStream(this.tempFile + filename);
-            let done = false;
-            // Listen for the 'end' event on the read stream to know when there is no more data to read
-            readStream.on('end', () => {
-
-                // Listen for the 'finish' event on the write stream to know when all data has been written
-                writeStream.on('finish', () => {
-                    done = true;
-                    resolve(true);
-                });
-            });
-
-            readStream.pipe(writeStream);
-
-            // Handle errors
-            readStream.on('error', (err) => {
-                if (!done) {
-                    this.log.error(`readStream error ${filename}`);
-                    // console.log(`readStream error ${dirPath}`);
-                    reject(err);
-                }
-            });
-            writeStream.on('error', (err) => {
-                if (!done) {
-                    this.log.error(`writeSteam error ${filename}`);
-                    // console.log(`writeSteam error ${dirPath}`);
-                    reject(err);
-                }
-            });
-        })
-            .then((success) => {
-                if (success) {
-                    let proms = [];
-                    fetch(this.conf.PLCloggerURL + "/api/log-file/" + filename, {
-                        method: "DELETE"
-                    }).catch((err) => this.log.error(`Failed to delete ${filename} from server.`, err));
-                    const newName = path.join(this.dataDir, filename.replace(/.lp$/, this.allInfluxKeys + ".lp"));
-                    proms.push(fs.rename(this.tempFile + filename, newName));
-                    proms.push(new Promise(resolve => setTimeout(resolve, 2000)));  // add a delay. Otherwise smb won't copy multiple files.
-                    return Promise.all(proms).then(() => {
-                        return newName;
-                    });
-                }
-                else {
-                    this.log.error("smb transfer failed or incomplete")
-                    //console.log("smb transfer failed or incomplete");
-                    smbClient.disconnect();
-                    return null;
-                }
-            })
-            .catch((err) => {
-                this.log.error(`error in smb2 ${filename}.`, err);
-                this.smbClient.disconnect();
-                // console.log(`error in smb2 ${dirPath}\n${err}`);
-            });
-    }
-
-    //cound just be done with promisify?
-    smbReaddirAsync(dirPath){
-        //return new Promise(async (resolve, reject) => {   //why async?
-        return new Promise((resolve, reject) => {
-        try {
-            //await fs.access(dirPath);
-            this.smbClient.readdir(dirPath, (err, files) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(files);
+                })
             }
-            });
-        } catch (err) {
-            reject(err);
-            this.smbClient.close();
-        }
-        });
-    };
+            else{
+                this.log.error(`Failed to get log file info.`, res);
+            }
+        })
+        .catch(err => this.log.error(`Failed to get log file info.`, err));
+    }
+
+
+    async fetchPLCFile(fileName){
+        return fetch(this.conf.PLCloggerURL+"/api/log-file/"+fileName).then(async res => {
+            if (res.ok){
+                if(!fsync.existsSync(this.dataDir)){
+                    await fs.mkdir(this.dataDir);
+                }
+                const newName = path.join(this.dataDir, filename.replace(/.lp$/, this.allInfluxKeys + ".lp"));
+                const writeStream = fsync.createWriteStream(newName ,{flags: 'w', encoding:'binary'});
+                await finished(res.body.pipe(writeStream));
+            }
+            else{
+                throw new Error(`Failed to fetch file ${fileName} with error response from server.`)
+            }
+        }).catch(err => {throw err;});
+    }
+
+
+    async deletePLCFile(fileName){
+        return fetch(this.conf.PLCloggerURL + "/api/log-file/" + fileName, {
+                    method: "DELETE"
+                }).catch((err) => this.log.error(`Failed to delete ${fileName} from server.`, err));
+    }
+
+    // async listRemoteFiles(maxFiles) {
+    //     return this.smbReaddirAsync(this.conf.smb2source.path)
+    //         .then(files => {
+    //             let found = [];
+    //             for (let filename of files){
+    //                 if(found.length >= maxFiles){break;}
+    //                 if (filename.endsWith('.lp')){
+    //                     found.push(filename);
+    //                 }
+    //             }
+    //             return found;
+    //         })
+    //         .catch((err) => this.log.error(`Error reading PLC files.`, err))
+    // }
+
+    // //copies the file with filename from the remote to the local file system and inserts all the influx targets into the name
+    // async copyFileFromRemote(filename) {
+    //     return new Promise(async (resolve, reject) => {
+    //         let readStream = await this.smbClient.createReadStream(filename);
+    //         let writeStream = fsync.createWriteStream(this.tempFile + filename);
+    //         let done = false;
+    //         // Listen for the 'end' event on the read stream to know when there is no more data to read
+    //         readStream.on('end', () => {
+
+    //             // Listen for the 'finish' event on the write stream to know when all data has been written
+    //             writeStream.on('finish', () => {
+    //                 done = true;
+    //                 resolve(true);
+    //             });
+    //         });
+
+    //         readStream.pipe(writeStream);
+
+    //         // Handle errors
+    //         readStream.on('error', (err) => {
+    //             if (!done) {
+    //                 this.log.error(`readStream error ${filename}`);
+    //                 // console.log(`readStream error ${dirPath}`);
+    //                 reject(err);
+    //             }
+    //         });
+    //         writeStream.on('error', (err) => {
+    //             if (!done) {
+    //                 this.log.error(`writeSteam error ${filename}`);
+    //                 // console.log(`writeSteam error ${dirPath}`);
+    //                 reject(err);
+    //             }
+    //         });
+    //     })
+    //         .then((success) => {
+    //             if (success) {
+    //                 let proms = [];
+    //                 fetch(this.conf.PLCloggerURL + "/api/log-file/" + filename, {
+    //                     method: "DELETE"
+    //                 }).catch((err) => this.log.error(`Failed to delete ${filename} from server.`, err));
+    //                 const newName = path.join(this.dataDir, filename.replace(/.lp$/, this.allInfluxKeys + ".lp"));
+    //                 proms.push(fs.rename(this.tempFile + filename, newName));
+    //                 proms.push(new Promise(resolve => setTimeout(resolve, 2000)));  // add a delay. Otherwise smb won't copy multiple files.
+    //                 return Promise.all(proms).then(() => {
+    //                     return newName;
+    //                 });
+    //             }
+    //             else {
+    //                 this.log.error("smb transfer failed or incomplete")
+    //                 //console.log("smb transfer failed or incomplete");
+    //                 smbClient.disconnect();
+    //                 return null;
+    //             }
+    //         })
+    //         .catch((err) => {
+    //             this.log.error(`error in smb2 ${filename}.`, err);
+    //             this.smbClient.disconnect();
+    //             // console.log(`error in smb2 ${dirPath}\n${err}`);
+    //         });
+    // }
+
+    // //cound just be done with promisify?
+    // smbReaddirAsync(dirPath){
+    //     //return new Promise(async (resolve, reject) => {   //why async?
+    //     return new Promise((resolve, reject) => {
+    //     try {
+    //         //await fs.access(dirPath);
+    //         this.smbClient.readdir(dirPath, (err, files) => {
+    //         if (err) {
+    //             reject(err);
+    //         } else {
+    //             resolve(files);
+    //         }
+    //         });
+    //     } catch (err) {
+    //         reject(err);
+    //         this.smbClient.close();
+    //     }
+    //     });
+    // };
 
     /**
      * Scan through the dataDir, find files that ends with .new.lp and rename them into 
