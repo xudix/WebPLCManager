@@ -214,7 +214,7 @@ export class ADSController extends GenericController{
     readSymbolValue(symbolName){
         return new Promise((resolve, reject) => {
             this.client.readSymbol(symbolName).then(res => {
-                reolve(res.value);
+                resolve(res.value);
             })
             .catch(err => reject(err));
         });

@@ -64,17 +64,17 @@ export class DataClient extends EventEmitter{
         this.log = {
             info : (...args) => {
                 let msg = "";
-                args.forEach(arg => msg += arg.toString() + "\n");
+                args.forEach(arg => msg += this._msgToString(arg) + "\n");
                 this.emit("log", "info", msg);
             },
             warn : (...args) => {
                 let msg = "";
-                args.forEach(arg => msg += arg.toString() + "\n");
+                args.forEach(arg => msg += this._msgToString(arg) + "\n");
                 this.emit("log", "warn", msg);
             },
             error : (...args) => {
                 let msg = "";
-                args.forEach(arg => msg += arg.toString() + "\n");
+                args.forEach(arg => msg += this._msgToString(arg) + "\n");
                 this.emit("log", "error", msg);
             }
         }
@@ -116,6 +116,17 @@ export class DataClient extends EventEmitter{
      * }
      */
     // handleDataFromBroker(message){}
+
+    _msgToString(msg){
+        switch(typeof(msg)){
+            case 'object':
+                /**@type {string} */
+                let toStr = msg.toString();
+                return toStr.toLowerCase() == '[object object]'? JSON.stringify(msg) : toStr;
+            default:
+                return msg;
+        }
+    }
 }
 
 /**

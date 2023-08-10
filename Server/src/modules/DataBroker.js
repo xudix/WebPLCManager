@@ -189,10 +189,11 @@ export class DataBroker extends EventEmitter{
      * @param {string} clientID
      * @param {string} controllerName 
      * @param {string} symbolName
+     * @param {number} [interval=0] subscription interval in milliseconds. 0 for default interval (set by config)
      * @returns Promise. If resolved, the data to the resolve function is a subscription object.
      */
-    subscribeCyclic(clientID, controllerName, symbolName){
-        return this._subscribe(clientID, controllerName, symbolName, false);
+    subscribeCyclic(clientID, controllerName, symbolName, interval = 0){
+        return this._subscribe(clientID, controllerName, symbolName, false, interval);
     }
 
 
@@ -217,9 +218,10 @@ export class DataBroker extends EventEmitter{
      * @param {string} controllerName 
      * @param {string} symbolName
      * @param {boolean} onChange    Indicate if the symbol should be subscribed to with OnChange mode. If false, it will be cyclic mode.
+     * @param {number} [interval=0] cyclic subscription interval in milliseconds. 0 for default interval (set by config)
      * @returns Promise. If resolved, the data to the resolve function is a subscription object.
      */
-    _subscribe(clientID, controllerName, symbolName, onChange = false){
+    _subscribe(clientID, controllerName, symbolName, onChange = false, interval = 0){
         return new Promise((resolve, reject) => {
             if(this._subscriptionsBySymbol[controllerName][symbolName] === undefined || this._subscriptionsBySymbol[controllerName][symbolName].length == 0){ // This symbol was not subscribed to
                 if(this._controllers[controllerName] == undefined){
@@ -234,7 +236,7 @@ export class DataBroker extends EventEmitter{
                         subscriptionPromise = this._controllers[controllerName].subscribeOnChange(symbolName, (data) => this.dispatchSubscriptions(controllerName, data));
                     }
                     else{
-                        subscriptionPromise = this._controllers[controllerName].subscribeCyclic(symbolName, (data) => this.dispatchSubscriptions(controllerName, data), this.config.subscriptionInterval);
+                        subscriptionPromise = this._controllers[controllerName].subscribeCyclic(symbolName, (data) => this.dispatchSubscriptions(controllerName, data), interval == 0? this.config.subscriptionInterval: interval);
                     }
                     subscriptionPromise.then((res) => {
                             this._subscriptionsBySymbol[controllerName][symbolName] = [clientID];
