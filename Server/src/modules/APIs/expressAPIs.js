@@ -6,18 +6,18 @@ import * as FileSystem from "node:fs/promises";
 
 export function load() {
     console.log("loading APIs");
-    this.expressApp.use(express.static(this._serverConfig.clientDir));
-    this.expressApp.use(express.text());
-    this.expressApp.use(cors())
+    this._router.use(express.static(this._serverConfig.clientDir));
+    this._router.use(express.text());
+    this._router.use(cors())
 
-    this.expressApp.get("/api/log-status", (req, res) => {
+    this._router.get("/api/log-status", (req, res) => {
         res.json({ subsSucceeded: this.loggingClient.subsSucceeded, subsFailed: this.loggingClient.subsFailed });
     });
 
     /**
      * If a file name is specified, then that file will be returned.
      */
-    this.expressApp.get("/api/log-file/:fileName", (req, res) => {
+    this._router.get("/api/log-file/:fileName", (req, res) => {
         let fileName = req.params.fileName;
         if (fileName){
             // requesting a specific file
@@ -39,7 +39,7 @@ export function load() {
     /**
      * The GET method for /api/log-files/ will perform a switch file, then return an array of all available data files in the folder.
      */
-    this.expressApp.get("/api/log-files", (req, res) => {
+    this._router.get("/api/log-files", (req, res) => {
         if (this.loggingClient !== undefined) {
             this.loggingClient.switchFile()
                 .then(() => {
@@ -62,7 +62,7 @@ export function load() {
         }
     });
 
-    this.expressApp.delete("/api/log-file/:fileName", (req, res) => {
+    this._router.delete("/api/log-file/:fileName", (req, res) => {
         let fileName = req.params.fileName;
         if (this.loggingClient !== undefined) {
             this.loggingClient.deleteDataFile(fileName)
@@ -76,7 +76,13 @@ export function load() {
         }
     })
 
-    this.expressApp.get("/", (req, res) => {
+    this._router.get("/", (req, res) => {
         res.sendFile(path.join(this._serverConfig.clientDir, 'index.html'));
     });
+
+    this._router.get("/api/about", (req, res) => {
+        res.status(200).send('Version 0.1');
+    })
+
+
 }

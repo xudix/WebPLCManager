@@ -1,5 +1,6 @@
 
 import { DataBroker } from './DataBroker.js';
+import { SerialBridgeApp } from './SerialBridge.js';
 import { WatchClient, PLCLoggingClient } from './DataClients.js';
 import { GenericController } from './genericController.js';
 
@@ -116,9 +117,21 @@ export class ServerApp{
             this.logMessage(["info", `Socket ${socket.id} has connected`]);
         });
 
+        // serial bridge application
+        this.serialBridges = [];
+        serverConfig.serialConfigs.forEach((config) => {
+            let newSerial = new SerialBridgeApp(config.path, 1, this.dataBroker, config);
+            newSerial.on("log", (...args) => this.logMessage(args));
+            this.serialBridges.push(newSerial);
+        })
 
         // HTTP routers
-        this.loadAPIs()
+        this.loadAPIs().then(()=>{
+            // This allows dynamic router reload
+            this.expressApp.use((req, res, next) => {
+                this._router(req, res, next);
+            })
+        })
         this.expressApp.put("/api/load-api", (req, res) => {
             this.loadAPIs();
             res.sendStatus(200);
@@ -172,13 +185,14 @@ export class ServerApp{
     }
 
     async loadAPIs(){
+        this._router = express.Router(); // Create a new router to clear old routes
         FileSystem.readdir("./modules/APIs/").then(async (files) => {
             files.forEach((file) => {
                 if(file.endsWith(".js")){
                     console.log(`Importing ${file}`);
                     import("./APIs/"+file)
                         .then((module) => {
-                            console.log(module);
+                            //console.log(module);
                             module.load.call(this);
                         })
                 }
