@@ -1,0 +1,74 @@
+[
+    {
+        "path": "COM31",
+        "baudRate": 19200,
+        "dataBits": 8,
+        "parity": "none",
+        "stopBits": 1,
+        "controllerName": "FCSA",
+        "serialFunctionBlockPath": "Main.fcsa01.aiAT01.serial"
+    },
+    {
+        "path": "COM32",
+        "baudRate": 19200,
+        "dataBits": 8,
+        "parity": "none",
+        "stopBits": 1,
+        "controllerName": "FCSA",
+        "serialFunctionBlockPath": "Main.fcsa01.aiAT02.serial"
+    },
+    {
+        "path": "COM33",
+        "baudRate": 19200,
+        "dataBits": 8,
+        "parity": "none",
+        "stopBits": 1,
+        "controllerName": "FCSA",
+        "serialFunctionBlockPath": "Main.fcsa02.aiAT01.serial"
+    },
+    {
+        "path": "COM34",
+        "baudRate": 19200,
+        "dataBits": 8,
+        "parity": "none",
+        "stopBits": 1,
+        "controllerName": "FCSA",
+        "serialFunctionBlockPath": "Main.fcsa02.aiAT02.serial"
+    },
+    {
+        "path": "COM35",
+        "baudRate": 19200,
+        "dataBits": 8,
+        "parity": "none",
+        "stopBits": 1,
+        "controllerName": "FCSA",
+        "serialFunctionBlockPath": "Main.fcsa03.aiAT01.serial"
+    },
+    {
+        "path": "COM36",
+        "baudRate": 19200,
+        "dataBits": 8,
+        "parity": "none",
+        "stopBits": 1,
+        "controllerName": "FCSA",
+        "serialFunctionBlockPath": "Main.fcsa03.aiAT02.serial"
+    },
+    {
+        "path": "COM37",
+        "baudRate": 19200,
+        "dataBits": 8,
+        "parity": "none",
+        "stopBits": 1,
+        "controllerName": "FCSA",
+        "serialFunctionBlockPath": "Main.fcsa04.aiAT01.serial"
+    },
+    {
+        "path": "COM38",
+        "baudRate": 19200,
+        "dataBits": 8,
+        "parity": "none",
+        "stopBits": 1,
+        "controllerName": "FCSA",
+        "serialFunctionBlockPath": "Main.fcsa04.aiAT02.serial"
+    }
+]

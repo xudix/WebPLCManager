@@ -1,0 +1,11 @@
+[
+    {
+        "path": "COM3",
+        "baudRate": 19200,
+        "dataBits": 8,
+        "parity": "none",
+        "stopBits": 1,
+        "controllerName": "FCSA",
+        "serialFunctionBlockPath": "Main.serialTest"
+    }
+]
