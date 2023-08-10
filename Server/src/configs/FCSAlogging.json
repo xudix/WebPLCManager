@@ -1,0 +1,426 @@
+[
+  {
+    "measurement": "FCSA01",
+    "name": "FCSA",
+    "tags": [
+      {
+        "field": "SB1_temp_inlet",
+        "tag": "Main.fcsa01.aiTT01.value",
+        "status": "success"
+      },
+      {
+        "field": "SB1_temp_top",
+        "tag": "Main.fcsa01.aiTT02.value",
+        "status": "success"
+      },
+      {
+        "field": "SB1_temp_bottom",
+        "tag": "Main.fcsa01.aiTT03.value",
+        "status": "success"
+      },
+      {
+        "field": "SB1_pressure",
+        "tag": "Main.fcsa01.aiPT01.value",
+        "status": "success"
+      },
+      {
+        "field": "SB1_CO2_outlet",
+        "tag": "Main.fcsa01.aiAT01.CO2ppm",
+        "status": "success"
+      },
+      {
+        "field": "SB1_RH_outlet",
+        "tag": "Main.fcsa01.aiAT02.RH",
+        "status": "success"
+      },
+      {
+        "field": "SB1_temp_outlet",
+        "tag": "Main.fcsa01.aiAT02.Temperature",
+        "status": "success"
+      },
+      {
+        "field": "CO2_inlet",
+        "tag": "Main.fcsa_common.aiAT001.CO2ppm",
+        "status": "success"
+      },
+      {
+        "field": "SB1_dryair_flow",
+        "tag": "Main.fbAlicatSerial.allStatus[1].massFlow",
+        "status": "success"
+      },
+      {
+        "field": "SB1_humidair_flow",
+        "tag": "Main.fbAlicatSerial.allStatus[2].massFlow",
+        "status": "success"
+      },
+      {
+        "field": "SB1_dryair_flow_setpoint",
+        "tag": "Main.fbAlicatSerial.allStatus[1].massFlowSet",
+        "status": "success"
+      },
+      {
+        "field": "SB1_humidair_flow_setpoint",
+        "tag": "Main.fbAlicatSerial.allStatus[2].massFlowSet",
+        "status": "success"
+      },
+      {
+        "field": "SB1_cycle_num",
+        "tag": "Main.fcsa01.odCompletedCycles",
+        "status": "success"
+      },
+      {
+        "field": "SB1_current_step",
+        "tag": "Main.fcsa01.currentStep",
+        "status": "success"
+      },
+      {
+        "field": "SB1_state",
+        "tag": "Main.fcsa01.state",
+        "status": "success"
+      },
+      {
+        "field": "SB1_queryState",
+        "tag": "Main.fcsa01.queryState",
+        "status": "success"
+      },
+      {
+        "field": "SB1_experNumber",
+        "tag": "Main.fcsa01.experData.experimentNumber",
+        "status": "success"
+      },
+      {
+        "field": "SB1_currentCycleNumber",
+        "tag": "Main.fcsa01.experData.cycleNumber",
+        "status": "success"
+      },
+      {
+        "field": "inletCO2_PPM_smoothed_conc",
+        "tag": "Main.fcsa_common.inletCO2_PPM",
+        "status": "success"
+      },
+      {
+        "field": "inletCO2_PPM_avg",
+        "tag": "Main.fcsa_common.inletCO2_PPM_avg",
+        "status": "success"
+      },
+      {
+        "field": "SB1_cold_valve",
+        "tag": "Main.fcsa01.svXV02.set",
+        "status": "success"
+      },
+      {
+        "field": "SB1_hot_valve",
+        "tag": "Main.fcsa01.svXV03.set",
+        "status": "success"
+      },
+      {
+        "field": "PumpOn",
+        "tag": "Main.fcsa_common.PX001.set",
+        "status": "modified"
+      }
+    ]
+  },
+  {
+    "measurement": "FCSA02",
+    "name": "FCSA",
+    "tags": [
+      {
+        "field": "SB2_temp_inlet",
+        "tag": "Main.fcsa02.aiTT01.value",
+        "status": "success"
+      },
+      {
+        "field": "SB2_temp_top",
+        "tag": "Main.fcsa02.aiTT02.value",
+        "status": "success"
+      },
+      {
+        "field": "SB2_temp_bottom",
+        "tag": "Main.fcsa02.aiTT03.value",
+        "status": "success"
+      },
+      {
+        "field": "SB2_CO2_outlet",
+        "tag": "Main.fcsa02.aiAT01.CO2ppm",
+        "status": "success"
+      },
+      {
+        "field": "SB2_RH_outlet",
+        "tag": "Main.fcsa02.aiAT02.RH",
+        "status": "success"
+      },
+      {
+        "field": "SB2_temp_outlet",
+        "tag": "Main.fcsa02.aiAT02.Temperature",
+        "status": "success"
+      },
+      {
+        "field": "SB2_dryair_flow",
+        "tag": "Main.fbAlicatSerial.allStatus[3].massFlow",
+        "status": "success"
+      },
+      {
+        "field": "SB2_humidair_flow",
+        "tag": "Main.fbAlicatSerial.allStatus[4].massFlow",
+        "status": "success"
+      },
+      {
+        "field": "SB2_dryair_flow_setpoint",
+        "tag": "Main.fbAlicatSerial.allStatus[3].massFlowSet",
+        "status": "success"
+      },
+      {
+        "field": "SB2_humidair_flow_setpoint",
+        "tag": "Main.fbAlicatSerial.allStatus[4].massFlowSet",
+        "status": "success"
+      },
+      {
+        "field": "SB2_cycle_num",
+        "tag": "Main.fcsa02.odCompletedCycles",
+        "status": "success"
+      },
+      {
+        "field": "SB2_current_step",
+        "tag": "Main.fcsa02.currentStep",
+        "status": "success"
+      },
+      {
+        "field": "SB2_state",
+        "tag": "Main.fcsa02.state",
+        "status": "success"
+      },
+      {
+        "field": "SB2_queryState",
+        "tag": "Main.fcsa02.queryState",
+        "status": "success"
+      },
+      {
+        "field": "SB2_experNumber",
+        "tag": "Main.fcsa02.experData.experimentNumber",
+        "status": "success"
+      },
+      {
+        "field": "SB2_currentCycleNumber",
+        "tag": "Main.fcsa02.experData.cycleNumber",
+        "status": "success"
+      },
+      {
+        "field": "SB2_pressure",
+        "tag": "Main.fcsa02.aiPT01.value",
+        "status": "success"
+      },
+      {
+        "field": "SB2_cold_valve",
+        "tag": "Main.fcsa02.svXV02.set",
+        "status": "success"
+      },
+      {
+        "field": "SB2_hot_valve",
+        "tag": "Main.fcsa02.svXV03.set",
+        "status": "success"
+      }
+    ]
+  },
+  {
+    "measurement": "FCSA03",
+    "name": "FCSA",
+    "tags": [
+      {
+        "field": "SB3_temp_inlet",
+        "tag": "Main.fcsa03.aiTT01.value",
+        "status": "success"
+      },
+      {
+        "field": "SB3_temp_top",
+        "tag": "Main.fcsa03.aiTT02.value",
+        "status": "success"
+      },
+      {
+        "field": "SB3_temp_bottom",
+        "tag": "Main.fcsa03.aiTT03.value",
+        "status": "success"
+      },
+      {
+        "field": "SB3_CO2_outlet",
+        "tag": "Main.fcsa03.aiAT01.CO2ppm",
+        "status": "success"
+      },
+      {
+        "field": "SB3_RH_outlet",
+        "tag": "Main.fcsa03.aiAT02.RH",
+        "status": "success"
+      },
+      {
+        "field": "SB3_temp_outlet",
+        "tag": "Main.fcsa03.aiAT02.Temperature",
+        "status": "success"
+      },
+      {
+        "field": "SB3_dryair_flow",
+        "tag": "Main.fbAlicatSerial.allStatus[5].massFlow",
+        "status": "success"
+      },
+      {
+        "field": "SB3_humidair_flow",
+        "tag": "Main.fbAlicatSerial.allStatus[6].massFlow",
+        "status": "success"
+      },
+      {
+        "field": "SB3_dryair_flow_setpoint",
+        "tag": "Main.fbAlicatSerial.allStatus[5].massFlowSet",
+        "status": "success"
+      },
+      {
+        "field": "SB3_humidair_flow_setpoint",
+        "tag": "Main.fbAlicatSerial.allStatus[6].massFlowSet",
+        "status": "success"
+      },
+      {
+        "field": "SB3_cycle_num",
+        "tag": "Main.fcsa03.odCompletedCycles",
+        "status": "success"
+      },
+      {
+        "field": "SB3_current_step",
+        "tag": "Main.fcsa03.currentStep",
+        "status": "success"
+      },
+      {
+        "field": "SB3_state",
+        "tag": "Main.fcsa03.state",
+        "status": "success"
+      },
+      {
+        "field": "SB3_queryState",
+        "tag": "Main.fcsa03.queryState",
+        "status": "success"
+      },
+      {
+        "field": "SB3_experNumber",
+        "tag": "Main.fcsa03.experData.experimentNumber",
+        "status": "success"
+      },
+      {
+        "field": "SB3_currentCycleNumber",
+        "tag": "Main.fcsa03.experData.cycleNumber",
+        "status": "success"
+      },
+      {
+        "field": "SB3_pressure",
+        "tag": "Main.fcsa03.aiPT01.value",
+        "status": "success"
+      },
+      {
+        "field": "SB3_cold_valve",
+        "tag": "Main.fcsa03.svXV02.set",
+        "status": "success"
+      },
+      {
+        "field": "SB3_hot_valve",
+        "tag": "Main.fcsa03.svXV03.set",
+        "status": "success"
+      }
+    ]
+  },
+  {
+    "measurement": "FCSA04",
+    "name": "FCSA",
+    "tags": [
+      {
+        "field": "SB4_temp_inlet",
+        "tag": "Main.fcsa04.aiTT01.value",
+        "status": "success"
+      },
+      {
+        "field": "SB4_temp_top",
+        "tag": "Main.fcsa04.aiTT02.value",
+        "status": "success"
+      },
+      {
+        "field": "SB4_temp_bottom",
+        "tag": "Main.fcsa04.aiTT03.value",
+        "status": "success"
+      },
+      {
+        "field": "SB4_CO2_outlet",
+        "tag": "Main.fcsa04.aiAT01.CO2ppm",
+        "status": "success"
+      },
+      {
+        "field": "SB4_RH_outlet",
+        "tag": "Main.fcsa04.aiAT02.RH",
+        "status": "success"
+      },
+      {
+        "field": "SB4_temp_outlet",
+        "tag": "Main.fcsa04.aiAT02.Temperature",
+        "status": "success"
+      },
+      {
+        "field": "SB4_dryair_flow",
+        "tag": "Main.fbAlicatSerial.allStatus[7].massFlow",
+        "status": "success"
+      },
+      {
+        "field": "SB4_humidair_flow",
+        "tag": "Main.fbAlicatSerial.allStatus[8].massFlow",
+        "status": "success"
+      },
+      {
+        "field": "SB4_dryair_flow_setpoint",
+        "tag": "Main.fbAlicatSerial.allStatus[7].massFlowSet",
+        "status": "success"
+      },
+      {
+        "field": "SB4_humidair_flow_setpoint",
+        "tag": "Main.fbAlicatSerial.allStatus[8].massFlowSet",
+        "status": "success"
+      },
+      {
+        "field": "SB4_cycle_num",
+        "tag": "Main.fcsa04.odCompletedCycles",
+        "status": "success"
+      },
+      {
+        "field": "SB4_current_step",
+        "tag": "Main.fcsa04.currentStep",
+        "status": "success"
+      },
+      {
+        "field": "SB4_state",
+        "tag": "Main.fcsa04.state",
+        "status": "success"
+      },
+      {
+        "field": "SB4_queryState",
+        "tag": "Main.fcsa04.queryState",
+        "status": "success"
+      },
+      {
+        "field": "SB4_experNumber",
+        "tag": "Main.fcsa04.experData.experimentNumber",
+        "status": "success"
+      },
+      {
+        "field": "SB4_currentCycleNumber",
+        "tag": "Main.fcsa04.experData.cycleNumber",
+        "status": "success"
+      },
+      {
+        "field": "SB4_pressure",
+        "tag": "Main.fcsa04.aiPT01.value",
+        "status": "success"
+      },
+      {
+        "field": "SB4_cold_valve",
+        "tag": "Main.fcsa04.svXV02.set",
+        "status": "success"
+      },
+      {
+        "field": "SB4_hot_valve",
+        "tag": "Main.fcsa04.svXV03.set",
+        "status": "success"
+      }
+    ]
+  }
+]
