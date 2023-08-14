@@ -120,9 +120,14 @@ export class DataClient extends EventEmitter{
     _msgToString(msg){
         switch(typeof(msg)){
             case 'object':
-                /**@type {string} */
-                let toStr = msg.toString();
-                return toStr.toLowerCase() == '[object object]'? JSON.stringify(msg) : toStr;
+                // /**@type {string} */
+                // let toStr = msg.toString();
+                // return toStr.toLowerCase() == '[object object]'? JSON.stringify(msg) : toStr;
+                let toStr = "";
+                for(let property in msg){
+                    toStr += property + ": "+msg[property] + "\n";
+                }
+                return toStr == ""? msg.toString():toStr;
             default:
                 return msg;
         }
