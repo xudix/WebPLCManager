@@ -6,6 +6,6 @@
         "parity": "none",
         "stopBits": 1,
         "controllerName": "FCSA",
-        "serialFunctionBlockPath": "Main.serialTest"
+        "serialFunctionBlockPath": "Main.fcsa01.aiAT01.serial"
     }
 ]
