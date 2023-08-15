@@ -539,7 +539,9 @@ export class PLCLoggingClient extends DataClient{
             if(this._fileHandle === null){
                 this._fileAvaileble = false;
                 this._fileHandle = {};  // to prevent another file creation operation before this one is done.
-                this.tempFilePath = Path.join(this.loggingConfig.logDir, this._dataTime+".temp")
+                //let timeNow = (new Date()).toString().replace(/[<>:"\\\/\|\?\*]/g,'');
+                let timeNow = (new Date()).toLocaleString('zh-CN').replace(/[^\w_-]/g, '_');
+                this.tempFilePath = Path.join(this.loggingConfig.logDir, timeNow + ".temp" )
                 await FileSystem.open(this.tempFilePath, "a+")
                 .then(async fileHandle => {
                     this._fileHandle = fileHandle;

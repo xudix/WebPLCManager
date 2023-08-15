@@ -28,9 +28,9 @@ export function load() {
                     'Content-Type': 'text/plain'
                 }
             }
-            res.status(200).sendFile(path.join(this._serverConfig.loggingConfig.logDir, fileName), options, (err) => {
+            res.status(200).sendFile(fileName, options, (err) => {
                 if(err){
-                    res.sendStatus(404);
+                    res.status(404).send(err);
                 }
             })
         }
