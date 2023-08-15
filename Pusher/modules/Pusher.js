@@ -35,30 +35,21 @@ export class Pusher extends EventEmitter {
         this.dataDir = this.conf.loggingConfig.logPath;
         this.tempFile = path.join(this.dataDir, ".temp_");
         this.api = "/api/v2/write?precision=ms&bucket=";
-        // this.conf.smb2source = {
-        //     domain: 'WORKGROUP',
-        //     path: '',
-        //     autoCloseTimeout: 0,    //make this zero?!
-        //     ...this.conf.smb2source
-        // }
-        // /**
-        //  * SMB2 client is used to get files from the PLC
-        //  */
-        // this.smbClient = new SMB2(this.conf.smb2source);
+        
         this.log = {
             info : (...args) => {
                 let msg = "";
-                args.forEach(arg => msg += arg.toString() + "\n");
+                args.forEach(arg => msg += this._msgToString(arg) + "\n");
                 this.emit("log", "info", msg);
             },
             warn : (...args) => {
                 let msg = "";
-                args.forEach(arg => msg += arg.toString() + "\n");
+                args.forEach(arg => msg += this._msgToString(arg) + "\n");
                 this.emit("log", "warn", msg);
             },
             error : (...args) => {
                 let msg = "";
-                args.forEach(arg => msg += arg.toString() + "\n");
+                args.forEach(arg => msg += this._msgToString(arg) + "\n");
                 this.emit("log", "error", msg);
             }
         }
@@ -79,17 +70,6 @@ export class Pusher extends EventEmitter {
     }
 
     async run() {
-        // // query the local data dir
-        // this.remoteLogger.switchFile()
-        //     .then((fileName) => {
-        //         if(fileName != "")
-        //             this.log.info(`Switched file. New file: ${fileName}`);
-        //         this.processLocalFiles(this.fileCount);
-        //     })
-        //     .catch((err) => {
-        //         this.log.error(`Failed to switch file.`, err);
-        //     });
-        // query the PLC
         this.processLocalFiles(this.fileCount);
         fetch(this.conf.PLCloggerURL+"/api/log-status").then(res => {
             res.json().then((result) => {
@@ -112,7 +92,7 @@ export class Pusher extends EventEmitter {
         return fetch(this.conf.PLCloggerURL+"/api/log-files").then( res => {
             if(res.ok){
                 res.json().then(async fileNames => {
-                    for(let i = 0; i < Math.max(fileNames.length, this.fileCount); i++){
+                    for(let i = 0; i < Math.min(fileNames.length, this.fileCount); i++){
                         await this.fetchPLCFile(fileNames[i]).then(async () => {
                             await this.deletePLCFile(fileNames[i]);
                         }).catch(err => {
@@ -122,7 +102,7 @@ export class Pusher extends EventEmitter {
                 })
             }
             else{
-                this.log.error(`Failed to get log file info.`, res);
+                this.log.error(`Failed to get log file info with HTTP Error Response: ${res.status} ${res.statusText}`);
             }
         })
         .catch(err => this.log.error(`Failed to get log file info.`, err));
@@ -135,12 +115,12 @@ export class Pusher extends EventEmitter {
                 if(!fsync.existsSync(this.dataDir)){
                     await fs.mkdir(this.dataDir);
                 }
-                const newName = path.join(this.dataDir, filename.replace(/.lp$/, this.allInfluxKeys + ".lp"));
+                const newName = path.join(this.dataDir, fileName.replace(/.lp$/, this.allInfluxKeys + ".lp"));
                 const writeStream = fsync.createWriteStream(newName ,{flags: 'w', encoding:'binary'});
                 await finished(res.body.pipe(writeStream));
             }
             else{
-                throw new Error(`Failed to fetch file ${fileName} with error response from server.`)
+                throw new Error(`Failed to fetch file ${fileName} with HTTP Error Response: ${res.status} ${res.statusText}.`)
             }
         }).catch(err => {throw err;});
     }
@@ -254,10 +234,10 @@ export class Pusher extends EventEmitter {
      */
     async processLocalFiles(maxFiles) {
         fs.readdir(this.dataDir).then(async (localFileNames) => {
+            //console.log(`Found local files ${localFileNames.toString()}`);
             if (localFileNames.length > 0) {
                 let processedFiles = 0;
                 localFileNames.sort((a, b) => a > b ? -1 : (a < b ? 1 : 0)); // make sure we process new files first
-                //console.log(`Found local files ${localFileNames.toString()}`);
                 for (let filename of localFileNames) {
                     let currentFile = path.join(this.dataDir, filename);
                     if (processedFiles >= maxFiles) {
@@ -360,6 +340,22 @@ export class Pusher extends EventEmitter {
                     // console.log(`done!  deleting ${path.basename(filename)}`);
                     return newName;
                 });
+        }
+    }
+
+    _msgToString(msg){
+        switch(typeof(msg)){
+            case 'object':
+                // /**@type {string} */
+                // let toStr = msg.toString();
+                // return toStr.toLowerCase() == '[object object]'? JSON.stringify(msg) : toStr;
+                let toStr = "";
+                for(let property in msg){
+                    toStr += property + ": "+msg[property] + "\n";
+                }
+                return toStr == ""? msg.toString():toStr;
+            default:
+                return msg;
         }
     }
 

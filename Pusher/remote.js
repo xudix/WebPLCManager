@@ -1,4 +1,4 @@
-let serverConfig = require("./config").get("PushServer_BenchScale");
+let serverConfig = require("./config").get("PushServer_FCSA");
 
 import("./modules/RemoteServerApp.js")
 .then(serverModule => {

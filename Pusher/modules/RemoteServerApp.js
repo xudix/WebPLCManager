@@ -35,8 +35,12 @@ export class RemoveServerApp{
         this.httpServer = http.createServer(this.expressApp);
 
         // HTTP routers
-        // HTTP routers
-        this.loadAPIs()
+        this.loadAPIs().then(()=>{
+            // This allows dynamic router reload
+            this.expressApp.use((req, res, next) => {
+                this._router(req, res, next);
+            })
+        })
         this.expressApp.put("/api/load-api", (req, res) => {
             this.loadAPIs();
             res.sendStatus(200);
@@ -50,6 +54,7 @@ export class RemoveServerApp{
     }
 
     async loadAPIs(){
+        this._router = express.Router(); // Create a new router to clear old routes
         fs.readdir("./modules/APIs/").then(async (files) => {
             files.forEach((file) => {
                 if(file.endsWith(".js")){
