@@ -45,3 +45,4 @@ Server/src/node_ads_test.js
 Server/src/client/*
 Server/src/data/*
 flows.json
+Pusher/data/*

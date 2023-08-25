@@ -250,7 +250,12 @@ export class Pusher extends EventEmitter {
                                 currentFile = newName;
                             })
                             .catch((err) => this.log.error(`Failed to rename ${oldName}.`, err));
-                    } else if (!filename.endsWith(".lp")) {
+                    } 
+                    else if (filename.endsWith("invalid")){
+                        this.handleInvalidFile(currentFile);
+                        continue;
+                    }
+                    else if (!filename.endsWith(".lp")) {
                         // not a .lp file. do not write it to Influx
                         continue;
                     }
@@ -277,11 +282,76 @@ export class Pusher extends EventEmitter {
      * @returns 
      */
     async writeFileToInflux(fileName, influxID) {
-        //console.log(`writing ${fileName} to ${influxID}`);
-        const readable = fsync.createReadStream(fileName);
+        console.log(`writing ${fileName} to ${influxID}`);
+        const fileHandle = await fs.open(fileName)
+            .catch(error => {
+                this.log.error(`Error opening ${fileName}: `, error);
+                return null
+            });
+        if(fileHandle){
+            const readable = fileHandle.createReadStream();
+            const options = {
+                method: 'POST',
+                body: readable,
+                headers: {
+                    //'Content-Type': 'text/plain; charset=utf-8',
+                    'Content-Type': 'application/octet-stream',
+                    'Accept': 'application/json',
+                    'Authorization': 'Token ' + this.conf.influx[influxID].token
+                }
+            }
+
+            //console.log(`writing to ${this.conf.influx[influxID].URL}${this.api}${this.conf.influx[influxID].bucket}&org=${this.conf.influx[influxID].org}`);
+            return fetch(`${this.conf.influx[influxID].URL}${this.api}${this.conf.influx[influxID].bucket}&org=${this.conf.influx[influxID].org}`, options)
+                .then(async response => {
+                    await fileHandle.close();
+                    if (response.ok) {
+                        this.log.info(`Uploaded ${fileName} to ${influxID} sucessfully!`)
+                        return this.stripFromFileName(fileName, influxID).catch(err => this.log.error(`Failed to rename or delete file ${fileName}.`, err));
+                    }
+                    else {
+                        let resJSON = await response.json();
+                        if (resJSON.code == "invalid") {
+                            //this.log.warn(`Invalid file: ${fileName} to ${influxID}.`, resJSON);
+                            await fs.rename(fileName, fileName+"_invalid");
+                            return Promise.resolve("");
+                        }
+                        else {
+                            throw new Error("HTTP ERROR:\n"+this._msgToString(resJSON))
+                        }
+                    }
+                })
+                .catch((error) => {
+                    this.log.error(`Error uploading file: ${fileName} to ${influxID}.`, error);
+                    return fileName;
+                });
+        }
+        else{
+            return Promise.reject(`Failed to open ${fileName}.`);
+        }
+        
+    }
+
+    async handleInvalidFile(fileName){
+        if(!this._busyHandlingInvalid){
+            this._busyHandlingInvalid = true;
+            for (let influxID in this.conf.influx) {
+                //console.log(conf.influx[key]);
+                if (fileName.includes(influxID)) {
+                    fileName = await this.writeLinesToInflux(fileName, influxID);
+                }
+            }
+            this._busyHandlingInvalid = false;
+        }
+    }
+
+    
+
+    async writeLinesToInflux(fileName, influxID){
+        let badData = "";
         const options = {
             method: 'POST',
-            body: readable,
+            body: null,
             headers: {
                 //'Content-Type': 'text/plain; charset=utf-8',
                 'Content-Type': 'application/octet-stream',
@@ -289,38 +359,38 @@ export class Pusher extends EventEmitter {
                 'Authorization': 'Token ' + this.conf.influx[influxID].token
             }
         }
+        return fs.open(fileName).then(async (file) => {
+            for await(const line of file.readLines()){
+                options.body = line;
+                //this.log.info(`Writing line to ${influxID}`, line)
+                await fetch(`${this.conf.influx[influxID].URL}${this.api}${this.conf.influx[influxID].bucket}&org=${this.conf.influx[influxID].org}`, options)
+                    .then(async (response) => {
+                        if(!response.ok){
+                            badData += line;
+                            let text = await response.text();
+                            this.log.error("HTTP ERROR!", text);
+                        }
+                    })
+                    .catch(error => {
+                        badData += line;
+                        this.log.error(`Error uploading line to ${influxID}.`, error);
+                    })
+                await this._sleep(500);
+            }
+            await file.close();
+            if(badData != ""){
+                await fs.writeFile(fileName+".badData", badData, "binary")
+                    .catch(error => {
+                        this.log.error(`Error writing bad data file for ${fileName}.`, error);
+                    });
+            }
+            return this.stripFromFileName(fileName, influxID).catch(err => this.log.error(`Failed to rename or delete file ${fileName}.`, err));
 
-        //console.log(`writing to ${this.conf.influx[influxID].URL}${this.api}${this.conf.influx[influxID].bucket}&org=${this.conf.influx[influxID].org}`);
-        return fetch(`${this.conf.influx[influxID].URL}${this.api}${this.conf.influx[influxID].bucket}&org=${this.conf.influx[influxID].org}`, options)
-            .then(async response => {
-                //FIXME:  really the only reason not to remove my task is if the server didn't respond or got interrupted?
-                let delFile = false;
-                if (response.ok) {
-                    this.log.info(`Uploaded ${fileName} to ${influxID} sucessfully!`)
-                    delFile = true;
-                }
-                else {
-                    let text = await response.text();
-                    if (text.code === "invalid") {
-                        this.log.warn("bad data in the file, marking it as complete anyway", text.message);
-                        delFile = true;
-                    }
-                    else {
-                        this.log.error("HTTP ERROR!", text)
-                    }
-                }
-                if (delFile) {
-                    return this.stripFromFileName(fileName, influxID).catch(err => this.log.error(`Failed to rename or delete file ${fileName}.`, err));
-                }
-                else {
-                    return Promise.resolve(fileName);
-                }
-            })
-            .catch((error) => {
-                this.log.error(`Error uploading file: ${fileName} to ${influxID}.`, error);
-                return fileName;
-            });
-
+        })
+        .catch((error) => {
+            this.log.error(`Error opening file: ${fileName}.`, error);
+            return fileName;
+        });
     }
 
     //renames a file with a task removed from name
@@ -337,7 +407,6 @@ export class Pusher extends EventEmitter {
         else {
             return fs.rename(filename, newName)
                 .then((result) => {
-                    // console.log(`done!  deleting ${path.basename(filename)}`);
                     return newName;
                 });
         }
@@ -359,6 +428,12 @@ export class Pusher extends EventEmitter {
         }
     }
 
+    _sleep(ms) {
+        return new Promise((resolve) => {
+          setTimeout(resolve, ms);
+        });
+      }
+
     //private variables
 
     /**
@@ -368,5 +443,7 @@ export class Pusher extends EventEmitter {
      * @type {string} 
      */
     allInfluxKeys = "";
+
+    _busyHandlingInvalid = false;
 
 }
