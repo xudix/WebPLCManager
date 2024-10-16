@@ -4,6 +4,7 @@ import {
   useReducer,
   useState,
   useEffect,
+  ReactElement,
 } from "react";
 
 import { ILoggingServerConfig } from "../models/logging-config-type.ts";
@@ -56,7 +57,7 @@ export function useControllerStatus(): Record<string, boolean> {
 
 export const CurrentControllerContext = createContext<string>("");
 
-export function ControllerInfoProvider({ children }) {
+export function ControllerInfoProvider({ children }: {children: ReactElement}) {
   const [dataTypes, setDataTypes] = useState<DataTypesInfo>({});
   const [symbols, setSymbols] = useState<SymbolsInfo>({});
   const [controllerStatus, setControllerStatus] = useState<

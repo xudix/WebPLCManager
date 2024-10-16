@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useDataTypes, useSymbols, useControllerStatus } from "../services/ControllerInfoContext";
-import SymbolTree from "./SymbolTree";
 import { socket } from "../services/Socket";
 import SymbolTree2 from "./SymbolTree2";
 

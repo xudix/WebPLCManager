@@ -10,6 +10,145 @@ const URL =
 
 export const socket = io(URL);
 
+/**
+ * Records the subscribers of a symbol
+ */
+interface IWatchedSymbol {
+  value?: number|boolean|string|null,
+  expirationTimer?: number|NodeJS.Timeout|null,
+  subscribers: Record<string, (data?: number|boolean|string|null) => void>
+}
+
+/**
+ * {symbolName: IWatchedSymbol}
+ */
+type SymbolRecords = Record<string, IWatchedSymbol>
+
+
+class SymbolWatchManager{
+
+  constructor() {
+    this.__watchRecords = {};
+    socket.on("subscribedData", (newData) => this.__handleReceivedData(newData));
+    socket.on("connect", () =>
+      setTimeout(() => {
+        this.__resubscribe();
+      }, 5000));
+  }
+
+  private watchableTypes = new Set(['BOOL', 'BYTE', 'WORD', 'DWORD', 'SINT', 'USINT', 
+    'INT', 'UINT','DINT', 'UDINT', 'LINT', 'ULINT', 'REAL', 'LREAL']); // FIXME: how to handle ENUM and TIME?
+
+  /**
+   * The record for symbol watch subscriptions. 
+   * {controllerName : SymbolRecords}
+   */
+  private __watchRecords: Record<string, SymbolRecords>;
+
+  private __communicationLoss: boolean = true;
+
+  /**
+   * Time (ms) after which the received data expires
+   */
+  dataExpirationTime = 3000;
+
+
+
+  /**
+   * Subscribe to the value of a symbol from the controller.
+   * @param subscriberID A unique ID for the subscriber
+   * @param controller 
+   * @param symbol The full path of the symbol
+   * @param callback callback function to handle the received data
+   */
+  subscribe(subscriberID: string, controller: string, symbol: string, baseType: string, callback: (data?: number|boolean|string|null) => void){
+    if(this.watchableTypes.has(baseType) || baseType.includes("STRING")){
+      // controller not subscribed to yet
+      if(!this.__watchRecords[controller]){
+        this.__watchRecords[controller] = {}
+      }
+      // symbol not subscribed to yet
+      if(!this.__watchRecords[controller][symbol]){
+        this.__watchRecords[controller][symbol] = {
+          subscribers: {}
+        }
+      }
+      if(Object.keys(this.__watchRecords[controller][symbol].subscribers).length == 0){
+        socket.emit("addWatchSymbol", controller, symbol)
+      }
+      this.__watchRecords[controller][symbol].subscribers[subscriberID] = callback;
+      }
+  }
+
+  unsubscribe(subscriberID: string, controller: string, symbol: string){
+    if(this.__watchRecords[controller]
+      && this.__watchRecords[controller][symbol]
+      && this.__watchRecords[controller][symbol].subscribers[subscriberID]
+    ){
+      delete this.__watchRecords[controller][symbol].subscribers[subscriberID];
+      // if no one is subscribing to this symbol, unsubscribe it from server
+      if(Object.keys(this.__watchRecords[controller][symbol].subscribers).length == 0){
+        socket.emit("removeWatchSymbol",controller, symbol)
+      }
+    }
+
+  }
+
+  private __handleReceivedData(newData: Record<string, Record<string, number|boolean|string>>){
+    
+    for(const controller in newData){
+      if(this.__watchRecords && this.__watchRecords[controller]){
+        // this controller exist in record
+        for(const symbol in newData[controller]){
+          if(this.__watchRecords[controller][symbol]){
+            // this symbol exist in record
+            if(this.__watchRecords[controller][symbol].expirationTimer){
+              clearTimeout(this.__watchRecords[controller][symbol].expirationTimer);
+            }
+            this.__communicationLoss = false;
+            for(const id in this.__watchRecords[controller][symbol].subscribers){
+              this.__watchRecords[controller][symbol].subscribers[id](newData[controller][symbol])
+            }
+            // make the data timeout after some time. The callbacks are called with null input
+            this.__watchRecords[controller][symbol].expirationTimer = setTimeout(() => {
+              this.__communicationLoss = true;
+              for(const id in this.__watchRecords[controller][symbol].subscribers){
+                this.__watchRecords[controller][symbol].subscribers[id](null)
+              }
+            }, this.dataExpirationTime);
+          }
+        }
+      }
+    }
+  }
+
+  // re-subscribe to data after reconnecting
+  private __resubscribe(){
+    if(this.__communicationLoss){
+      for(const controller in this.__watchRecords){
+        for(const symbol in this.__watchRecords[controller]){
+          if(Object.keys(this.__watchRecords[controller][symbol].subscribers).length > 0){
+            socket.emit("addWatchSymbol", controller, symbol);
+          }
+        }
+      }
+      setTimeout(() => {
+        this.__resubscribe();
+      }, 5000);
+    }
+  }
+
+  //private __resubscribeTimer: number|NodeJS.Timeout = 0;
+
+}
+
+const symbolWatchManagerContext = createContext(new SymbolWatchManager());
+
+export function useSymbolWatchManager(){
+  return useContext(symbolWatchManagerContext);
+}
+
+
 export function registerSocketEventHandlers() {
   socket.on("broadcast", handleBroadcast);
   socket.on("controllerStatus", handleControllerStatus);

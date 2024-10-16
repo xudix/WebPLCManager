@@ -1,11 +1,12 @@
 import { Box, List, ListItem, ListItemButton, Stack, SvgIcon, SxProps, Table, TableBody, TableCell, TableRow, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid2"
 import { IControllerSymbol } from "../models/controller-data-types";
-import { useContext, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { treeLevelContext } from "../models/utilities";
 import { CurrentControllerContext, useDataTypes } from "../services/ControllerInfoContext";
 import useOnScreen from "../models/onScreenDetection";
+import { useSymbolWatchManager } from "../services/Socket";
 
 interface ISymbolTreeNodeProps {
   name: string,
@@ -14,6 +15,7 @@ interface ISymbolTreeNodeProps {
 }
 
 export default function SymbolTreeNode2(props: ISymbolTreeNodeProps) {
+  const [value, setValue] = useState<number|boolean|string|object|null|undefined>(null)
   const [isExpanded, setIsExpanded] = useState(false);
   const treeLevel = useContext(treeLevelContext);
   const currentController = useContext(CurrentControllerContext);
@@ -22,6 +24,7 @@ export default function SymbolTreeNode2(props: ISymbolTreeNodeProps) {
   const hasSubNodes = (thisTypeObj.subItemCount > 0 || thisTypeObj.arrayDimension > 0);
   const ref = useRef<HTMLDivElement>(null)
   const isOnScreen = useOnScreen(ref);
+  const symbolWatchManager = useSymbolWatchManager();
 
   let subNodes;
   if (isExpanded) {
@@ -35,16 +38,46 @@ export default function SymbolTreeNode2(props: ISymbolTreeNodeProps) {
     // add support for array
   }
 
+  // Expand or fold this node after clicking 
   const handleClick = () => {
-    setIsExpanded(!isExpanded);
+    if (hasSubNodes){
+      setIsExpanded(!isExpanded);
+    }
   }
 
-  if(isOnScreen){
-    console.log(props.name + " showed up")
-  }
+  // just expanded this node. Scroll it to the center
+  useEffect(() => {
+    if(isExpanded){
+      
+      ref.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      })
+    }
+  },[isExpanded])
+
+  // subscribe to the reading when it's in view
+  useEffect(()=>{
+    const typeObj = dataTypes[currentController][props.symbol.type.toLocaleLowerCase()];
+    let symbolPath = props.name;
+    if(typeObj.name.toLocaleLowerCase().startsWith("pointer to ")){
+      symbolPath = symbolPath + '^';
+    }
+    if(isOnScreen){
+      symbolWatchManager.subscribe("Tree"+props.name, currentController, symbolPath, typeObj.baseType, (data?: number|boolean|string|null) => {
+        setValue(data);
+      })
+    }
+    else{
+      symbolWatchManager.unsubscribe("Tree"+props.name, currentController, symbolPath);
+    }
+
+    return () => {
+      symbolWatchManager.unsubscribe("Tree"+props.name, currentController, props.name);
+    }
+  }, [currentController, dataTypes, isOnScreen, props.name, props.symbol.type, symbolWatchManager])
+
   
-
-
   return (
     <ListItem key={props.name} sx={{ padding: 0, width: "100%" }} >
       <Stack spacing={0} padding={0} width={"100%"} >
@@ -52,7 +85,7 @@ export default function SymbolTreeNode2(props: ISymbolTreeNodeProps) {
           <TreeNodeIndent level={treeLevel}></TreeNodeIndent>
           {hasSubNodes ? (isExpanded ? <ExpandLess /> : <ExpandMore />) : <SvgIcon />}
           {/* <ListItemText primary={props.symbol.name} sx={{ margin: 0 }} /> */}
-          <SymbolDisplay fullName={props.name} symbolObj={props.symbol}></SymbolDisplay>
+          <SymbolDisplay fullName={props.name} symbolObj={props.symbol} value={value}></SymbolDisplay>
           
         </ListItemButton>
         {hasSubNodes ? (
@@ -80,7 +113,7 @@ function TreeNodeIndent({ level }: { level: number }) {
   )
 }
 
-function SymbolDisplay({fullName, symbolObj}:{fullName: string, symbolObj: IControllerSymbol}) {
+function SymbolDisplay({fullName, symbolObj, value}:{fullName: string, symbolObj: IControllerSymbol, value?: number|boolean|string|object|null}) {
   const stackHoverSX:SxProps = {
     width: "100%",
     '&:hover .symbol-name-display':{
@@ -99,11 +132,17 @@ function SymbolDisplay({fullName, symbolObj}:{fullName: string, symbolObj: ICont
       padding: 0,
     }
   }
+
+  
+
   return (
     <Stack spacing={0} padding={0} sx={stackHoverSX}>
       <Grid container>
-        <Grid size={12}>
+        <Grid size={6}>
           <Typography className="symbol-name-display">{symbolObj.name}</Typography>
+        </Grid>
+        <Grid size={6}>
+          <Typography >{formatValue(value)}</Typography>
         </Grid>
       </Grid>
       <Table className="symbol-info-display" sx={tableSX}>
@@ -127,9 +166,24 @@ function SymbolDisplay({fullName, symbolObj}:{fullName: string, symbolObj: ICont
       <Typography className="symbol-info-display" sx={{ visibility: "collapse", height: 0}}>Type: {props.symbol.type}</Typography>
       <Typography className="symbol-info-display" sx={{ visibility: "collapse", height: 0}}>Comment: {props.symbol.comment}</Typography> */}
     </Stack>
-    
 
-
-    
   )
+
+  function formatValue(value?: number|boolean|string|null|undefined|object ){
+    if(value != null && value != undefined){
+      switch(typeof value){
+        case "boolean":
+          return value?"TRUE":"FALSE";
+        case "object":
+          return JSON.stringify(value);
+      
+        default:
+          return value;
+
+      }
+    }
+    else{
+      return null;
+    }
+  }
 }
