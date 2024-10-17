@@ -49,6 +49,9 @@ export default function SymbolTree2(props: ISymbolTreeProps) {
           (lowerName.startsWith("constants.") || lowerName.startsWith("twincat_") || lowerName.startsWith("parameterlist"))) {
           return null;
         }
+        if(isDuplicatedIOSymbol(lowerName)){
+          return null;
+        }
         const symObj = symbols[props.controllerName][symbolName];
         return (
           <SymbolTreeNode2 name={symObj.name} symbol={symObj} key={symObj.name}></SymbolTreeNode2>
@@ -81,6 +84,24 @@ export default function SymbolTree2(props: ISymbolTreeProps) {
         Controller {props.controllerName} is not connected.
       </Box>
     )
+  }
+
+  /**
+   * TwinCAT adds input/output symbols (declared with %I and %Q) to symbol list even if they're a part of another object.
+   * This function tries to identify them by checking if the name of this symbol is part of another symbol
+   */
+  function isDuplicatedIOSymbol(symbolName: string):boolean{
+    const aSplitName = symbolName.toLocaleLowerCase().split(/[.\[\]]/);
+    let partName = aSplitName[0]; // partial name of the symbol
+    for(let i = 1; i < aSplitName.length; i++){
+      if(symbols[props.controllerName][partName]){
+        // this partial name exist. 
+        return true;
+      }
+      partName += "." + aSplitName[i];
+    }
+    return false;
+
   }
 
 

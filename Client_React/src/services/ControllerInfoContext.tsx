@@ -130,3 +130,9 @@ export function ControllerInfoProvider({ children }: {children: ReactElement}) {
     setControllerStatus(controllerStatus);
   } 
 }//ControllerInfoProvider
+
+/**
+ * These are the primitive types that can be simply subscribed to.
+ */
+export const watchableTypes = new Set(['BOOL', 'BYTE', 'WORD', 'DWORD', 'SINT', 'USINT', 
+  'INT', 'UINT','DINT', 'UDINT', 'LINT', 'ULINT', 'REAL', 'LREAL', 'TIME']); 

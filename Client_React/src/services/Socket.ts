@@ -3,6 +3,7 @@ import { useContext, createContext, useReducer } from "react";
 import { io } from "socket.io-client";
 import { ILoggingServerConfig } from "../models/logging-config-type.ts";
 import { IControllerType } from "../models/controller-data-types.ts";
+import { watchableTypes } from "./ControllerInfoContext.tsx";
 
 // "undefined" means the URL will be computed from the `window.location` object
 const URL =
@@ -36,8 +37,7 @@ class SymbolWatchManager{
       }, 5000));
   }
 
-  private watchableTypes = new Set(['BOOL', 'BYTE', 'WORD', 'DWORD', 'SINT', 'USINT', 
-    'INT', 'UINT','DINT', 'UDINT', 'LINT', 'ULINT', 'REAL', 'LREAL']); // FIXME: how to handle ENUM and TIME?
+
 
   /**
    * The record for symbol watch subscriptions. 
@@ -62,7 +62,7 @@ class SymbolWatchManager{
    * @param callback callback function to handle the received data
    */
   subscribe(subscriberID: string, controller: string, symbol: string, baseType: string, callback: (data?: number|boolean|string|null) => void){
-    if(this.watchableTypes.has(baseType) || baseType.includes("STRING")){
+    if(watchableTypes.has(baseType) || baseType.includes("STRING")){
       // controller not subscribed to yet
       if(!this.__watchRecords[controller]){
         this.__watchRecords[controller] = {}
