@@ -1,27 +1,28 @@
-import { useEffect } from "react";
-import { useDataTypes, useSymbols, useControllerStatus } from "../services/ControllerInfoContext";
-import { socket } from "../services/Socket";
-import SymbolTree2 from "./SymbolTree2";
+
+import { useControllerStatus } from "../services/ControllerInfoContext";
+
+import SplitPane from "react-split-pane";
+import { Box } from "@mui/material";
+import "./SplitPaneStyles.css"
+import SymbolSelector from "./SymbolSelector";
 
 export function WatchPage() {
   const controllerStatus = useControllerStatus();
-  const dataTypes = useDataTypes();
-  useEffect(()=>{
-    if(Object.keys(controllerStatus).length > 0 && Object.keys(dataTypes).length == 0){
-      socket.emit("requestSymbols", Object.keys(controllerStatus)[0]);
-    }
-  },[controllerStatus, dataTypes])
 
-  if(Object.keys(controllerStatus).length > 0){
+  if (Object.keys(controllerStatus).length > 0) {
     return (
+      <SplitPane split="horizontal" size={"80vh"} style={{ position: "static" }}>
+        <SplitPane split="vertical" defaultSize={"50%"} style={{ position: "absolute" }}>
+          <SymbolSelector></SymbolSelector>
 
-      <div>
-        <SymbolTree2 controllerName={Object.keys(controllerStatus)[0]} filter="" showGlobalSymbols={false} showSystemSymbols={false} ></SymbolTree2>
-        
-      </div>
+          <Box>Logging config area</Box>
+        </SplitPane>
+        <Box>Watch area</Box>
+      </SplitPane>
+
     );
   }
-  else{
+  else {
     return (
       <div>
         No controller connected.
@@ -29,5 +30,5 @@ export function WatchPage() {
     )
   }
 
-  
+
 }

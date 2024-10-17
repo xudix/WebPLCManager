@@ -1,8 +1,8 @@
 
 import { Box } from "@mui/material";
-import { useDataTypes, useSymbols, CurrentControllerContext } from "../services/ControllerInfoContext";
+import { useDataTypes, useSymbols, CurrentControllerContext } from "../../services/ControllerInfoContext";
 import { SimpleTreeView } from "@mui/x-tree-view";
-import SymbolTreeNode from "./SymbolTreeNode";
+import SymbolTreeNode from "../SymbolTreeNode";
 
 
 

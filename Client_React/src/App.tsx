@@ -7,7 +7,7 @@ import {
 import {
   ControllerInfoProvider
 } from "./services/ControllerInfoContext.tsx";
-import { WatchPage } from "./components/WatchPage.tsx";
+import MainPage from "./components/MainPage.tsx";
 
 function App() {
   useEffect(() => {
@@ -23,7 +23,7 @@ function App() {
   return (
     <>
       <ControllerInfoProvider>
-        <WatchPage></WatchPage>
+        <MainPage></MainPage>
       </ControllerInfoProvider>
     </>
   );

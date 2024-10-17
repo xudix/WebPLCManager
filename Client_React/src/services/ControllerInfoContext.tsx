@@ -15,20 +15,6 @@ import {
 } from "../models/controller-data-types.ts";
 import { socket } from "./Socket.ts";
 
-const testData = {
-  TestController: {
-    TestType: {
-      name: "testType",
-      baseType: "base",
-      comment: "",
-      subItemCount: 0,
-      subItems: [],
-      arrayDimension: 0,
-      arrayInfo: [],
-      enumInfo: {},
-    },
-  },
-};
 
 const DataTypesContext = createContext<DataTypesInfo>({});
 /**
@@ -57,24 +43,87 @@ export function useControllerStatus(): Record<string, boolean> {
 
 export const CurrentControllerContext = createContext<string>("");
 
-export function ControllerInfoProvider({ children }: {children: ReactElement}) {
+export function ControllerInfoProvider({ children }: { children: ReactElement }) {
   const [dataTypes, setDataTypes] = useState<DataTypesInfo>({});
   const [symbols, setSymbols] = useState<SymbolsInfo>({});
   const [controllerStatus, setControllerStatus] = useState<
     Record<string, boolean>
   >({});
   useEffect(() => {
+    // handles broadcast data received from the server
+    function handleBroadcast(message: {
+      messageType: string;
+      controllerName: string;
+      data: any;
+    }): void {
+      switch (message.messageType) {
+        case "dataTypes":
+          setDataTypes((previous) => {
+            const newObj = { ...previous };
+            newObj[message.controllerName] = message.data;
+            return newObj;
+          });
+          console.log("data types received");
+          break;
+        case "symbols":
+          setSymbols((previous) => {
+            const newObj = { ...previous };
+            newObj[message.controllerName] = message.data;
+            return newObj;
+          });
+          console.log("symbols received");
+          break;
+        case "controllerStatus":
+          updateControllerStauts(message.data);
+          break;
+      }
+    }
+
+    function handleControllerStatus(
+      controllerStatus: Record<string, boolean>,
+    ): void {
+      setControllerStatus(controllerStatus);
+    }
+
+    /**
+     * If the status value did not change, do not call the setControllerStatus method which would trigger a re-render
+     * @param newStatus 
+     * @returns 
+     */
+    const updateControllerStauts = (newStatus: Record<string, boolean>) => {
+      if (Object.keys(controllerStatus).length != Object.keys(newStatus).length) {
+        setControllerStatus(newStatus);
+        console.log("changed status length");
+      }
+      else {
+        for (const name in controllerStatus) {
+          if (controllerStatus[name] != newStatus[name]) {
+            setControllerStatus(newStatus);
+            console.log("changed status");
+            return;
+          }
+        }
+      }
+    }
+    
+    function handleDisconnect(){
+      setControllerStatus({});
+    }
+
     socket.on("broadcast", handleBroadcast);
     socket.on("controllerStatus", handleControllerStatus);
+    socket.on("disconnect", handleDisconnect);
 
     return () => {
       socket.off("broadcast", handleBroadcast);
       socket.off("controllerStatus", handleControllerStatus);
-
+      socket.off("disconnect", handleDisconnect);
     }
-  }, []);
+  }, [controllerStatus]);
 
-  
+
+
+
 
   return (
     <DataTypesContext.Provider value={dataTypes}>
@@ -86,53 +135,11 @@ export function ControllerInfoProvider({ children }: {children: ReactElement}) {
     </DataTypesContext.Provider>
   );
 
-  // handles broadcast data received from the server
-  function handleBroadcast(message: {
-    messageType: string;
-    controllerName: string;
-    data: any;
-  }): void {
-    switch (message.messageType) {
-      case "dataTypes":
-        setDataTypes((previous) => {
-          const newObj = {...previous};
-          newObj[message.controllerName] = message.data;
-          return newObj;
-        });
-        console.log("data types received");
-        break;
-      case "symbols":
-        setSymbols((previous) => {
-          const newObj = {...previous};
-          newObj[message.controllerName] = message.data;
-          return newObj;
-        });
-        console.log("symbols received");
-        break;
-      case "controllerStatus":
-        if (Object.keys(controllerStatus).length != Object.keys(message.data).length){
-          setControllerStatus(message.data);
-        }
-        Object.keys(controllerStatus).forEach(name => {
-          if(controllerStatus[name] != message.data[name]){
-            setControllerStatus(message.data);
-            return;
-          }
-        })
-        
-        break;
-    }
-  }
 
-  function handleControllerStatus(
-    controllerStatus: Record<string, boolean>,
-  ): void {
-    setControllerStatus(controllerStatus);
-  } 
 }//ControllerInfoProvider
 
 /**
  * These are the primitive types that can be simply subscribed to.
  */
-export const watchableTypes = new Set(['BOOL', 'BYTE', 'WORD', 'DWORD', 'SINT', 'USINT', 
-  'INT', 'UINT','DINT', 'UDINT', 'LINT', 'ULINT', 'REAL', 'LREAL', 'TIME']); 
+export const watchableTypes = new Set(['BOOL', 'BYTE', 'WORD', 'DWORD', 'SINT', 'USINT',
+  'INT', 'UINT', 'DINT', 'UDINT', 'LINT', 'ULINT', 'REAL', 'LREAL', 'TIME']); 

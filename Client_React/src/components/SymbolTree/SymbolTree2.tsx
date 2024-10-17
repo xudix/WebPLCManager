@@ -1,5 +1,5 @@
 
-import { CurrentControllerContext, useControllerStatus, useDataTypes, useSymbols } from "../services/ControllerInfoContext";
+import { CurrentControllerContext, useControllerStatus, useDataTypes, useSymbols } from "../../services/ControllerInfoContext";
 import { Box, List } from "@mui/material";
 import SymbolTreeNode2 from "./SymbolTreeNode2";
 
@@ -59,7 +59,7 @@ export default function SymbolTree2(props: ISymbolTreeProps) {
       })
 
       return (
-        <Box>
+        <Box sx={{padding: 1, overflowY: "scroll"}}>
           <CurrentControllerContext.Provider value={props.controllerName}>
             <List dense={true} disablePadding={true}>
               {treeItems}

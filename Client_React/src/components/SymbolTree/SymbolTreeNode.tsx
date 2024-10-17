@@ -1,6 +1,6 @@
 import { TreeItem2 } from "@mui/x-tree-view"
-import { IControllerSymbol } from "../models/controller-data-types"
-import { CurrentControllerContext, useDataTypes } from "../services/ControllerInfoContext"
+import { IControllerSymbol } from "../../models/controller-data-types"
+import { CurrentControllerContext, useDataTypes } from "../../services/ControllerInfoContext"
 import { useContext } from "react";
 import { Box } from "@mui/material";
 

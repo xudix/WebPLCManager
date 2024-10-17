@@ -1,12 +1,12 @@
 import { Box, List, ListItem, ListItemButton, Stack, SvgIcon, SxProps, Table, TableBody, TableCell, TableRow, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid2"
-import { IControllerSymbol, IControllerType } from "../models/controller-data-types";
+import { IControllerSymbol, IControllerType } from "../../models/controller-data-types";
 import { useContext, useEffect, useRef, useState } from "react";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
-import { treeLevelContext } from "../models/utilities";
-import { CurrentControllerContext, useDataTypes, watchableTypes } from "../services/ControllerInfoContext";
-import useOnScreen from "../models/onScreenDetection";
-import { useSymbolWatchManager } from "../services/Socket";
+import { treeLevelContext } from "../../models/utilities";
+import { CurrentControllerContext, useDataTypes, watchableTypes } from "../../services/ControllerInfoContext";
+import useOnScreen from "../../models/onScreenDetection";
+import { useSymbolWatchManager } from "../../services/Socket";
 
 interface ISymbolTreeNodeProps {
   name: string, // full path of the symbol
@@ -193,7 +193,7 @@ function SymbolDisplay({fullName, symbolObj, value}:{fullName: string, symbolObj
 
   return (
     <Stack spacing={0} padding={0} sx={stackHoverSX}>
-      <Grid container maxHeight="3em" sx={{overflow:"clip"}}>
+      <Grid container maxHeight="3em" sx={{overflow:"clip"}} spacing={1}>
         <Grid size={6} sx={{overflow: "clip", height: "100%"}}>
           <Typography component="div" className="symbol-name-display" 
             sx={{textOverflow: "ellipsis", textWrap: "nowrap", overflow: "hidden"}}>
