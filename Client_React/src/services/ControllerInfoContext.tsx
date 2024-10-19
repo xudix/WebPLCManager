@@ -16,7 +16,7 @@ import {
 import { socket } from "./Socket.ts";
 
 
-const DataTypesContext = createContext<DataTypesInfo>({});
+export const DataTypesContext = createContext<DataTypesInfo>({});
 /**
  * data type info received from controller. {controllerName: {typename: typeObj}}. typename is lower case
  */
@@ -24,7 +24,7 @@ export function useDataTypes(): DataTypesInfo {
   return useContext<DataTypesInfo>(DataTypesContext);
 }
 
-const SymbolsContext = createContext<SymbolsInfo>({});
+export const SymbolsContext = createContext<SymbolsInfo>({});
 /**
  * symbol info received from controller. {controllerName: {symbolname: symbolObj}}. symbolname is lower case.
  */

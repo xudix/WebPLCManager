@@ -1,20 +1,18 @@
-import { FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, Stack } from "@mui/material";
-import SymbolTree2 from "./SymbolTree/SymbolTree2";
+import { FormControl, InputAdornment, InputLabel, MenuItem, Select, SelectChangeEvent, Stack, TextField } from "@mui/material";
 import { useControllerStatus } from "../services/ControllerInfoContext";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { socket } from "../services/Socket";
+import ClearIcon from '@mui/icons-material/Clear';
 
+import SymbolTree from "./SymbolTree/SymbolTree";
 
 
 
 export default function SymbolSelector(){
 
   const controllerStatus = useControllerStatus();
-  const [currentController, setCurrentController] = useState<string>("")
-
-  function handleControllerSelectionChange(event: SelectChangeEvent){
-    setCurrentController(event.target.value)
-  }
+  const [currentController, setCurrentController] = useState<string>("");
+  const [filter, setFilter] = useState("");
 
   let controllerAvailable = false;
   const controllerSelectItems = Object.keys(controllerStatus).map((controllerName) => {
@@ -27,7 +25,7 @@ export default function SymbolSelector(){
   // automatically select a controller is none is selected
   // clear currentController is lost connection
   useEffect(() => {
-
+    
     // if currentController is blank and a controller is available, switch to it
     if(currentController == ""){
       for (const controllerName in controllerStatus) {
@@ -60,26 +58,60 @@ export default function SymbolSelector(){
     }
   }, [controllerStatus,currentController])
 
+  const controllerSelectLabel = currentController == "" ? 
+    (controllerAvailable ? "Select Controller" : "No Controller Available...")
+    :"Current Controller";
+
   return (
     <Stack height={"100%"}>
+      
       <FormControl sx={{margin: "1em"}}>
+        
         <InputLabel id="controller-select-label">
-          {currentController == "" ? 
-            (controllerAvailable ? "Select Controller" : "No Controller Available...")
-            :"Current Controller"}
+          {controllerSelectLabel}
         </InputLabel>
         <Select 
           labelId="controller-select-label"
           value={currentController}
-          label="No Controller Available..."
+          label={controllerSelectLabel}
           onChange={handleControllerSelectionChange}
+          variant="outlined"
         >
           {controllerSelectItems}
         </Select>
       </FormControl>
+        <TextField id="symbol-filter-input" label="Filter Symbols" sx={{marginX: "1em"}}
+          slotProps={{
+            input:{
+              endAdornment: 
+                <InputAdornment position="end">
+                  <ClearIcon></ClearIcon>
+                </InputAdornment>
+            }
+          }}
+          value={filter}
+          onChange={handleFilterInput}
+        />
       
+      <SymbolTree filterStr={filter}
+        controllerName={currentController}
+        showGlobalSymbols={false} showSystemSymbols={false}/>
 
-      <SymbolTree2 controllerName={currentController} filter="" showGlobalSymbols={false} showSystemSymbols={false} ></SymbolTree2>
+      
     </Stack>
   )
+
+
+
+
+  function handleControllerSelectionChange(event: SelectChangeEvent){
+    setCurrentController(event.target.value)
+  }
+
+  function handleFilterInput (event: ChangeEvent<HTMLInputElement>){
+    setFilter(event.target.value)
+  }
+
+  
 }
+

@@ -1,7 +1,7 @@
 import { Box, List, ListItem, ListItemButton, Stack, SvgIcon, SxProps, Table, TableBody, TableCell, TableRow, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid2"
 import { IControllerSymbol, IControllerType } from "../../models/controller-data-types";
-import { useContext, useEffect, useRef, useState } from "react";
+import { MutableRefObject, useContext, useEffect, useRef, useState } from "react";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { treeLevelContext } from "../../models/utilities";
 import { CurrentControllerContext, useDataTypes, watchableTypes } from "../../services/ControllerInfoContext";
@@ -13,7 +13,7 @@ interface ISymbolTreeNodeProps {
   symbol: IControllerSymbol,
   type?: IControllerType, // if type is not supplied, it will be looked up from useDataTypes
   displayValue?: number|boolean|string|object|null|undefined, // This is for displaying array elements
-
+  //symbolFilter?: {name?: string | RegExp[], type?: string | RegExp[]} | string | RegExp[] | null  // if given a string, the filter will be applied to the name. 
 }
 
 export default function SymbolTreeNode2(props: ISymbolTreeNodeProps) {
@@ -23,21 +23,78 @@ export default function SymbolTreeNode2(props: ISymbolTreeNodeProps) {
   const currentController = useContext(CurrentControllerContext);
   const dataTypes = useDataTypes();
   const thisTypeObj = props.type || dataTypes[currentController][props.symbol.type.toLocaleLowerCase()];
-  const hasSubNodes = (thisTypeObj.subItemCount > 0 || thisTypeObj.arrayDimension > 0);
+  const hasSubNodes = (thisTypeObj && (thisTypeObj.subItemCount > 0 || thisTypeObj.arrayDimension > 0));
   const ref = useRef<HTMLDivElement>(null)
   const isOnScreen = useOnScreen(ref);
   const symbolWatchManager = useSymbolWatchManager();
 
-  const valueToDisplay = (props.displayValue != undefined && props.displayValue != null) ? props.displayValue:value
+  if(!thisTypeObj){
+    debugger
+  }
 
-  let subNodes;
-  if (isExpanded) {
+  const valueToDisplay = (props.displayValue != undefined && props.displayValue != null) ? props.displayValue:value;
+  
+  //handle filter
+  // let filterPassed: boolean = true;
+  // let hasFilter = (props.symbolFilter != null && props.symbolFilter != undefined);
+  // let nameFilters: RegExp[] = [], typeFilters: RegExp[] = [];
+  // const subNodeFilter = {};
+  // if(hasFilter){
+  //   if(typeof props.symbolFilter == "string"){
+  //     nameFilters = splitFilterString(props.symbolFilter);
+  //   }
+  //   else if(Array.isArray(props.symbolFilter)){
+  //     // it's an array of RegExp. Apply it to the symbol name
+  //     nameFilters = props.symbolFilter;
+  //   }
+  //   else{
+  //     // props.symbolFilter is an object {name?: string | RegExp[], type?: string | RegExp[]}
+  //     if(typeof props.symbolFilter?.name == "string"){
+  //       nameFilters = splitFilterString(props.symbolFilter.name);
+  //     }
+  //     else if(Array.isArray(props.symbolFilter?.name)){
+  //       nameFilters = props.symbolFilter.name;
+  //     }
+  //     if(typeof props.symbolFilter?.type == "string"){
+  //       typeFilters = splitFilterString(props.symbolFilter.type);
+  //     }
+  //     else if(Array.isArray(props.symbolFilter?.type)){
+  //       typeFilters = props.symbolFilter.type;
+  //     }
+  //   }
+
+  //   if(nameFilters.length > 0){
+  //     if(props.symbol.name.match(nameFilters[0]) != null){
+  //       // match. check subnodes
+  //       if(nameFilters.length > 1){
+  //         filterPassed = false;
+  //         subNodeFilter.name = nameFilters.slice(1);
+  //       }
+  //       else{
+  //         hasFilter = false;
+  //       }
+  //     }
+  //     else{
+  //       filterPassed = false;
+  //       subNodeFilter.name = [...nameFilters];
+  //     }
+  //   }
+
+  // }
+
+  let subNodes: (JSX.Element|null)[] = [];
+  // if (isExpanded || (hasFilter && (!filterPassed))) {
+  if (isExpanded) {  
 
     if (thisTypeObj.subItemCount > 0) {
       // has sub items
       subNodes = thisTypeObj.subItems.map(subItem =>
         <SymbolTreeNode2 name={props.name + "." + subItem.name} symbol={subItem}
-         key={props.name + "." + subItem.name}></SymbolTreeNode2>
+         key={props.name + "." + subItem.name}
+        ></SymbolTreeNode2>
+        // <SymbolTreeNode2 name={props.name + "." + subItem.name} symbol={subItem}
+        //  symbolFilter={subNodeFilter} key={props.name + "." + subItem.name}
+        // ></SymbolTreeNode2>
       )
     }
     // support for array
@@ -53,7 +110,8 @@ export default function SymbolTreeNode2(props: ISymbolTreeNodeProps) {
       nodeTypeObj.arrayInfo.slice(1);
       if(thisTypeObj.arrayDimension > 1){
         // multi-dimension array. The subitem will still be an array
-        nodeTypeObj.name = nodeTypeObj.name.replace(/\d+\.\.\d+,/,'');
+        // dimension in type name should change from [0..9,0..2] to [0..2]
+        nodeTypeObj.name = nodeTypeObj.name.replace(/(?<=\[)\d+\.\.\d+,\s*/,'');
       }
       else{
         // 1-D array, sub items are of base type
@@ -79,10 +137,26 @@ export default function SymbolTreeNode2(props: ISymbolTreeNodeProps) {
         }
         subNodes.push(
           <SymbolTreeNode2 key={props.name+indexStr} name={props.name+indexStr}
-           symbol={nodeSymbol} type={nodeTypeObj} displayValue={nodeDisplayValue} />
+           symbol={nodeSymbol} type={nodeTypeObj} displayValue={nodeDisplayValue}
+          />
+          // <SymbolTreeNode2 key={props.name+indexStr} name={props.name+indexStr}
+          //  symbol={nodeSymbol} type={nodeTypeObj} displayValue={nodeDisplayValue}
+          //  symbolFilter={subNodeFilter}/>
+
         )
       }
-    }
+    }// support for array
+
+    // for(const subnode of subNodes){
+    //   if(subnode != null){
+    //     // at least one subnode passed the filter. This should be rendered.
+    //     filterPassed = true;
+    //     break;
+    //   }
+    //   else if(thisTypeObj.subItemCount > 0){
+    //     ;
+    //   }
+    // }
   }
 
   // Expand or fold this node after clicking 
@@ -107,17 +181,18 @@ export default function SymbolTreeNode2(props: ISymbolTreeNodeProps) {
   useEffect(() => {
     const typeObj = dataTypes[currentController][props.symbol.type.toLocaleLowerCase()];
     // only subscribe when 1. no displayValue is provided; 2. it's a string or primitive type
-    if ((props.displayValue == undefined)
+    
+    if ((props.displayValue == undefined) && typeObj != undefined
       && (watchableTypes.has(typeObj.baseType) || typeObj.baseType.includes("STRING"))) {
       let symbolPath = props.name;
       if (typeObj.name.toLocaleLowerCase().startsWith("pointer to ")) {
         symbolPath = symbolPath + '^';
       }
-      if (isOnScreen) {
-        symbolWatchManager.subscribe("Tree" + props.name, currentController, symbolPath, typeObj.baseType, (data?: number | boolean | string | null) => {
-          setValue(data);
-        })
-      }
+      // if (isOnScreen) {
+      //   symbolWatchManager.subscribe("Tree" + props.name, currentController, symbolPath, typeObj.baseType, (data?: number | boolean | string | null) => {
+      //     setValue(data);
+      //   })
+      // }
       else {
         symbolWatchManager.unsubscribe("Tree" + props.name, currentController, symbolPath);
       }
@@ -129,8 +204,11 @@ export default function SymbolTreeNode2(props: ISymbolTreeNodeProps) {
     
     
   }, [currentController, dataTypes, isOnScreen, props.displayValue, props.name, props.symbol.type, symbolWatchManager])
-
   
+  // if (hasFilter && (!filterPassed)){
+  //   return null
+  // }
+
   return (
     <ListItem key={props.name} sx={{ padding: 0, width: "100%"}} >
       <Stack spacing={0} padding={0} width={"100%"} >
@@ -165,7 +243,7 @@ function TreeNodeIndent({ level }: { level: number }) {
   return (
     <Typography component="div" variant="button" minWidth={"24px"}>|--</Typography>
   )
-}
+} // TreeNodeIndent
 
 function SymbolDisplay({fullName, symbolObj, value}:{fullName: string, symbolObj: IControllerSymbol, value?: number|boolean|string|object|null}) {
   const stackHoverSX:SxProps = {
@@ -245,4 +323,44 @@ function SymbolDisplay({fullName, symbolObj, value}:{fullName: string, symbolObj
       return null;
     }
   }
-}
+
+} // SymbolDisplay
+
+
+  /**
+   * Split the filter string into an array of Regex. 
+   * Each part of the input string (a Regex literal or sub strings separated by dot '.') is converted to a Regex. 
+   * For example, MAIN.FB./abc/ is converted to [/MAIN/i, /FB/i, /abc/i].
+   * @param str 
+   * @returns An array of RegExp, with option 'i' (case insensitive)
+   */
+  function splitFilterString(str: string): RegExp[]{
+    const result: RegExp[] = [];
+    let start = 0;
+    let end = 0;
+    let isInRegExLiteral = false;
+    while(end < str.length){
+      if(str[end] == '/'){
+        if(end > start){
+          // something exist before this regex literal symbol.
+          if (str[end-1] != '\\'){
+            // it's not escaped, so it flags the start or end of a regex literal
+            result.push(new RegExp(str.slice(start, end),"i")); // all RegEx are made case insensitive
+          }
+        }
+        start = end + 1;
+        isInRegExLiteral = !isInRegExLiteral;
+      }
+      else if(!isInRegExLiteral && str[end] == '.'){
+        if(end > start){
+          result.push(new RegExp(str.slice(start, end),"i")); // all RegEx are made case insensitive
+        }
+        start = end + 1;
+      }
+      end++;
+    }
+    if(end > start){
+      result.push(new RegExp(str.slice(start, end),"i")); // all RegEx are made case insensitive
+    }
+    return result;
+  }
