@@ -119,7 +119,7 @@ export class ServerApp{
 
         // serial bridge application
         this.serialBridges = [];
-        serverConfig.serialConfigs.forEach((config) => {
+        serverConfig.serialConfigs?.forEach((config) => {
             let newSerial = new SerialBridgeApp(config.path, 1, this.dataBroker, config);
             newSerial.on("log", (...args) => this.logMessage(args));
             this.serialBridges.push(newSerial);

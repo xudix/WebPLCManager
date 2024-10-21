@@ -1,18 +1,19 @@
 import { FormControl, InputAdornment, InputLabel, MenuItem, Select, SelectChangeEvent, Stack, TextField } from "@mui/material";
 import { useControllerStatus } from "../services/ControllerInfoContext";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { socket } from "../services/Socket";
 import ClearIcon from '@mui/icons-material/Clear';
 
 import SymbolTree from "./SymbolTree/SymbolTree";
 
-
-
 export default function SymbolSelector(){
+  const inputDelay = 400;
 
   const controllerStatus = useControllerStatus();
   const [currentController, setCurrentController] = useState<string>("");
-  const [filter, setFilter] = useState("");
+  const [filter, setFilter] = useState(""); // this is directly tied to the filter input box
+  const [delayedFilter, setDelayedFilter] = useState("")
+  const inputDelayTimer = useRef<number | NodeJS.Timeout>(0);
 
   let controllerAvailable = false;
   const controllerSelectItems = Object.keys(controllerStatus).map((controllerName) => {
@@ -76,16 +77,29 @@ export default function SymbolSelector(){
           label={controllerSelectLabel}
           onChange={handleControllerSelectionChange}
           variant="outlined"
+          size="small"
+          // sx={{
+          //   '& .MuiSelect-select':{
+          //     paddingY: "0.5em",
+          //   }
+          // }}
         >
           {controllerSelectItems}
         </Select>
       </FormControl>
-        <TextField id="symbol-filter-input" label="Filter Symbols" sx={{marginX: "1em"}}
+        <TextField id="symbol-filter-input" label="Filter Symbols" 
+          sx={{
+            marginX: "1em",
+            // '& input': {
+            //         paddingY: "0.5em",
+            // }
+          }}
+          size="small"
           slotProps={{
             input:{
               endAdornment: 
-                <InputAdornment position="end">
-                  <ClearIcon></ClearIcon>
+                <InputAdornment position="end" sx={{cursor:"pointer"}}>
+                  <ClearIcon onClick={() => setFilter("")}></ClearIcon>
                 </InputAdornment>
             }
           }}
@@ -93,7 +107,7 @@ export default function SymbolSelector(){
           onChange={handleFilterInput}
         />
       
-      <SymbolTree filterStr={filter}
+      <SymbolTree filterStr={delayedFilter}
         controllerName={currentController}
         showGlobalSymbols={false} showSystemSymbols={false}/>
 
@@ -109,7 +123,14 @@ export default function SymbolSelector(){
   }
 
   function handleFilterInput (event: ChangeEvent<HTMLInputElement>){
-    setFilter(event.target.value)
+    setFilter(event.target.value);
+    if(inputDelayTimer.current){
+      clearTimeout(inputDelayTimer.current)
+    }
+    inputDelayTimer.current = setTimeout(() => {
+      setDelayedFilter(event.target.value)
+    }, inputDelay);
+    
   }
 
   

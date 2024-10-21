@@ -5,6 +5,7 @@ import SplitPane from "react-split-pane";
 import { Box } from "@mui/material";
 import "./SplitPaneStyles.css"
 import SymbolSelector from "./SymbolSelector";
+import LoggingManager from "./LoggingManager";
 
 export function WatchPage() {
   const controllerStatus = useControllerStatus();
@@ -15,7 +16,7 @@ export function WatchPage() {
         <SplitPane split="vertical" defaultSize={"50%"} style={{ position: "absolute" }}>
           <SymbolSelector></SymbolSelector>
 
-          <Box>Logging config area</Box>
+          <LoggingManager/>
         </SplitPane>
         <Box>Watch area</Box>
       </SplitPane>

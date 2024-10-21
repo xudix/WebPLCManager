@@ -134,11 +134,22 @@ export class ADSController extends GenericController{
                 .then( adsSymsData => {
                     let symsObj = {};
                     for(let key in adsSymsData){
-                        symsObj[key] = {
-                            name: adsSymsData[key].name,
-                            type: adsSymsData[key].type,
-                            comment: adsSymsData[key].comment,
-                            isPersisted: (adsSymsData[key].flags & 1) == 1
+                        // throw away input and output symbols (with attribute TcAddressType: Input/Output)
+                        let isIO = false;
+                        // if(adsSymsData[key].attributes){
+                        //     adsSymsData[key].attributes.forEach(attribute => {
+                        //         if(attribute.name == "TcAddressType" && (attribute.value == "Input" || attribute.value == "Output")){
+                        //             isIO = true;
+                        //         }
+                        //     });
+                        // }
+                        if (!isIO){
+                            symsObj[key] = {
+                                name: adsSymsData[key].name,
+                                type: adsSymsData[key].type,
+                                comment: adsSymsData[key].comment,
+                                isPersisted: (adsSymsData[key].flags & 1) == 1
+                            }
                         }
                     } // for let key in adsSymsData
                     this.adsSymsData = symsObj;
@@ -260,9 +271,16 @@ export class ADSController extends GenericController{
                         if(this.adsTypesData == undefined){
                             await this.getDataTypes();
                         }
+                        //console.log(`Created handle for ${symbolName}: ${JSON.stringify(handleInfo)}`);
+                        
                         let symbolType = this.adsTypesData[symbolInfo.type.toLowerCase()];
                         adsCallBack = (data, subsObj) => {
-                            this.client.convertFromRaw(data.value, symbolType.baseType).then( (result) => {
+                            //console.log(`Received data ${JSON.stringify(data)} for ${symbolName} type ${symbolType.baseType}`);
+                            const typeName = (symbolType.name.startsWith("REFERENCE TO ") || symbolType.name.startsWith("POINTER TO ")) ? symbolType.baseType : symbolType.name;
+                            this.client.convertFromRaw(data.value, typeName).then( (result) => {
+                                
+                                //console.log(`conversion result: ${result}`);
+                                
                                 callback({
                                     value: result,
                                     symbolName: symbolName,

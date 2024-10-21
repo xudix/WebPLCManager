@@ -279,13 +279,13 @@ export class DataBroker extends EventEmitter{
                 let idx = this._subscriptionsBySymbol[controllerName][symbolName].indexOf(clientID);
                 if (idx > -1) {
                     this._subscriptionsBySymbol[controllerName][symbolName].splice(idx, 1);
-                }
-                if (this._subscriptionsBySymbol[controllerName][symbolName].length == 0) { // no one is subscribing to this anymore
-                    this._controllers[controllerName].unsubscribe(symbolName).catch(err => {
-                        this.log.error(`Failed to unsubscribe to ${symbolName}`, err)
-                        reject(err);
-                        return;
-                    });
+                    if (this._subscriptionsBySymbol[controllerName][symbolName].length == 0) { // no one is subscribing to this anymore
+                        this._controllers[controllerName].unsubscribe(symbolName).catch(err => {
+                            this.log.error(`Failed to unsubscribe to ${symbolName}`, err)
+                            reject(err);
+                            return;
+                        });
+                    }
                 }
                 idx = this._subscriptionsByClient[clientID][controllerName].indexOf(symbolName);
                 if (idx > -1)
@@ -369,6 +369,11 @@ export class DataBroker extends EventEmitter{
         if(typeof data.symbolName != "string")
             throw new  Error("Not Implemented in dispatchSubscriptions(): Unable to dispatch subscriptions without symbol name.");
         // put values to the client objects
+
+        // bigint can't be serialized with JSON.stringify. Thus bigint values will cause issues downstream in the process
+        if(typeof data.value == "bigint"){
+            data.value = Number(data.value);
+        }
         
         this._subscriptionsBySymbol[controllerName][data.symbolName].forEach((clientID) => {
             this._clients[clientID].receiveData(controllerName, data);

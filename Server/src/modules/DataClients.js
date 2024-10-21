@@ -176,6 +176,7 @@ export class WatchClient extends DataClient{
             //this.socket.emit("controllerStatus", this._dataBroker.getControllerStatus())
         });
         this._socket.on("addWatchSymbol", (controllerName, symbolName) => {
+            //console.log(`subscribing to ${controllerName}.${symbolName}`);
             this._dataBroker.subscribeCyclic(this.id, controllerName, symbolName)
             .then(res => {
                 if(this.subscriptions[controllerName] == undefined)
@@ -186,8 +187,10 @@ export class WatchClient extends DataClient{
             .catch(err => this.log.error(`Failed to subscribe to symbol ${symbolName} from ${controllerName}`, err));
         });
         this._socket.on("removeWatchSymbol", (controllerName, symbolName) =>{
+            //console.log(`unsubscribing to ${controllerName}.${symbolName}`);
             try{
-                this._dataBroker.unsubscribe(this.id, controllerName, symbolName);
+                this._dataBroker.unsubscribe(this.id, controllerName, symbolName)
+                .catch(err => this.log.error(`Failed to unsubscribe to symbol ${symbolName} from ${controllerName}`, err));
                 let idx = this.subscriptions[controllerName].indexOf(symbolName);
                 if(idx > -1){
                     this.subscriptions[controllerName].splice(idx, 1);
@@ -403,7 +406,7 @@ export class PLCLoggingClient extends DataClient{
             .catch(err => this.log.error(`Failed to load logging configuration from ${this._loggingConfig.configPath}.`, err)));
         Promise.all(this._promises).then(() => {
             this.autoResubscribe = true;
-            this._subscribeLogging();
+            //this._subscribeLogging();
         })
         this._clearOldTempFiles();
     }

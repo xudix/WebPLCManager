@@ -27,7 +27,8 @@ export default function SymbolTree(props: ISymbolTreeProps) {
   const dataTypes = useDataTypes();
   //const controllerStatus = useControllerStatus();
 
-  const filterObj = useMemo(() => parseFilterString(props.filterStr), [props.filterStr]);
+  //const filterObj = useMemo(() => parseFilterString(props.filterStr), [props.filterStr]);
+  const filterObj = parseFilterString(props.filterStr);
   const modelTree = useMemo(() => generateTree(symbols, dataTypes), [dataTypes, symbols]);
   // apply filter to each tree node
 
@@ -66,7 +67,7 @@ export default function SymbolTree(props: ISymbolTreeProps) {
 
   }
   return (
-    <Box sx={{ padding: 1, overflowY: "scroll" }}>
+    <Box sx={{ padding: 1, overflowY: "scroll", overflowX:"clip"}}>
       <CurrentControllerContext.Provider value={props.controllerName}>
         <List dense={true} disablePadding={true}>
           {treeItems}
@@ -129,7 +130,14 @@ function splitFilterString(str: string): RegExp[] {
         // something exist before this regex literal symbol.
         if (str[end - 1] != '\\') {
           // it's not escaped, so it flags the start or end of a regex literal
-          result.push(new RegExp(str.slice(start, end), "i")); // all RegEx are made case insensitive
+          let newReg;
+          try{
+            newReg = new RegExp(str.slice(start, end), "i"); // all RegEx are made case insensitive
+          }
+          catch{
+            newReg = new RegExp("", "i");
+          }
+          result.push(newReg);
         }
       }
       start = end + 1;
@@ -138,14 +146,28 @@ function splitFilterString(str: string): RegExp[] {
     else if (!isInRegExLiteral && (str[end] == '.' || str[end] == '[' || str[end] == ']')) {
       // separator for symbol or array
       if (end > start) {
-        result.push(new RegExp(str.slice(start, end), "i")); // all RegEx are made case insensitive
+        let newReg;
+          try{
+            newReg = new RegExp(str.slice(start, end), "i"); // all RegEx are made case insensitive
+          }
+          catch{
+            newReg = new RegExp("", "i");
+          }
+          result.push(newReg);
       }
       start = end + 1;
     }
     end++;
   }
   if (end > start) {
-    result.push(new RegExp(str.slice(start, end), "i")); // all RegEx are made case insensitive
+    let newReg;
+          try{
+            newReg = new RegExp(str.slice(start, end), "i"); // all RegEx are made case insensitive
+          }
+          catch{
+            newReg = new RegExp("", "i");
+          }
+          result.push(newReg);
   }
   return result;
 }
