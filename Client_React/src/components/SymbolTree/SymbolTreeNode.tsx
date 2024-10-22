@@ -124,12 +124,12 @@ export default function SymbolTreeNode(props: ISymbolTreeNodeProps) {
     padding: 0,
     // width: "100%",
     // overflow: "clip",
-    position: (props.modelTreeNode.requestExpand || isExpanded)?"sticky":"auto",
-    top: (props.modelTreeNode.requestExpand || isExpanded)?`${(treeLevel)*1.5}em`:"",
-    zIndex: (props.modelTreeNode.requestExpand || isExpanded)?50-treeLevel:"auto",
+    position: (props.modelTreeNode.requestExpand || isExpanded) ? "sticky" : "auto",
+    top: (props.modelTreeNode.requestExpand || isExpanded) ? `${(treeLevel) * 1.5}em` : "",
+    zIndex: (props.modelTreeNode.requestExpand || isExpanded) ? 50 - treeLevel : "auto",
     backgroundColor: "white",
-    cursor:"default",
-    '&:hover':{
+    cursor: "default",
+    '&:hover': {
       backgroundColor: "gold",
     }
   }
@@ -175,9 +175,10 @@ function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbo
   const outerStackSX: SxProps = {
     flex: "1 1 auto",
     borderTop: "1px solid purple",
-    overflow: "hidden"
+    overflow: "hidden",
+    paddingY: "0.2em"
   }
-  
+
   const symbolNameSX: SxProps = {
     //overflow: "clip",
     //position: "relative",
@@ -209,21 +210,58 @@ function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbo
             </Typography>
 
           </Grid>
-          <Grid size={"grow"} sx={{ textOverflow: "ellipsis", textWrap: "nowrap", overflow: "hidden", height: "100%", display: "flex" }}>
-            <Typography component="div" sx={{ textOverflow: "ellipsis", textWrap: "nowrap", overflow: "hidden", flex: "1 1 auto" }}>{formatValue(value)}</Typography>
-            <Tooltip title="Watch" arrow placement="left">
-              <Visibility id="watch-button" cursor="pointer" />
-            </Tooltip>
-            <Tooltip title="Add to Logging" arrow placement="top">
-              <CloudUpload id="log-button" cursor="pointer" />
-            </Tooltip>
+          <Grid size={"grow"} sx={{ overflow: "hidden", height: "100%", display: "flex" }}>
+            <Box sx={{ display: "flex", flex: "1 1 100px", paddingRight: "0.3em" }}>
+              <Typography component="div" sx={{ textOverflow: "ellipsis", textWrap: "nowrap", overflow: "hidden", flex: "1 1 auto" }}>{formatValue(value)}</Typography>
+              <Tooltip title="Watch" arrow placement="left">
+                <Visibility id="watch-button" cursor="pointer" />
+              </Tooltip>
+              {(value == null || value == undefined) ? <SvgIcon/> :
+                <Tooltip title="Add to Logging" arrow placement="top">
+                  <CloudUpload id="log-button" cursor="pointer" />
+                </Tooltip>
+              }
+            </Box>
+            {(value == null || value == undefined) ? <Box sx={{ display: "flex", flex: "1 1 100px" }}/> :
+              <Box sx={{ display: "flex", flex: "1 1 100px" }}>
+                <TextField
+                  variant="outlined"
+                  sx={
+                    {
+                      flex: "1 1 auto",
+                      padding: 0,
+                      '& input': {
+                        paddingX: "0.5em",
+                        paddingY: 0,
+                        textOverflow: "ellipsis",
+                        textWrap: "nowrap",
+                      },
+                      '& .MuiInputBase-root': {
+                        padding: 0,
+                      }
+                    }
+                  }
+                  slotProps={{
+                    input: {
+                      endAdornment:
+                        <InputAdornment position="end" sx={{ cursor: "pointer" }}>
+                          <Clear />
+                        </InputAdornment>
+                    }
+                  }}
+                ></TextField>
+                <Tooltip title="Write to Controller" arrow placement="bottom">
+                  <Download id="write-button" cursor="pointer" />
+                </Tooltip>
+              </Box>
+            }
           </Grid>
         </Grid>
-        <Grid container maxHeight="3em" spacing={1}
+        {/* <Grid container maxHeight="3em" spacing={1}
           sx={{
             paddingBottom: "0.2em",
-            visibility: (value == null || value == undefined)? "collapse":"visible",
-            height: (value == null || value == undefined)? 0:"auto",
+            visibility: (value == null || value == undefined) ? "collapse" : "visible",
+            height: (value == null || value == undefined) ? 0 : "auto",
           }}
         >
           <Grid size={6} sx={symbolNameSX}>
@@ -241,15 +279,15 @@ function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbo
                     textOverflow: "ellipsis",
                     textWrap: "nowrap",
                   },
-                  '& .MuiInputBase-root':{
+                  '& .MuiInputBase-root': {
                     padding: 0,
                   }
                 }
               }
               slotProps={{
-                input:{
-                  endAdornment: 
-                    <InputAdornment position="end" sx={{cursor:"pointer"}}>
+                input: {
+                  endAdornment:
+                    <InputAdornment position="end" sx={{ cursor: "pointer" }}>
                       <Clear />
                     </InputAdornment>
                 }
@@ -259,11 +297,11 @@ function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbo
               <Download id="write-button" cursor="pointer" />
             </Tooltip>
           </Grid>
-        </Grid>
+        </Grid> */}
 
       </Stack>
     </Tooltip>
-    
+
 
   )
 
@@ -287,7 +325,7 @@ function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbo
 
 } // SymbolDisplay
 
-function SymbolInfoDisplay({fullPath, type, comment}:{fullPath: string, type: string, comment: string}){
+function SymbolInfoDisplay({ fullPath, type, comment }: { fullPath: string, type: string, comment: string }) {
   const symbolInfoDispSX: SxProps = {
     //backgroundColor: "gold",
     '& td': {
@@ -296,20 +334,20 @@ function SymbolInfoDisplay({fullPath, type, comment}:{fullPath: string, type: st
     //overflow:"clip",
     // border: "2px solid purple",
     // borderTop: "0",
-    
+
     // borderRadius: "0.5em",
     // padding: "0.1em",
     // borderTopLeftRadius: "0",
     // borderTopRightRadius: "0",
   }
-  const infoLabelSx:SxProps ={
+  const infoLabelSx: SxProps = {
     width: "6em",
     verticalAlign: "top",
-    color:"inherit",
+    color: "inherit",
   }
-  const infoValueSx:SxProps = {
+  const infoValueSx: SxProps = {
     overflowWrap: "anywhere",
-    color:"inherit",
+    color: "inherit",
   }
 
   return (
