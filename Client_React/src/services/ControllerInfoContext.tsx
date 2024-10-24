@@ -44,6 +44,11 @@ export function useControllerStatus(): Record<string, boolean> {
 
 export const CurrentControllerContext = createContext<string>("");
 
+export const CurrentMeasurementContext = createContext<string>("");
+export function useCurrentMeasurement(){
+  return useContext(CurrentMeasurementContext);
+}
+
 // logging configuration
 
 interface ILoggingUpdateAction {
@@ -97,7 +102,7 @@ function loggingConfigUpdater(loggingConfig: ILoggingServerConfig, action: ILogg
   switch (action.type) {
     case "add":
       // to add, either provide a ILoggingConfig with the new tag(s), or provide the tag
-      if ((measurement && controllerName && tags.length)) {
+      if ((measurement && controllerName)) {
         // check existing configs
         for (const config of newServerConfig.logConfigs) {
           if (config.measurement == measurement

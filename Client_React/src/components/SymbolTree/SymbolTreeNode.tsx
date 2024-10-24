@@ -2,12 +2,11 @@ import { Box, InputAdornment, List, ListItem, ListItemButton, Stack, SvgIcon, Sx
 import Grid from "@mui/material/Grid2"
 import { IControllerSymbol, IControllerType } from "../../models/controller-data-types";
 import { MutableRefObject, useContext, useEffect, useRef, useState } from "react";
-import { CloudUpload, Download, ExpandLess, ExpandMore, Visibility, Clear } from "@mui/icons-material";
+import { CloudUpload, Download, ExpandLess, ExpandMore, Visibility, Clear, Send } from "@mui/icons-material";
 import { IModelTreeNode, treeLevelContext, useModelTree } from "../../models/utilities";
-import { CurrentControllerContext, useDataTypes, watchableTypes } from "../../services/ControllerInfoContext";
+import { CurrentControllerContext, useCurrentMeasurement, useDataTypes, useLoggingUpdater, watchableTypes } from "../../services/ControllerInfoContext";
 import useOnScreen from "../../models/onScreenDetection";
 import { useSymbolWatchManager } from "../../services/Socket";
-import { relative } from "path";
 
 interface ISymbolTreeNodeProps {
   modelTreeNode: IModelTreeNode,
@@ -125,7 +124,7 @@ export default function SymbolTreeNode(props: ISymbolTreeNodeProps) {
     // width: "100%",
     // overflow: "clip",
     position: (props.modelTreeNode.requestExpand || isExpanded) ? "sticky" : "auto",
-    top: (props.modelTreeNode.requestExpand || isExpanded) ? `${(treeLevel) * 1.5}em` : "",
+    top: (props.modelTreeNode.requestExpand || isExpanded) ? `${(treeLevel) * 2}em` : "",
     zIndex: (props.modelTreeNode.requestExpand || isExpanded) ? 50 - treeLevel : "auto",
     backgroundColor: "white",
     cursor: "default",
@@ -172,6 +171,25 @@ function TreeNodeIndent({ level }: { level: number }) {
 } // TreeNodeIndent
 
 function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbolObj: IControllerSymbol, value?: number | boolean | string | object | null }) {
+  const updateLogging = useLoggingUpdater();
+  const currentController = useContext(CurrentControllerContext);
+  const currentMeasurement = useCurrentMeasurement();
+
+  function addToLogging(){
+    if(updateLogging){
+      updateLogging({
+        type: "add",
+        controllerName: currentController,
+        measurement: currentMeasurement,
+        tag: {
+          tag: fullName,
+          field: fullName,
+        }
+      });
+    }
+    
+  }
+
   const outerStackSX: SxProps = {
     flex: "1 1 auto",
     borderTop: "1px solid purple",
@@ -200,10 +218,11 @@ function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbo
           comment={symbolObj.comment} />}
       arrow
       placement="right-start"
+      id="symbol-info-tooltip"
     >
       <Stack spacing={0} padding={0} sx={outerStackSX}>
         <Grid container maxHeight="3em" sx={{}} spacing={1}>
-          <Grid size={6} sx={symbolNameSX}>
+          <Grid size={4} sx={symbolNameSX}>
             <Typography component="div" className="symbol-name-display"
               sx={{ textOverflow: "ellipsis", textWrap: "nowrap", overflow: "hidden" }}>
               {symbolObj.name}
@@ -211,94 +230,69 @@ function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbo
 
           </Grid>
           <Grid size={"grow"} sx={{ overflow: "hidden", height: "100%", display: "flex" }}>
-            <Box sx={{ display: "flex", flex: "1 1 100px", paddingRight: "0.3em" }}>
-              <Typography component="div" sx={{ textOverflow: "ellipsis", textWrap: "nowrap", overflow: "hidden", flex: "1 1 auto" }}>{formatValue(value)}</Typography>
-              <Tooltip title="Watch" arrow placement="left">
-                <Visibility id="watch-button" cursor="pointer" />
-              </Tooltip>
-              {(value == null || value == undefined) ? <SvgIcon/> :
-                <Tooltip title="Add to Logging" arrow placement="top">
-                  <CloudUpload id="log-button" cursor="pointer" />
+            <Grid size={6} sx={{ display: "inline-block" }}>
+              <Stack direction="row" sx={{ width: "100%", overflow: "hidden" }}>
+                <Tooltip title="Watch" arrow placement="left">
+                  <Visibility id="watch-button" cursor="pointer" />
                 </Tooltip>
-              }
-            </Box>
-            {(value == null || value == undefined) ? <Box sx={{ display: "flex", flex: "1 1 100px" }}/> :
-              <Box sx={{ display: "flex", flex: "1 1 100px" }}>
-                <TextField
-                  variant="outlined"
-                  sx={
-                    {
-                      flex: "1 1 auto",
-                      padding: 0,
-                      '& input': {
-                        paddingX: "0.5em",
-                        paddingY: 0,
-                        textOverflow: "ellipsis",
-                        textWrap: "nowrap",
-                      },
-                      '& .MuiInputBase-root': {
+                {(value == null || value == undefined) ? <SvgIcon /> :
+                  <Tooltip title="Add to Logging" arrow placement="top">
+                    <CloudUpload id="log-button" cursor="pointer" onClick={addToLogging}/>
+                  </Tooltip>
+                }
+                <Tooltip title={formatValue(value)} arrow placement="bottom-start">
+                  <Typography id="value-display" component="div" 
+                    sx={{ textOverflow: "ellipsis", textWrap: "nowrap", whiteSpace: "nowrap", overflow: "hidden", flex: "1 1 auto", paddingLeft:"0.3em" }}
+                  >
+                    {formatValue(value)}
+                  </Typography>
+                </Tooltip>
+
+
+              </Stack>
+            </Grid>
+            <Grid size={6}>
+              {(value == null || value == undefined) ? <Box sx={{ display: "flex", flex: "1 1 1px" }} /> :
+                <Box sx={{ display: "flex", flex: "1 1 1px" }}>
+                  <TextField
+                    id="new-value-input"
+                    variant="outlined"
+                    sx={
+                      {
+                        flex: "1 1 auto",
                         padding: 0,
+                        '& input': {
+                          paddingX: "0.5em",
+                          paddingY: 0,
+                          textOverflow: "ellipsis",
+                          textWrap: "nowrap",
+                        },
+                        '& .MuiInputBase-root': {
+                          padding: 0,
+                        }
                       }
                     }
-                  }
-                  slotProps={{
-                    input: {
-                      endAdornment:
-                        <InputAdornment position="end" sx={{ cursor: "pointer" }}>
-                          <Clear />
-                        </InputAdornment>
-                    }
-                  }}
-                ></TextField>
-                <Tooltip title="Write to Controller" arrow placement="bottom">
-                  <Download id="write-button" cursor="pointer" />
-                </Tooltip>
-              </Box>
-            }
+                    slotProps={{
+                      input: {
+                        endAdornment:
+                          <InputAdornment position="end" sx={{ cursor: "pointer" }}>
+                            <Clear />
+                          </InputAdornment>
+                      }
+                    }}
+                  ></TextField>
+                  <Tooltip title="Write to Controller" arrow placement="bottom">
+                    <Send id="write-button" cursor="pointer" />
+                  </Tooltip>
+                </Box>
+              }
+            </Grid>
+            {/* <Box sx={{ display: "flex", flex: "1 1 1px", paddingRight: "0.3em", overflow:"clip" }}>
+              
+            </Box> */}
+
           </Grid>
         </Grid>
-        {/* <Grid container maxHeight="3em" spacing={1}
-          sx={{
-            paddingBottom: "0.2em",
-            visibility: (value == null || value == undefined) ? "collapse" : "visible",
-            height: (value == null || value == undefined) ? 0 : "auto",
-          }}
-        >
-          <Grid size={6} sx={symbolNameSX}>
-          </Grid>
-          <Grid size={"grow"} sx={{ textOverflow: "ellipsis", textWrap: "nowrap", overflow: "hidden", height: "100%", display: "flex" }}>
-            <TextField
-              variant="outlined"
-              sx={
-                {
-                  flex: "1 1 auto",
-                  padding: 0,
-                  '& input': {
-                    paddingX: "0.5em",
-                    paddingY: 0,
-                    textOverflow: "ellipsis",
-                    textWrap: "nowrap",
-                  },
-                  '& .MuiInputBase-root': {
-                    padding: 0,
-                  }
-                }
-              }
-              slotProps={{
-                input: {
-                  endAdornment:
-                    <InputAdornment position="end" sx={{ cursor: "pointer" }}>
-                      <Clear />
-                    </InputAdornment>
-                }
-              }}
-            ></TextField>
-            <Tooltip title="Write to Controller" arrow placement="bottom">
-              <Download id="write-button" cursor="pointer" />
-            </Tooltip>
-          </Grid>
-        </Grid> */}
-
       </Stack>
     </Tooltip>
 
