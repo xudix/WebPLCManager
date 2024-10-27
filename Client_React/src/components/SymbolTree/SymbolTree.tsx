@@ -29,8 +29,8 @@ export default function SymbolTree(props: ISymbolTreeProps) {
   //const controllerStatus = useControllerStatus();
 
   //const filterObj = useMemo(() => parseFilterString(props.filterStr), [props.filterStr]);
-  const filterObj = parseFilterString(props.filterStr, props.filterMode);
-  const modelTree = useMemo(() => generateTree(symbols, dataTypes), [dataTypes, symbols]);
+  const filterObj = parseFilterString(props.filterStr, props.filterMode, props.filterPersistent);
+  const modelTree = useMemo(() => generateModelTree(symbols, dataTypes), [dataTypes, symbols]);
   // apply filter to each tree node
 
   const start = Date.now();
@@ -103,8 +103,8 @@ export default function SymbolTree(props: ISymbolTreeProps) {
 
 }// SymbolTree
 
-function parseFilterString(filterStr: string, filterMode: string): { name: RegExp[], type: RegExp[] } {
-  const result: { name: RegExp[], type: RegExp[] } = { name: [], type: [] };
+function parseFilterString(filterStr: string, filterMode: string, filterPersistent: boolean): { name: RegExp[], type: RegExp[], persistent: boolean } {
+  const result: { name: RegExp[], type: RegExp[], persistent: boolean } = { name: [], type: [], persistent: filterPersistent };
 
   result.name = splitFilterString(filterStr, filterMode);
 
@@ -180,7 +180,7 @@ function splitFilterString(str: string , filterMode: string): RegExp[] {
  * @param dataTypes 
  * @returns model tree in the form of {controllerName: [symbol1, symbol2, ...]}
  */
-function generateTree(symbols: SymbolsInfo, dataTypes: DataTypesInfo): Record<string, IModelTreeNode[]> {
+function generateModelTree(symbols: SymbolsInfo, dataTypes: DataTypesInfo): Record<string, IModelTreeNode[]> {
   const start = Date.now();
   const modelTree: Record<string, IModelTreeNode[]> = {};
   //let nodeCount = 0;
@@ -270,9 +270,9 @@ function generateTree(symbols: SymbolsInfo, dataTypes: DataTypesInfo): Record<st
  * @param symbolFilter If null, no filter will be applied, and the whole tree will be reset to filterPasse = true, requestExpand = false
  * @returns True if the current node or its decendent passed the filter
  */
-function applyFilter(treeNode: IModelTreeNode, symbolFilter: { name: RegExp[], type: RegExp[] } | null): boolean {
+function applyFilter(treeNode: IModelTreeNode, symbolFilter: { name: RegExp[], type: RegExp[], persistent?: boolean } | null): boolean {
   // no filter. 
-  if (symbolFilter == null || symbolFilter.name.length == 0 && symbolFilter.type.length == 0) {
+  if (symbolFilter == null || (symbolFilter.name.length == 0 && symbolFilter.type.length == 0) && !symbolFilter.persistent) {
     // reset the tree's filter-related state
     treeNode.filterPassed = true;
     treeNode.requestExpand = false;
@@ -280,41 +280,78 @@ function applyFilter(treeNode: IModelTreeNode, symbolFilter: { name: RegExp[], t
     return true;
   }
 
+  
+  // filter exist
   const nameFilters = symbolFilter.name;
   const typeFilters = symbolFilter.type;
+  let nameFiltersForSub:  RegExp[], typeFiltersForSub: RegExp[],
+   namePass: boolean, typePass: boolean;
 
-  // filter exist
-  if (treeNode.symbol.name.match(nameFilters[0]) == null) {
-    // no match. check decendents
+  // check name filters
+  if(nameFilters.length == 0){
+    nameFiltersForSub = [];
+    namePass = true;
+  }
+  else if(treeNode.symbol.name.match(nameFilters[0]) != null){
+    // match first part of name
+    if(nameFilters.length == 1){
+      namePass = true;
+      nameFiltersForSub = [];
+    }
+    else{
+      namePass = false;
+      nameFiltersForSub = nameFilters.slice(1);
+    }
+  }
+  else{
+    // name not match
+    namePass = false;
+    nameFiltersForSub = nameFilters;
+  }
+
+  //check type filters
+  if(typeFilters.length == 0){
+    typeFiltersForSub = [];
+    typePass = true;
+  }
+  else if(treeNode.symbol.type.match(typeFilters[0]) != null){
+    // match first part of type
+    if(typeFilters.length == 1){
+      typePass = true;
+      typeFiltersForSub = [];
+    }
+    else{
+      typePass = false;
+      typeFiltersForSub = nameFilters.slice(1);
+    }
+  }
+  else{
+    // type not match
+    typePass = false;
+    typeFiltersForSub = typeFilters;
+  }
+
+  //check persistent
+  const persistentPass = ((!symbolFilter.persistent) || treeNode.symbol.isPersisted)??false;
+  const persistentForSub = !persistentPass;
+
+  if(namePass && typePass && persistentPass){
+    // all filter passed
+    treeNode.filterPassed = true;
+    treeNode.requestExpand = false;
+    treeNode.subNodes.forEach((subNode) => applyFilter(subNode, {name: [], type: []}))
+  }
+  else{
+    // not all filter passed. check decendents
     treeNode.filterPassed = false;
     treeNode.requestExpand = false;
     treeNode.subNodes.forEach((subNode) => {
-      if (applyFilter(subNode, symbolFilter)) {
+      if(applyFilter(subNode,{name: nameFiltersForSub, type: typeFiltersForSub, persistent: persistentForSub})){
         treeNode.filterPassed = true;
         treeNode.requestExpand = true;
       }
-    });
-  }
-  else {
-    // match. 
-    if (nameFilters.length == 1) {
-      // only one filter. No need to check decendents
-      treeNode.filterPassed = true;
-      treeNode.requestExpand = false; // This node passed. No need to display all it's decendent
-      // reset the status of all its decendents. filterPassed = true 
-      treeNode.subNodes.forEach((subNode) => applyFilter(subNode, { name: [], type: typeFilters }));
-    }
-    else {
-      // more than one filter. Check the decendents
-      treeNode.filterPassed = false;
-      treeNode.requestExpand = false;
-      treeNode.subNodes.forEach((subNode) => {
-        if (applyFilter(subNode, { name: nameFilters.slice(1), type: typeFilters })) {
-          treeNode.filterPassed = true;
-          treeNode.requestExpand = true;
-        }
-      });
-    }
+    })
+
   }
   return treeNode.filterPassed;
 }
