@@ -167,6 +167,64 @@ function loggingConfigUpdater(loggingConfig: ILoggingServerConfig, action: ILogg
   }
 }
 
+// for write new value operation
+const newValuesContext = createContext<Record<string,string>>({})
+const newvaluesUpdaterContext = createContext<Dispatch<
+  {
+    type: string,
+    symbol?: string,
+    value?: string,
+  }
+> | null>(null);
+
+/**
+ * Records the new values to be written to the controller. {symbolName: value in string}
+ */
+export function useNewValues(){
+  return useContext(newValuesContext);
+}
+
+/**
+ * Update the new values to be written to the controller
+ */
+export function useUpdateNewValues(){
+  return useContext(newvaluesUpdaterContext);
+} 
+
+function newValuesUpdater(
+  newValuesObj: Record<string,string>|null,
+  action:{
+    type: string,
+    symbol?: string,
+    value?: string,
+  } 
+): Record<string,string>{
+  let result;
+  switch(action.type){
+    case "add":
+      result = newValuesObj? {...newValuesObj} : {};
+      if(action.symbol && action.value){
+        result[action.symbol] = action.value;
+      }
+      break;
+    case "delete":
+      if(newValuesObj){
+        result = {...newValuesObj};
+        if(action.symbol){
+          delete result[action.symbol];
+        }
+      }
+      else{
+        result = {};
+      }
+      break;
+    default:
+      result = {};
+      break;
+    
+  }
+  return result;
+}
 //
 
 export function ControllerInfoProvider({ children }: { children: ReactElement }) {
@@ -177,6 +235,7 @@ export function ControllerInfoProvider({ children }: { children: ReactElement })
   >({});
   const [localLoggingServerConfig, updateLoggingConfig] = useReducer(loggingConfigUpdater, new LoggingServerConfig(1000, "C:\\Data\\"));
   const [remoteLoggingServerConfig, setRemoteLoggingServerConfig] = useState<ILoggingServerConfig | null>(null);
+  const [newValuesObj, updateNewValues] = useReducer(newValuesUpdater, {})
 
   useEffect(() => {
     // handles broadcast data received from the server
@@ -281,7 +340,12 @@ export function ControllerInfoProvider({ children }: { children: ReactElement })
         <ControllerStatusContext.Provider value={controllerStatus}>
           <LoggingServerConfigContext.Provider value={localLoggingServerConfig}>
             <LoggingUpdaterContext.Provider value={updateLoggingConfig}>
-              {children}
+              <newValuesContext.Provider value={newValuesObj}>
+                <newvaluesUpdaterContext.Provider value={updateNewValues}>
+                  {children}
+                </newvaluesUpdaterContext.Provider>
+              </newValuesContext.Provider>
+              
 
             </LoggingUpdaterContext.Provider>
           </LoggingServerConfigContext.Provider>

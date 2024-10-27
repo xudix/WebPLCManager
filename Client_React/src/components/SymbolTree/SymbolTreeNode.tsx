@@ -1,10 +1,10 @@
 import { Box, InputAdornment, List, ListItem, ListItemButton, Stack, SvgIcon, SxProps, Table, TableBody, TableCell, TableRow, TextField, Tooltip, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid2"
 import { IControllerSymbol, IControllerType } from "../../models/controller-data-types";
-import { MutableRefObject, useContext, useEffect, useRef, useState } from "react";
+import { ChangeEvent, MutableRefObject, useContext, useEffect, useRef, useState } from "react";
 import { CloudUpload, Download, ExpandLess, ExpandMore, Visibility, Clear, Send } from "@mui/icons-material";
 import { IModelTreeNode, treeLevelContext, useModelTree } from "../../models/utilities";
-import { CurrentControllerContext, useCurrentMeasurement, useDataTypes, useLoggingUpdater, watchableTypes } from "../../services/ControllerInfoContext";
+import { CurrentControllerContext, useCurrentMeasurement, useDataTypes, useLoggingUpdater, useNewValues, useUpdateNewValues, watchableTypes } from "../../services/ControllerInfoContext";
 import useOnScreen from "../../models/onScreenDetection";
 import { useSymbolWatchManager } from "../../services/Socket";
 
@@ -89,8 +89,8 @@ export default function SymbolTreeNode(props: ISymbolTreeNodeProps) {
   // subscribe to the reading when it's in view
   useEffect(() => {
     if ((props.displayValue == undefined)
-      && (watchableTypes.has(props.modelTreeNode.baseType)
-        || props.modelTreeNode.baseType.includes("STRING"))
+      && (watchableTypes.has(props.modelTreeNode.type.baseType)
+        || props.modelTreeNode.type.baseType.includes("STRING"))
     ) {
       let symbolPath = props.modelTreeNode.name;
       if (props.modelTreeNode.symbol.type.toLocaleLowerCase().startsWith("pointer to ")) {
@@ -98,7 +98,7 @@ export default function SymbolTreeNode(props: ISymbolTreeNodeProps) {
       }
       if (isOnScreen) {
         symbolWatchManager.subscribe("Tree" + symbolPath,
-          currentController, symbolPath, props.modelTreeNode.baseType,
+          currentController, symbolPath, props.modelTreeNode.type,
           (data?: number | boolean | string | null) => {
             setValue(data);
           })
@@ -113,7 +113,7 @@ export default function SymbolTreeNode(props: ISymbolTreeNodeProps) {
     }
 
 
-  }, [currentController, isOnScreen, props.displayValue, props.modelTreeNode.baseType, props.modelTreeNode.name, props.modelTreeNode.symbol.type, symbolWatchManager])
+  }, [currentController, isOnScreen, props.displayValue, props.modelTreeNode.type, props.modelTreeNode.name, props.modelTreeNode.symbol.type, symbolWatchManager])
 
   // if (hasFilter && (!filterPassed)){
   //   return null
@@ -141,7 +141,7 @@ export default function SymbolTreeNode(props: ISymbolTreeNodeProps) {
           {hasSubNodes ? (isExpanded ? <ExpandLess /> : <ExpandMore />) : <SvgIcon />}
           {/* <ListItemText primary={props.symbol.name} sx={{ margin: 0 }} /> */}
           <SymbolDisplay fullName={props.modelTreeNode.name} symbolObj={props.modelTreeNode.symbol}
-            value={valueToDisplay}></SymbolDisplay>
+            value={valueToDisplay} ></SymbolDisplay>
 
 
         </ListItemButton>
@@ -172,8 +172,11 @@ function TreeNodeIndent({ level }: { level: number }) {
 
 function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbolObj: IControllerSymbol, value?: number | boolean | string | object | null }) {
   const updateLogging = useLoggingUpdater();
+  const symbolWatchManager = useSymbolWatchManager();
   const currentController = useContext(CurrentControllerContext);
   const currentMeasurement = useCurrentMeasurement();
+  const newValuesObj = useNewValues();
+  const updateNewValues = useUpdateNewValues();
 
   function addToLogging(){
     if(updateLogging){
@@ -183,11 +186,28 @@ function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbo
         measurement: currentMeasurement,
         tag: {
           tag: fullName,
-          field: fullName,
+          field: inferField(fullName)||fullName,
         }
       });
     }
-    
+  }
+
+  function inferField(fullName: string){
+    const splitName = fullName.split(".");
+    if(splitName.length > 1 && splitName.at(-1)?.toLocaleLowerCase().includes("value")){
+      return splitName.at(-2);
+    }
+    else{
+      return splitName.at(-1);
+    }
+  }
+
+  /**
+   * write new value to controller 
+   */
+  function writeValue(){
+    symbolWatchManager.writeValue(currentController, fullName, newValuesObj[fullName]||"");
+    clearNewValue();
   }
 
   const outerStackSX: SxProps = {
@@ -256,6 +276,8 @@ function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbo
                 <Box sx={{ display: "flex", flex: "1 1 1px" }}>
                   <TextField
                     id="new-value-input"
+                    value={newValuesObj[fullName]||""}
+                    onChange={handleNewValueChange}
                     variant="outlined"
                     sx={
                       {
@@ -276,13 +298,13 @@ function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbo
                       input: {
                         endAdornment:
                           <InputAdornment position="end" sx={{ cursor: "pointer" }}>
-                            <Clear />
+                            <Clear onClick={clearNewValue}/>
                           </InputAdornment>
                       }
                     }}
                   ></TextField>
                   <Tooltip title="Write to Controller" arrow placement="bottom">
-                    <Send id="write-button" cursor="pointer" />
+                    <Send id="write-button" cursor="pointer" onClick={writeValue}/>
                   </Tooltip>
                 </Box>
               }
@@ -298,6 +320,33 @@ function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbo
 
 
   )
+
+  function handleNewValueChange(event: ChangeEvent<HTMLInputElement>){
+    if(updateNewValues){
+      if(event.target.value == ""){
+        updateNewValues({
+          type: "delete",
+          symbol: fullName
+        });
+      }
+      else{
+        updateNewValues({
+          type: "add",
+          symbol: fullName,
+          value: event.target.value
+        })
+      }
+    }
+  }
+
+  function clearNewValue(){
+    if(updateNewValues){
+      updateNewValues({
+        type: "delete",
+        symbol: fullName,
+      })
+    }
+  }
 
   function formatValue(value?: number | boolean | string | null | undefined | object) {
     if (value != null && value != undefined) {

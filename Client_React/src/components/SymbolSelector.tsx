@@ -1,4 +1,4 @@
-import { Box, FormControl, InputAdornment, InputLabel, MenuItem, Select, SelectChangeEvent, Stack, TextField, Tooltip } from "@mui/material";
+import { Box, FormControl, FormControlLabel, FormLabel, InputAdornment, InputLabel, MenuItem, Radio, RadioGroup, Select, SelectChangeEvent, Stack, Switch, TextField, Tooltip } from "@mui/material";
 import { CurrentMeasurementContext, useControllerStatus, useLoggingServerConfig, useLoggingUpdater } from "../services/ControllerInfoContext";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { socket } from "../services/Socket";
@@ -19,6 +19,8 @@ export default function SymbolSelector() {
   const updateLoggingConfig = useLoggingUpdater();
   const [currentMeasurement, setCurrentMeasurement] = useState<string>("");
   const [newMeasurement, setNewMeasurement] = useState("");
+  const [filterMode, setFilterMode] = useState("startWith");
+  const [filterPersistent, setFilterPersistent] = useState(false);    // flags if show only persistent variables
 
   let controllerAvailable = false;
   const controllerSelectItems = Object.keys(controllerStatus).map((controllerName) => {
@@ -68,14 +70,49 @@ export default function SymbolSelector() {
     }
   }, [controllerStatus, currentController])
 
+  useEffect(() => {
+    if (currentMeasurement == "" && localLoggingServerConfig) {
+      for (const config of localLoggingServerConfig.logConfigs) {
+        if (config.name == currentController) {
+          setCurrentMeasurement(config.measurement);
+          return;
+        }
+      }
+    }
+    else if (localLoggingServerConfig) {
+      // current measurement is not blank, change it if it's not in the config
+      for (const config of localLoggingServerConfig.logConfigs) {
+        if (config.name == currentController && config.measurement == currentMeasurement) {
+          // this measurement exist in current controller, quit
+          return;
+        }
+      }
+      // not found. measurement doesn't exist
+      for (const config of localLoggingServerConfig.logConfigs) {
+        if (config.name == currentController) {
+          // pick the first measurement
+          setCurrentMeasurement(config.measurement);
+          return;
+        }
+      }
+      // no measurement available. set it to blank
+      setCurrentMeasurement("");
+    }
+    else {
+      // no config available
+      setCurrentMeasurement("");
+    }
+
+  }, [currentController, currentMeasurement, localLoggingServerConfig])
+
   const controllerSelectLabel = currentController == "" ?
     (controllerAvailable ? "Select Controller" : "No Controller Available...")
     : "Current Controller";
 
   return (
     <Stack height={"100%"}>
-      <Box display="flex" flexDirection="row" margin="1em">
-        <FormControl sx={{ margin: "0em", flex: "0 1 15em" }}>
+      <Stack direction="row" spacing={1} margin={1}>
+        <FormControl sx={{ margin: "0em", flex: "0 1 10em" }}>
           <InputLabel id="controller-select-label">
             {controllerSelectLabel}
           </InputLabel>
@@ -95,26 +132,7 @@ export default function SymbolSelector() {
             {controllerSelectItems}
           </Select>
         </FormControl>
-        <TextField id="symbol-filter-input" label="Filter Symbols"
-          sx={{
-            flex: "1 1 auto",
-            marginLeft: "1em",
-          }}
-          size="small"
-          slotProps={{
-            input: {
-              endAdornment:
-                <InputAdornment position="end" sx={{ cursor: "pointer" }}>
-                  <ClearIcon onClick={() => {setFilter(""); setDelayedFilter("")}}></ClearIcon>
-                </InputAdornment>
-            }
-          }}
-          value={filter}
-          onChange={handleFilterInput}
-        />
-      </Box>
-      <Box display="flex" flexDirection="row" margin="1em" marginTop="0" alignItems="center">
-        <FormControl sx={{ margin: "0em", flex: "0 1 15em" }}>
+        <FormControl sx={{ margin: "0em", flex: "0 1 12em" }}>
           <InputLabel id="measurement-select-label">
             Logging Measurement
           </InputLabel>
@@ -134,7 +152,7 @@ export default function SymbolSelector() {
             {measurementSelection}
           </Select>
         </FormControl>
-        <TextField id="new-measurement-input" label="Create New Logging Measurement"
+        <TextField id="new-measurement-input" label="Create Logging Measurement"
           sx={{
             flex: "1 1 auto",
             marginLeft: "1em",
@@ -152,11 +170,54 @@ export default function SymbolSelector() {
           onChange={handleNewMeasurementInput}
         />
         <Tooltip title="Create Measurement">
-          <PlaylistAdd onClick={createMeasurement} fontSize="large"/>
+          <PlaylistAdd onClick={createMeasurement} fontSize="large" />
         </Tooltip>
-      </Box>
+      </Stack>
+      <Stack direction="row" spacing={1} margin={1} alignItems="end">
+        <FormControl size="small">
+          <FormLabel id="filter-mode-label" >Filter Symbols</FormLabel>
+          <RadioGroup row name="filter-mode-buttons-group" value={filterMode} onChange={handleFilterModeChange}>
+            <FormControlLabel value="startWith" control={<Radio size="small" />} label="Start With" />
+            <FormControlLabel value="include" control={<Radio size="small" />} label="Include" />
+          </RadioGroup>
+        </FormControl>
+        <Box flex="1 1 auto" display="flex" flexDirection="row" alignItems="end">
+          <TextField id="symbol-filter-input" label="Filter Symbols"
+            sx={{
+              flex: "1 1 auto",
+              marginLeft: "0em",
+              height: "fit-content",
+            }}
+            size="small"
+            slotProps={{
+              input: {
+                endAdornment:
+                  <InputAdornment position="end" sx={{ cursor: "pointer" }}>
+                    <ClearIcon onClick={() => { setFilter(""); setDelayedFilter("") }}></ClearIcon>
+                  </InputAdornment>
+              }
+            }}
+            value={filter}
+            onChange={handleFilterInput}
+          />
+          <FormControl component="fieldset" margin="dense">
+            <FormLabel component="legend">Persistent?</FormLabel>
+            <FormControlLabel
+              checked={filterPersistent}
+              control={<Switch color="primary" />}
+              label={filterPersistent? "Yes":"No"}
+              labelPlacement="start"
+              onChange={() => setFilterPersistent(!filterPersistent)}
+            />
+          </FormControl>
+        </Box>
+
+      </Stack>
       <CurrentMeasurementContext.Provider value={currentMeasurement}>
-        <SymbolTree filterStr={delayedFilter}
+        <SymbolTree 
+          filterStr={delayedFilter}
+          filterMode={filterMode}
+          filterPersistent={filterPersistent}
           controllerName={currentController}
           showGlobalSymbols={false} showSystemSymbols={false} />
 
@@ -189,11 +250,17 @@ export default function SymbolSelector() {
     setNewMeasurement(event.target.value);
   }
 
-  function createMeasurement(){
+  function handleFilterModeChange(event: SelectChangeEvent){
+    setFilterMode(event.target.value)
+  }
 
-    if(updateLoggingConfig){
+  
+
+  function createMeasurement() {
+
+    if (updateLoggingConfig) {
       updateLoggingConfig({
-        type:"add",
+        type: "add",
         newLoggingConfig: {
           name: currentController,
           measurement: newMeasurement,

@@ -121,6 +121,7 @@ export class ADSController extends GenericController{
 
                     } // for let key in adsTypesData
                     this.adsTypesData = typesObj;
+                    //this.adstypesdata_raw = adsTypesData;
                     resolve(typesObj);
                 })
                 .catch(err => reject(err));
@@ -233,21 +234,183 @@ export class ADSController extends GenericController{
 
     // Try to write a symbol's value to the target system. Return a Promise<object>.
     // symbolName: string is the name of the requested symbol.
-    writeSymbolValue(symbolName, value){
-        return this.client.writeSymbol(symbolName, value, true);
+    async writeSymbolValue(symbolName, value) {
+        return new Promise(async (resolve, reject) => {
+            if (value == null || value == undefined) {
+                return;
+            }
+            if (this.adsTypesData == undefined) {
+                await this.getDataTypes();
+            }
+            return this.getSymbolInfoByName(symbolName).then(async (symbolInfo) => {
+                // process the value into what is needed
+                let valueToWrite;
+                const symbolType = this.adsTypesData[symbolInfo.type.toLowerCase()];
+                // FIXME: add support for TIME and DATE types
+                if (symbolType.baseType.toLowerCase().includes("string")) {
+                    valueToWrite = value.toString();
+                }
+                else if (symbolType.arrayDimension > 0) {
+                    // array type, see if the value is json or array
+                    if (Array.isArray(value)) {
+                        valueToWrite = value;
+                    }
+                    else if (typeof value == "string") {
+                        valueToWrite = JSON.parse(value);
+                        if (!Array.isArray(valueToWrite)) {
+                            return;
+                        }
+                    }
+                    else {
+                        return;
+                    }
+                }
+                else if (symbolType.subItemCount > 0) {
+                    // struct or function block
+                    if (typeof value == "object") {
+                        valueToWrite = value;
+                    }
+                    else if (typeof value == "string") {
+                        valueToWrite = JSON.parse(value);
+                    }
+                    else {
+                        return;
+                    }
+                }
+                else if(symbolType.name == "BOOL" || symbolType.baseType == "BOOL"){
+                    switch(typeof value){
+                        case "boolean":
+                            valueToWrite = value;
+                            break;
+                        case "string":
+                            if(value.toLocaleLowerCase() == "true"){
+                                valueToWrite = true;
+                                break;
+                            }
+                            else if(value.toLocaleLowerCase() == "false"){
+                                valueToWrite = false;
+                                break;
+                            }
+                            else{
+                                let n = Number(value);
+                                if(isNaN(n)){
+                                    return;
+                                }
+                                valueToWrite = (n != 0);
+                                break;
+                            }
+                        case "number":
+                            valueToWrite = (value != 0);
+                            break;
+                        default:
+                            return;
+                    }
+                }
+                else if (this.primitiveTypes.has(symbolType.baseType)) {
+                    // it's a primitive type, make the value a number
+                    valueToWrite = (typeof value == "number") ? value : Number(value);
+                    if (isNaN(valueToWrite)) {
+                        return;
+                    }
+                }
+
+
+                // check if the symbol is a pointer or reference type
+                if (symbolInfo.indexGroup > ads.ADS.ADS_RESERVED_INDEX_GROUPS.SymbolValueByHandle &&
+                    symbolInfo.indexGroup < ads.ADS.ADS_RESERVED_INDEX_GROUPS.IOImageRWIB)
+                // Pointer seems to have indexGroup of 0xF014, and reference has indexGroup of 0xF016. Not sure if other cases exist.
+                // The range set here is (0xF005, 0xF020)
+                {
+                    let newHandleCreated = false
+                    // first check if it has a handle created already
+                    if (!this.handles[symbolName]) {
+                        this.handles[symbolName] = await this.client.createVariableHandle(symbolName);
+                        newHandleCreated = true;
+                    }
+                    // get the data type object to make sure conversion is done correctly
+
+                    return this.client.writeRawByHandle(
+                        this.handles[symbolName],
+                        await this.client.convertToRaw(
+                            valueToWrite,
+                            this.adsTypesData[symbolInfo.type.toLowerCase()].baseType
+                        )
+                    ).then(() => {
+                        if (newHandleCreated) {
+                            this.client.deleteVariableHandle(this.handles[symbolName])
+                            delete this.handles[symbolName]
+                        }
+                    })
+
+
+                }
+                else {
+                    return this.client.writeSymbol(symbolName, valueToWrite, true);
+                }
+            })
+            .then(() => {
+                resolve();
+            })
+            .catch(err => {
+                reject(err);
+            })
+        })
     }
 
     // Try to get the symbol's data type (string) by the symbol's full name
     // symbolName: string is the name of the requested symbol.
     // Return a string for the data type
-    getSymbolTypeByName(symbolName){
+    getSymbolInfoByName(symbolName){
         return new Promise((resolve, reject) => {
             this.client.getSymbolInfo(symbolName).then((res) => {
-                resolve(res.type)
+                resolve(res)
             })
 
         })
     }
+
+    // /**
+    //  * infer the symbol type based on received symbol and type data
+    //  * @param {string} symbolName 
+    //  */
+    // getSymbolTypeByName_cache(symbolName){
+    //     if(!(this.adsSymsData && this.adsTypesData)){
+    //         return null;
+    //     }
+    //     let lowerName = symbolInputStr.toLowerCase().replace("^", ""); // input tag name in lower case. Remove all "^" since we will dereference all pointers anyways
+    //     let newSymbolType = "";
+    //     let isArrayElement = false; // array elements have different rule for
+    //     let found = false;
+
+    //     let splitName = lowerName.split(/[\[\]\.]+/); // lower case name, splited by .
+    //     let currentName =
+    //         splitName.length > 1 ? splitName[0] + "." + splitName[1] : lowerName; // This is in lower case. Build up the name piece by piece
+    //     let candidateSymbols = this.adsSymsData;
+    //     let lastLevel = Math.max(2, splitName.length);
+
+    //     for(let currentLevel = 2; currentLevel <= lastLevel; currentLevel++){
+    //         found = false;
+    //         for(let idx in candidateSymbols){
+    //             if(candidateSymbols[idx].name.toLowerCase() == currentName){
+    //                 //find a match
+    //                 let typeObj = this.adsTypesData[candidateSymbols[idx].type.toLowerCase()];
+    //                 if(currentLevel == lastLevel){
+    //                     //last level in symbol name input. done
+    //                     return typeObj;
+    //                 }
+    //                 // not at the last level yet
+    //                 if(candidateSymbols[idx].type.toLowerCase().startsWith("reference to ")){
+    //                     typeObj = this.adsTypesData[typeObj.baseType.toLowerCase()];
+    //                     candidateSymbols = typeObj.subItems;
+    //                 }
+    //                 else if(typeObj.arrayDimension > 0){
+                        
+    //                 }
+    //             }
+    //         }
+    //     }
+    
+    // }
 
     // Try to subscribe to a symbol for cyclic reading from the target system.
     // symbolName: string is the name of the requested symbol.
@@ -331,6 +494,9 @@ export class ADSController extends GenericController{
                 .catch(err => console.error(`failed to resubscribe to ${symbolName}`, err))
         })
     }
+
+    primitiveTypes = new Set(['BOOL', 'BYTE', 'WORD', 'DWORD', 'SINT', 'USINT',
+        'INT', 'UINT', 'DINT', 'UDINT', 'LINT', 'ULINT', 'REAL', 'LREAL', 'TIME']); 
     
 
 }

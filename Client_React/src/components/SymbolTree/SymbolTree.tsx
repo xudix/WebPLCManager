@@ -1,9 +1,8 @@
 
-import { CurrentControllerContext, DataTypesContext, SymbolsContext, useControllerStatus, useDataTypes, useSymbols } from "../../services/ControllerInfoContext";
+import { CurrentControllerContext, useDataTypes, useSymbols } from "../../services/ControllerInfoContext";
 import { Box, List } from "@mui/material";
-import SymbolTreeNode2 from "./SymbolTreeNode2";
 import { DataTypesInfo, IControllerSymbol, IControllerType, SymbolsInfo } from "../../models/controller-data-types";
-import { useModelTree, ModelTreeContext, IModelTreeNode } from "../../models/utilities";
+import { IModelTreeNode } from "../../models/utilities";
 import SymbolTreeNode from "./SymbolTreeNode";
 import { useMemo } from "react";
 
@@ -11,8 +10,10 @@ import { useMemo } from "react";
 interface ISymbolTreeProps {
   controllerName: string,
   filterStr: string,
+  filterMode: string,   // flags if the filter should look for symbols "start with" or "include" the filter word
+  filterPersistent: boolean,  // flags if show only persistent variables
   showGlobalSymbols?: boolean,
-  showSystemSymbols?: boolean
+  showSystemSymbols?: boolean,
 }
 
 
@@ -28,7 +29,7 @@ export default function SymbolTree(props: ISymbolTreeProps) {
   //const controllerStatus = useControllerStatus();
 
   //const filterObj = useMemo(() => parseFilterString(props.filterStr), [props.filterStr]);
-  const filterObj = parseFilterString(props.filterStr);
+  const filterObj = parseFilterString(props.filterStr, props.filterMode);
   const modelTree = useMemo(() => generateTree(symbols, dataTypes), [dataTypes, symbols]);
   // apply filter to each tree node
 
@@ -102,10 +103,10 @@ export default function SymbolTree(props: ISymbolTreeProps) {
 
 }// SymbolTree
 
-function parseFilterString(filterStr: string): { name: RegExp[], type: RegExp[] } {
+function parseFilterString(filterStr: string, filterMode: string): { name: RegExp[], type: RegExp[] } {
   const result: { name: RegExp[], type: RegExp[] } = { name: [], type: [] };
 
-  result.name = splitFilterString(filterStr);
+  result.name = splitFilterString(filterStr, filterMode);
 
   return result;
 
@@ -118,11 +119,12 @@ function parseFilterString(filterStr: string): { name: RegExp[], type: RegExp[] 
  * @param str 
  * @returns An array of RegExp, with option 'i' (case insensitive)
  */
-function splitFilterString(str: string): RegExp[] {
+function splitFilterString(str: string , filterMode: string): RegExp[] {
   const result: RegExp[] = [];
   let start = 0;
   let end = 0;
   let isInRegExLiteral = false;
+  const prefix = (filterMode == "startWith")? "^":"";
   while (end < str.length) {
     if (str[end] == '/') {
       // RegExp literal symbol
@@ -132,7 +134,7 @@ function splitFilterString(str: string): RegExp[] {
           // it's not escaped, so it flags the start or end of a regex literal
           let newReg;
           try{
-            newReg = new RegExp(str.slice(start, end), "i"); // all RegEx are made case insensitive
+            newReg = new RegExp(prefix+str.slice(start, end), "i"); // all RegEx are made case insensitive
           }
           catch{
             newReg = new RegExp("", "i");
@@ -148,7 +150,7 @@ function splitFilterString(str: string): RegExp[] {
       if (end > start) {
         let newReg;
           try{
-            newReg = new RegExp(str.slice(start, end), "i"); // all RegEx are made case insensitive
+            newReg = new RegExp(prefix+str.slice(start, end), "i"); // all RegEx are made case insensitive
           }
           catch{
             newReg = new RegExp("", "i");
@@ -162,7 +164,7 @@ function splitFilterString(str: string): RegExp[] {
   if (end > start) {
     let newReg;
           try{
-            newReg = new RegExp(str.slice(start, end), "i"); // all RegEx are made case insensitive
+            newReg = new RegExp(prefix+str.slice(start, end), "i"); // all RegEx are made case insensitive
           }
           catch{
             newReg = new RegExp("", "i");
@@ -254,7 +256,7 @@ function generateTree(symbols: SymbolsInfo, dataTypes: DataTypesInfo): Record<st
     return {
       name: name,
       symbol: symObj,
-      baseType: typeObj.baseType,
+      type: typeObj,
       filterPassed: true,
       subNodes: subNodes,
       isArrayRoot: isArrayRoot

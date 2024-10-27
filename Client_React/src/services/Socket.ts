@@ -61,8 +61,8 @@ class SymbolWatchManager{
    * @param symbol The full path of the symbol
    * @param callback callback function to handle the received data
    */
-  subscribe(subscriberID: string, controller: string, symbol: string, baseType: string, callback: (data?: number|boolean|string|null) => void){
-    if(watchableTypes.has(baseType) || baseType.includes("STRING")){
+  subscribe(subscriberID: string, controller: string, symbol: string, type: IControllerType, callback: (data?: number|boolean|string|null) => void){
+    if(watchableTypes.has(type.baseType) || type.baseType.includes("STRING")){
       // controller not subscribed to yet
       if(!this.__watchRecords[controller]){
         this.__watchRecords[controller] = {}
@@ -92,6 +92,29 @@ class SymbolWatchManager{
       }
     }
 
+  }
+
+  writeValue(controller: string, newValues: Record<string, any>): void;
+  writeValue(controller: string, symbol: string, valueStr: string): void;
+  writeValue(controller: string, symbolOrNewValues: string | Record<string, any>, valueStr?: string):void
+  {
+    if(typeof symbolOrNewValues == "string"){
+      // writing single symbol
+      if(valueStr){
+        this.writeValue(controller, {[symbolOrNewValues]:valueStr})  
+      }
+      
+    }
+    else if(typeof symbolOrNewValues == "object"){
+      // provided newValues object
+      for(const symbolName in symbolOrNewValues){
+        if(symbolOrNewValues[symbolName]=="''" || symbolOrNewValues[symbolName]=='""'){
+          symbolOrNewValues[symbolName] = "";
+        }
+      }
+      socket.emit("writeNewValues",{[controller]:symbolOrNewValues});
+    }
+    
   }
 
   private __handleReceivedData(newData: Record<string, Record<string, number|boolean|string>>){

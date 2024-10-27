@@ -1,5 +1,5 @@
 import { act, createContext, useContext, useReducer } from "react";
-import { IControllerSymbol } from "./controller-data-types";
+import { IControllerSymbol, IControllerType } from "./controller-data-types";
 import { ILoggingConfig, ILoggingServerConfig, ILoggingTagConfig, LoggingServerConfig } from "./logging-config-type";
 
 export const treeLevelContext = createContext<number>(0);
@@ -12,7 +12,7 @@ export const treeLevelContext = createContext<number>(0);
 export interface IModelTreeNode {
   name: string,  // full path of this symbol
   symbol: IControllerSymbol,
-  baseType: string,  // baseType is used to determine whether it should be subscribed
+  type: IControllerType, 
   enumInfo?: Record<string, any>, // if this is a enum type, this object records the name-value pair for the enum
   subNodes: IModelTreeNode[],
   filterPassed: boolean, // flags if this node or its decendent passed the filter test

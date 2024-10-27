@@ -235,6 +235,7 @@ export class WatchClient extends DataClient{
                             results[controllerName][symbolName] = true;
                         })
                         .catch(err => {
+                            this.log.error(err);
                             results[controllerName][symbolName] = false;
                         })) 
                     }
@@ -296,12 +297,14 @@ export class PLCLoggingClient extends DataClient{
      */
     set loggingConfig(newConfig){
         // FIXME: check validity of logging config
-        this._loggingConfig.logDir = (newConfig.logDir || this._loggingConfig.logDir);
-        this._loggingConfig.logFileTime = (newConfig.logFileTime || this._loggingConfig.logFileTime);
-        this._loggingConfig.logConfigs = newConfig.logConfigs;
-        this.restartLogging();
-        FileSystem.writeFile(this._loggingConfig.configPath, JSON.stringify(newConfig.logConfigs,null,2))
-            .catch(err => this.log.error("Failed to write config file.", err));
+        this._unsubscribeAll().finally(() =>{
+            this._loggingConfig.logDir = (newConfig.logDir || this._loggingConfig.logDir);
+            this._loggingConfig.logFileTime = (newConfig.logFileTime || this._loggingConfig.logFileTime);
+            this._loggingConfig.logConfigs = newConfig.logConfigs;
+            this._subscribeLogging(false).catch(err => this.log.error("Failed to start subscription", err));
+            FileSystem.writeFile(this._loggingConfig.configPath, JSON.stringify(newConfig.logConfigs,null,2))
+                .catch(err => this.log.error("Failed to write config file.", err));
+        })
         
     }
 
@@ -415,45 +418,59 @@ export class PLCLoggingClient extends DataClient{
      * Write the data accumulated in subscribedData to the buffer, then call _writeToFile.
      */
     sendSubscribedData(){
-        
-        for (let config of this._loggingConfig.logConfigs){
-            let foundData = false;
-            let measurementLen = this._buffer.write(`${config.measurement} `, this._bufferLength, 'binary'); // measurement
-            this._bufferLength += measurementLen;
-            for(let symbol of config.tags){ // go through all symbols
-                if(symbol.status == "success" && this.subscribedData[config.name] != undefined && this.subscribedData[config.name][symbol.tag] != undefined){ // if the data exist for this symbol
-                    let data = this.subscribedData[config.name][symbol.tag];
-                    foundData = true;
-                    switch (typeof data) {    // Different format for different type of data
-                        case "object":
-                            if (data.name != undefined && data.value != undefined) { // enum type
-                                this._bufferLength += this._buffer.write(`${this._fieldsDict[config.name][symbol.tag]}=${data.value},`, this._bufferLength, 'binary');
-                                this._bufferLength += this._buffer.write(`${this._fieldsDict[config.name][symbol.tag]}.name="${data.name.replaceAll("\\", "\\\\").replaceAll("\"", "\\\"")}",`, this._bufferLength, 'binary');   // record name and value at the same time
-                            }
-                            break;
-                        case "string":
-                            data = data.replaceAll("\\", "\\\\").replaceAll("\"", "\\\"");
-                            this._bufferLength += this._buffer.write(`${this._fieldsDict[config.name][symbol.tag]}="${data}",`, this._bufferLength, 'binary');   // need to add double quotation to string
-                            break;
-                        default:
-                            this._bufferLength += this._buffer.write(`${this._fieldsDict[config.name][symbol.tag]}=${data},`, this._bufferLength, 'binary');
+        if(this._buffer){
+            for (let config of this._loggingConfig.logConfigs){
+                let foundData = false;
+                let measurementLen = this._buffer.write(`${config.measurement} `, this._bufferLength, 'binary'); // measurement
+                this._bufferLength += measurementLen;
+                for(let symbol of config.tags){ // go through all symbols
+                    if(symbol.status == "success" && this.subscribedData[config.name] != undefined && this.subscribedData[config.name][symbol.tag] != undefined){ // if the data exist for this symbol
+                        let data = this.subscribedData[config.name][symbol.tag];
+                        foundData = true;
+                        switch (typeof data) {    // Different format for different type of data
+                            case "object":
+                                if (data.name != undefined && data.value != undefined) { // enum type
+                                    this._bufferLength += this._buffer.write(`${this._fieldsDict[config.name][symbol.tag]}=${data.value},`, this._bufferLength, 'binary');
+                                    this._bufferLength += this._buffer.write(`${this._fieldsDict[config.name][symbol.tag]}.name="${data.name.replaceAll("\\", "\\\\").replaceAll("\"", "\\\"")}",`, this._bufferLength, 'binary');   // record name and value at the same time
+                                }
+                                break;
+                            case "string":
+                                data = data.replaceAll("\\", "\\\\").replaceAll("\"", "\\\"");
+                                this._bufferLength += this._buffer.write(`${this._fieldsDict[config.name][symbol.tag]}="${data}",`, this._bufferLength, 'binary');   // need to add double quotation to string
+                                break;
+                            default:
+                                this._bufferLength += this._buffer.write(`${this._fieldsDict[config.name][symbol.tag]}=${data},`, this._bufferLength, 'binary');
+                        }
                     }
                 }
+                if (foundData){
+                    // log the time stamp
+                    this._bufferLength += (this._buffer.write(` ${this._dataTime}\n`, this._bufferLength - 1, 'binary') - 1); // -1 in offset to remove the last comma
+                }
+                else{
+                    // if no data written, remove the "measurement" written.
+                    this._bufferLength -= measurementLen; 
+                }
             }
-            if (foundData){
-                // log the time stamp
-                this._bufferLength += (this._buffer.write(` ${this._dataTime}\n`, this._bufferLength - 1, 'binary') - 1); // -1 in offset to remove the last comma
-            }
-            else{
-                // if no data written, remove the "measurement" written.
-                this._bufferLength -= measurementLen; 
+            // this.log.info(`written ${count} data`);
+            this.subscribedData = {};
+            if (this._bufferLength > 0) {
+                this._writeToFile();
             }
         }
-        // this.log.info(`written ${count} data`);
-        this.subscribedData = {};
-        if (this._bufferLength > 0) {
-            this._writeToFile();
-        }
+        
+    }
+
+    async _unsubscribeAll(){
+        return this._dataBroker.unsubscribeAll(this.id).then(async () => {
+            this.sendSubscribedData();  // purge out current accumulated data
+            //this.subscriptions = {};
+            this._subsNumber = 0;
+            this.subsFailed = 0;
+            this._subsHasFailure = false;
+            this.subsSucceeded = 0;
+            this._freshSubscription = true;
+        })
     }
 
     /**
@@ -462,15 +479,8 @@ export class PLCLoggingClient extends DataClient{
      */
     async _subscribeLogging(reSubscribe = false){
         if(reSubscribe){ // If a resubscribe is needed, unsubscribe all previous ones, then start over.
-            this._dataBroker.unsubscribeAll(this.id).then(async () => {
-                this.sendSubscribedData();  // purge out current accumulated data
-                //this.subscriptions = {};
-                this._subsNumber = 0;
-                this.subsFailed = 0;
-                this._subsHasFailure = false;
-                this.subsSucceeded = 0;
-                this._freshSubscription = true;
-                this._subscribeLogging(false);
+            this._unsubscribeAll().then(() =>{
+                return this._subscribeLogging(false);
             })
         }
         else{
