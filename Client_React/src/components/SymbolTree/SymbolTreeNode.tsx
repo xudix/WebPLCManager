@@ -1,20 +1,22 @@
 import { Box, InputAdornment, List, ListItem, ListItemButton, Stack, SvgIcon, SxProps, Table, TableBody, TableCell, TableRow, TextField, Tooltip, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid2"
 import { IControllerSymbol, IControllerType } from "../../models/controller-data-types";
-import { ChangeEvent, MutableRefObject, useContext, useEffect, useRef, useState } from "react";
-import { CloudUpload, Download, ExpandLess, ExpandMore, Visibility, Clear, Send } from "@mui/icons-material";
-import { IModelTreeNode, treeLevelContext, useModelTree } from "../../models/utilities";
+import { ChangeEvent, useContext, useEffect, useRef, useState } from "react";
+import { CloudUpload, Download, ExpandLess, ExpandMore, Visibility, Clear, Send, VisibilityOff } from "@mui/icons-material";
+import { IModelTreeNode, SubscriptionGroupPrefixContext, treeLevelContext } from "../../models/utilities";
 import { CurrentControllerContext, useCurrentMeasurement, useDataTypes, useLoggingUpdater, useNewValues, useUpdateNewValues, watchableTypes } from "../../services/ControllerInfoContext";
 import useOnScreen from "../../models/onScreenDetection";
 import { useSymbolWatchManager } from "../../services/Socket";
+import { useWatchListUpdater } from "../../models/WatchListProvider";
 
 interface ISymbolTreeNodeProps {
   modelTreeNode: IModelTreeNode,
-  // name: string, // full path of the symbol
-  // symbol: IControllerSymbol,
-  // type?: IControllerType, // if type is not supplied, it will be looked up from useDataTypes
+  /**
+   * If set to number/boolean/string, will show it as value. if set to null, will inhibit the value display. If not set (undefined), will subscribe to value when in view port.
+   */
   displayValue?: number | boolean | string | object | null | undefined, // This is for displaying array elements
-  //symbolFilter?: {name?: string | RegExp[], type?: string | RegExp[]} | string | RegExp[] | null  // if given a string, the filter will be applied to the name. 
+  showAddToWatchIcon?: boolean,  // toggle the display of the "add to watch" icon 
+  showRemoveFromWatchIcon?: boolean, // toggle the display of  the "remove from watch" icon
 }
 
 export default function SymbolTreeNode(props: ISymbolTreeNodeProps) {
@@ -24,16 +26,15 @@ export default function SymbolTreeNode(props: ISymbolTreeNodeProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const treeLevel = useContext(treeLevelContext);
   const currentController = useContext(CurrentControllerContext); // only needed for data subscription
-  // const dataTypes = useDataTypes();
-  // const thisTypeObj = props.type || dataTypes[currentController][props.symbol.type.toLocaleLowerCase()];
-  // const hasSubNodes = (thisTypeObj && (thisTypeObj.subItemCount > 0 || thisTypeObj.arrayDimension > 0));
   const ref = useRef<HTMLDivElement>(null)
   const isOnScreen = useOnScreen(ref);
   const symbolWatchManager = useSymbolWatchManager();
+  const subsPrefix = useContext(SubscriptionGroupPrefixContext);
 
 
-  const valueToDisplay = (props.displayValue != undefined && props.displayValue != null) ? props.displayValue : value;
+  const valueToDisplay = (props.displayValue != undefined) ? props.displayValue : value;
 
+  // generate the sub nodes
   const subNodes: (JSX.Element | null)[] = [];
   let hasSubNodes = false;
   for (let i = 0; i < props.modelTreeNode.subNodes.length; i++) {
@@ -46,21 +47,29 @@ export default function SymbolTreeNode(props: ISymbolTreeNodeProps) {
           // array. need to pass a displayValue
           if (Array.isArray(valueToDisplay) && i < valueToDisplay.length) {
             subNodes.push(
-              <SymbolTreeNode modelTreeNode={subNode} key={subNode.name}
-                displayValue={valueToDisplay[i]} />
+              <SymbolTreeNode modelTreeNode={subNode} key={subsPrefix + subNode.name}
+                displayValue={valueToDisplay[i]}
+                showAddToWatchIcon={props.showAddToWatchIcon}
+                showRemoveFromWatchIcon={props.showRemoveFromWatchIcon} />
             )
           }
           else {
             subNodes.push(
-              <SymbolTreeNode modelTreeNode={subNode} key={subNode.name}
-                displayValue={null} />
+              <SymbolTreeNode modelTreeNode={subNode} key={subsPrefix + subNode.name}
+                displayValue={null}
+                showAddToWatchIcon={props.showAddToWatchIcon}
+                showRemoveFromWatchIcon={props.showRemoveFromWatchIcon}  />
             )
           }
         }
         else {
           // not array, no value to pass
+          // if null it set, value display for all decendents will be inhibited.
           subNodes.push(
-            <SymbolTreeNode modelTreeNode={subNode} key={subNode.name} />
+            <SymbolTreeNode modelTreeNode={subNode} key={subsPrefix + subNode.name}
+            displayValue={props.displayValue == null ? null : undefined}
+            showAddToWatchIcon={props.showAddToWatchIcon}
+            showRemoveFromWatchIcon={props.showRemoveFromWatchIcon}  />
           )
         }
       }
@@ -97,23 +106,23 @@ export default function SymbolTreeNode(props: ISymbolTreeNodeProps) {
         symbolPath = symbolPath + '^';
       }
       if (isOnScreen) {
-        symbolWatchManager.subscribe("Tree" + symbolPath,
+        symbolWatchManager.subscribe(subsPrefix + symbolPath,
           currentController, symbolPath, props.modelTreeNode.type,
           (data?: number | boolean | string | null) => {
             setValue(data);
           })
       }
       else {
-        symbolWatchManager.unsubscribe("Tree" + symbolPath, currentController, symbolPath);
+        symbolWatchManager.unsubscribe(subsPrefix + symbolPath, currentController, symbolPath);
       }
 
       return () => {
-        symbolWatchManager.unsubscribe("Tree" + symbolPath, currentController, symbolPath);
+        symbolWatchManager.unsubscribe(subsPrefix + symbolPath, currentController, symbolPath);
       }
     }
 
 
-  }, [currentController, isOnScreen, props.displayValue, props.modelTreeNode.type, props.modelTreeNode.name, props.modelTreeNode.symbol.type, symbolWatchManager])
+  }, [currentController, isOnScreen, props.displayValue, props.modelTreeNode.type, props.modelTreeNode.name, props.modelTreeNode.symbol.type, symbolWatchManager, subsPrefix])
 
   // if (hasFilter && (!filterPassed)){
   //   return null
@@ -140,8 +149,11 @@ export default function SymbolTreeNode(props: ISymbolTreeNodeProps) {
           <TreeNodeIndent level={treeLevel}></TreeNodeIndent>
           {hasSubNodes ? (isExpanded ? <ExpandLess /> : <ExpandMore />) : <SvgIcon />}
           {/* <ListItemText primary={props.symbol.name} sx={{ margin: 0 }} /> */}
-          <SymbolDisplay fullName={props.modelTreeNode.name} symbolObj={props.modelTreeNode.symbol}
-            value={valueToDisplay} ></SymbolDisplay>
+          <SymbolDisplay treeNode={props.modelTreeNode}
+            value={valueToDisplay} 
+            showAddToWatchIcon={props.showAddToWatchIcon}
+            showRemoveFromWatchIcon={props.showRemoveFromWatchIcon}
+            ></SymbolDisplay>
 
 
         </ListItemButton>
@@ -170,13 +182,20 @@ function TreeNodeIndent({ level }: { level: number }) {
   )
 } // TreeNodeIndent
 
-function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbolObj: IControllerSymbol, value?: number | boolean | string | object | null }) {
+function SymbolDisplay({ treeNode, value, showAddToWatchIcon, showRemoveFromWatchIcon }:
+   { 
+    treeNode: IModelTreeNode,
+    value?: number | boolean | string | object | null,
+    showAddToWatchIcon?: boolean,
+    showRemoveFromWatchIcon?: boolean,
+   }) {
   const updateLogging = useLoggingUpdater();
   const symbolWatchManager = useSymbolWatchManager();
   const currentController = useContext(CurrentControllerContext);
   const currentMeasurement = useCurrentMeasurement();
   const newValuesObj = useNewValues();
   const updateNewValues = useUpdateNewValues();
+  const updateWatchList = useWatchListUpdater();
 
   function addToLogging(){
     if(updateLogging){
@@ -185,11 +204,28 @@ function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbo
         controllerName: currentController,
         measurement: currentMeasurement,
         tag: {
-          tag: fullName,
-          field: inferField(fullName)||fullName,
+          tag: treeNode.name,
+          field: inferField(treeNode.name)||treeNode.name,
         }
       });
     }
+  }
+
+  function addToWatchList(){
+    if(updateWatchList){
+      updateWatchList({type: "add", controllerName: currentController, item: treeNode});
+    }
+  }
+
+  function removeFromWatchList(){
+    if(updateWatchList){
+      updateWatchList({
+        type: "remove",
+        controllerName: currentController,
+        item: treeNode,
+      })
+    }
+    
   }
 
   function inferField(fullName: string){
@@ -206,7 +242,7 @@ function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbo
    * write new value to controller 
    */
   function writeValue(){
-    symbolWatchManager.writeValue(currentController, fullName, newValuesObj[fullName]||"");
+    symbolWatchManager.writeValue(currentController, treeNode.name, newValuesObj[treeNode.name]||"");
     clearNewValue();
   }
 
@@ -233,28 +269,32 @@ function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbo
     <Tooltip
       title={
         <SymbolInfoDisplay
-          fullPath={fullName}
-          type={symbolObj.type}
-          comment={symbolObj.comment} />}
+          fullPath={treeNode.name}
+          type={treeNode.symbol.type}
+          comment={treeNode.symbol.comment} />}
       arrow
-      placement="right-start"
+      placement="top-start"
       id="symbol-info-tooltip"
+      enterDelay={1000}
+      enterNextDelay={1000}
     >
       <Stack spacing={0} padding={0} sx={outerStackSX}>
         <Grid container maxHeight="3em" sx={{}} spacing={1}>
           <Grid size={4} sx={symbolNameSX}>
             <Typography component="div" className="symbol-name-display"
               sx={{ textOverflow: "ellipsis", textWrap: "nowrap", overflow: "hidden" }}>
-              {symbolObj.name}
+              {treeNode.symbol.name}
             </Typography>
 
           </Grid>
           <Grid size={"grow"} sx={{ overflow: "hidden", height: "100%", display: "flex" }}>
             <Grid size={6} sx={{ display: "inline-block" }}>
               <Stack direction="row" sx={{ width: "100%", overflow: "hidden" }}>
-                <Tooltip title="Watch" arrow placement="left">
-                  <Visibility id="watch-button" cursor="pointer" />
-                </Tooltip>
+                {showAddToWatchIcon ? (
+                  <Tooltip title="Watch" arrow placement="left">
+                    <Visibility id="watch-button" cursor="pointer" onClick={addToWatchList} />
+                  </Tooltip>
+                ) : null}
                 {(value == null || value == undefined) ? <SvgIcon /> :
                   <Tooltip title="Add to Logging" arrow placement="top">
                     <CloudUpload id="log-button" cursor="pointer" onClick={addToLogging}/>
@@ -276,7 +316,7 @@ function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbo
                 <Box sx={{ display: "flex", flex: "1 1 1px" }}>
                   <TextField
                     id="new-value-input"
-                    value={newValuesObj[fullName]||""}
+                    value={newValuesObj[treeNode.name]||""}
                     onChange={handleNewValueChange}
                     variant="outlined"
                     sx={
@@ -306,6 +346,11 @@ function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbo
                   <Tooltip title="Write to Controller" arrow placement="bottom">
                     <Send id="write-button" cursor="pointer" onClick={writeValue}/>
                   </Tooltip>
+                  {showRemoveFromWatchIcon ? (
+                    <Tooltip title="Remove" arrow placement="bottom">
+                      <VisibilityOff id="remove-watch-button" cursor="pointer" onClick={removeFromWatchList} />
+                    </Tooltip>
+                  ) : null}
                 </Box>
               }
             </Grid>
@@ -326,13 +371,13 @@ function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbo
       if(event.target.value == ""){
         updateNewValues({
           type: "delete",
-          symbol: fullName
+          symbol: treeNode.name
         });
       }
       else{
         updateNewValues({
           type: "add",
-          symbol: fullName,
+          symbol: treeNode.name,
           value: event.target.value
         })
       }
@@ -343,7 +388,7 @@ function SymbolDisplay({ fullName, symbolObj, value }: { fullName: string, symbo
     if(updateNewValues){
       updateNewValues({
         type: "delete",
-        symbol: fullName,
+        symbol: treeNode.name,
       })
     }
   }

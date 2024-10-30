@@ -3,6 +3,7 @@ import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import { useState } from 'react';
 import { WatchPage } from './WatchPage';
+import { WatchListProvider } from '../models/WatchListProvider';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -19,9 +20,10 @@ function CustomTabPanel(props: TabPanelProps) {
       hidden={value !== index}
       id={`simple-tabpanel-${index}`}
       aria-labelledby={`simple-tab-${index}`}
+      style={{flex:"1 1 auto"}}
       {...other}
     >
-      {value === index && <Box sx={{ p: 0, m: 0 }}>{children}</Box>}
+      {value === index && <Box sx={{ p: 0, m: 0, height:"100%" }}>{children}</Box>}
     </div>
   );
 }
@@ -36,7 +38,7 @@ export default function MainPage() {
   };
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: '100%', height:"100vh", overflow:"clip", display:"flex", flexDirection:"column"}}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={currentIndex} variant='fullWidth'
          onChange={handleChange} aria-label="basic tabs example">
@@ -45,7 +47,9 @@ export default function MainPage() {
         </Tabs>
       </Box>
       <CustomTabPanel value={currentIndex} index={0}>
-        <WatchPage></WatchPage>
+        <WatchListProvider>
+          <WatchPage/>
+        </WatchListProvider>
       </CustomTabPanel>
       <CustomTabPanel value={currentIndex} index={1}>
         Persistent Page

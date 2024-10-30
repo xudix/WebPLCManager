@@ -6,6 +6,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 
 import SymbolTree from "./SymbolTree/SymbolTree";
 import { PlaylistAdd } from "@mui/icons-material";
+import { SubscriptionGroupPrefixContext } from "../models/utilities";
 
 export default function SymbolSelector() {
   const inputDelay = 400;
@@ -213,17 +214,17 @@ export default function SymbolSelector() {
         </Box>
 
       </Stack>
-      <CurrentMeasurementContext.Provider value={currentMeasurement}>
-        <SymbolTree 
-          filterStr={delayedFilter}
-          filterMode={filterMode}
-          filterPersistent={filterPersistent}
-          controllerName={currentController}
-          showGlobalSymbols={false} showSystemSymbols={false} />
+      <SubscriptionGroupPrefixContext.Provider value="S">
+        <CurrentMeasurementContext.Provider value={currentMeasurement}>
+          <SymbolTree
+            filterStr={delayedFilter}
+            filterMode={filterMode}
+            filterPersistent={filterPersistent}
+            controllerName={currentController}
+            showGlobalSymbols={false} showSystemSymbols={false} />
 
-      </CurrentMeasurementContext.Provider>
-
-
+        </CurrentMeasurementContext.Provider>
+      </SubscriptionGroupPrefixContext.Provider>
     </Stack>
   )
 

@@ -1,4 +1,4 @@
-import { act, createContext, useContext, useReducer } from "react";
+import { createContext, useContext} from "react";
 import { IControllerSymbol, IControllerType } from "./controller-data-types";
 import { ILoggingConfig, ILoggingServerConfig, ILoggingTagConfig, LoggingServerConfig } from "./logging-config-type";
 
@@ -24,6 +24,12 @@ export const ModelTreeContext = createContext<IModelTreeNode | IModelTreeNode[]>
 export function useModelTree() {
   return useContext(ModelTreeContext);
 }
+
+/**
+ * Provide a way to distinguish symbol subscriptions from different parts of the application
+ */
+export const SubscriptionGroupPrefixContext = createContext<string>("");
+
 
 
 

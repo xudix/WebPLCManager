@@ -52,7 +52,7 @@ export function useCurrentMeasurement(){
 // logging configuration
 
 interface ILoggingUpdateAction {
-  type: "add" | "modify" | "remove" | "reset",
+  type: "add" | "modify" | "remove" | "reset" | "delete",
   newLoggingConfig?: ILoggingConfig,
   newServerConfig?: ILoggingServerConfig,
   measurement?: string,
@@ -140,6 +140,7 @@ function loggingConfigUpdater(loggingConfig: ILoggingServerConfig, action: ILogg
       }
       return loggingConfig;
 
+    case "delete":
     case "remove":
       // for remove, only one tag can be procesed at a time. passing ILoggingConfig is not supported. index must be specified
       // If the tag is marked as remove, it'll be marked as modified so remove is undone.
@@ -208,6 +209,7 @@ function newValuesUpdater(
       }
       break;
     case "delete":
+    case "remove":
       if(newValuesObj){
         result = {...newValuesObj};
         if(action.symbol){
@@ -218,10 +220,11 @@ function newValuesUpdater(
         result = {};
       }
       break;
-    default:
+    case "reset":
       result = {};
       break;
-    
+    default:
+      result = newValuesObj? {...newValuesObj} : {}
   }
   return result;
 }
@@ -233,7 +236,7 @@ export function ControllerInfoProvider({ children }: { children: ReactElement })
   const [controllerStatus, setControllerStatus] = useState<
     Record<string, boolean>
   >({});
-  const [localLoggingServerConfig, updateLoggingConfig] = useReducer(loggingConfigUpdater, new LoggingServerConfig(1000, "C:\\Data\\"));
+  const [localLoggingServerConfig, updateLoggingConfig] = useReducer(loggingConfigUpdater, new LoggingServerConfig(1000, ""));
   const [remoteLoggingServerConfig, setRemoteLoggingServerConfig] = useState<ILoggingServerConfig | null>(null);
   const [newValuesObj, updateNewValues] = useReducer(newValuesUpdater, {})
 

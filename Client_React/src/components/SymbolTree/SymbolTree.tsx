@@ -2,9 +2,9 @@
 import { CurrentControllerContext, useDataTypes, useSymbols } from "../../services/ControllerInfoContext";
 import { Box, List } from "@mui/material";
 import { DataTypesInfo, IControllerSymbol, IControllerType, SymbolsInfo } from "../../models/controller-data-types";
-import { IModelTreeNode } from "../../models/utilities";
+import { IModelTreeNode, SubscriptionGroupPrefixContext } from "../../models/utilities";
 import SymbolTreeNode from "./SymbolTreeNode";
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 
 
 interface ISymbolTreeProps {
@@ -18,6 +18,8 @@ interface ISymbolTreeProps {
 
 
 export default function SymbolTree(props: ISymbolTreeProps) {
+  
+  const subsPrefix = useContext(SubscriptionGroupPrefixContext)
   /**
  * symbol info received from controller. {controllerName: {symbolname: symbolObj}}. symbolname is lower case.
  */
@@ -63,7 +65,7 @@ export default function SymbolTree(props: ISymbolTreeProps) {
     }
 
     if (node.filterPassed) {
-      treeItems.push(<SymbolTreeNode modelTreeNode={node} key={node.name} />);
+      treeItems.push(<SymbolTreeNode modelTreeNode={node} key={subsPrefix + node.name} showAddToWatchIcon={true} />);
     }
 
   }
