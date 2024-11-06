@@ -324,6 +324,8 @@ export function ControllerInfoProvider({ children }: { children: ReactElement })
       requestLoggingConfig();
     }
 
+    
+
     return () => {
       socket.off("broadcast", handleBroadcast);
       socket.off("controllerStatus", handleControllerStatus);

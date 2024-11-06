@@ -91,4 +91,8 @@ export class GenericController{
         })
     }
 
+    primitiveTypes = new Set(['BOOL', 'BYTE', 'WORD', 'DWORD', 'SINT', 'USINT',
+        'INT', 'UINT', 'DINT', 'UDINT', 'LINT', 'ULINT', 'REAL', 'LREAL', 'TIME']); 
+    
+
 }

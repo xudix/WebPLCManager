@@ -128,7 +128,7 @@ export default function SymbolTreeNode2(props: ISymbolTreeNodeProps) {
           name: props.symbol.name + indexStr,
           type: nodeTypeObj.name,
           comment: props.symbol.comment,
-          isPersisted: props.symbol.isPersisted
+          isPersistent: props.symbol.isPersistent
         }
         // take an element from value array and give it to sub node
         let nodeDisplayValue=null;

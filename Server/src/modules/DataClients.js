@@ -153,10 +153,12 @@ export class WatchClient extends DataClient{
         this._socket = socket;
         this._loggingClient = loggingClient;
         this._addWatchEventHandlers();
+        
+        //this._dataBroker.readAllPersistentSymbols("SustenolPLC");
     }
 
     sendSubscribedData(){
-        this._socket.emit("subscribedData", this.subscribedData);
+        this._socket.emit("subscribedDataReceived", this.subscribedData);
         this.subscribedData = {};
     }
 
@@ -190,7 +192,7 @@ export class WatchClient extends DataClient{
             //console.log(`unsubscribing to ${controllerName}.${symbolName}`);
             try{
                 this._dataBroker.unsubscribe(this.id, controllerName, symbolName)
-                .catch(err => this.log.error(`Failed to unsubscribe to symbol ${symbolName} from ${controllerName}`, err));
+                    .catch(err => this.log.error(`Failed to unsubscribe to symbol ${symbolName} from ${controllerName}`, err));
                 let idx = this.subscriptions[controllerName].indexOf(symbolName);
                 if(idx > -1){
                     this.subscriptions[controllerName].splice(idx, 1);
@@ -250,6 +252,34 @@ export class WatchClient extends DataClient{
             }
         });
 
+        this._socket.on("requestPersistentValues", (controllerName) => {
+            this._dataBroker.readAllPersistentSymbols(controllerName)
+                .then((result) => {
+                    this._socket.emit("persistentValues", result);
+                })
+                .catch((err) => this.log.error("Error reading persistent values. ", err));
+        })
+
+        
+        this._socket.on("readSymbolValues", async (/** @type {[string]: string[]} */symbolsObj ) => {
+            const results = {};
+            const readPromises = [];
+            Object.keys(symbolsObj).map((controllerName) => {
+                results[controllerName] = {};
+                symbolsObj[controllerName].map((symbolName) => {
+                    readPromises.push(this._dataBroker.readSymbolValue(controllerName, symbolName)
+                        .then((value) => {
+                            results[controllerName][symbolName] = value;
+                        })
+                        .catch((err) => this.log.error(`Error reading value of ${controllerName}.${symbolName}`, err))
+                    );
+                })
+            })
+            await Promise.all(readPromises).catch((err) => this.log.error("Error reading symbols.", err));
+            this._socket.emit("readSymbolValuesCompleted", results);
+
+        })
+
     }
 
     /**
@@ -262,13 +292,14 @@ export class WatchClient extends DataClient{
      *      data: any,
      * }
      */
-    handleDataFromBroker(message){
-        switch(message.messageType){
-            case "subscribedData":
-                this.receiveData(message.controllerName, message.data);
-        }
+    // handleDataFromBroker(message){
+    //     switch(message.messageType){
+    //         case "subscribedData":
+    //             this.receiveData(message.controllerName, message.data);
+    //     }
 
-    }
+    // }
+
 
 } //class WatchClient
 

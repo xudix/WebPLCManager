@@ -20,11 +20,11 @@ export default function WatchPane(props: IWatchPaneProps) {
         <Button variant="contained" >Write All Values</Button>
         <Button variant="contained" color="warning" >Clear Watch List</Button>
       </Stack>
-      <Box sx={{ padding: 1, overflowY: "scroll", overflowX: "clip", flex:"1 1 0px" }}>
+      <Box sx={{ padding: 0, overflowY: "scroll", overflowX: "clip", flex:"1 1 0px" }}>
         <SubscriptionGroupPrefixContext.Provider value={subscriptionGroupPrefix}>
           {Object.keys(watchList).map((controllerName) => (
             <CurrentControllerContext.Provider value={controllerName}>
-              <List dense={true} disablePadding={true}>
+              <List dense={true} disablePadding={true} key={subscriptionGroupPrefix + controllerName}>
                 {Object.keys(watchList[controllerName]).map((symbolName) => (
                   <SymbolTreeNode
                     showRemoveFromWatchIcon={true}

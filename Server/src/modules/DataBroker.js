@@ -99,6 +99,8 @@ export class DataBroker extends EventEmitter{
             }
         }
 
+        
+
     }
 
     /**
@@ -412,6 +414,121 @@ export class DataBroker extends EventEmitter{
         catch(err){
             this.log.error(err);
         }
+    }
+
+    /**
+     * 
+     * @param {string} controllerName 
+     * @returns {Promise} resolves to an object {fullName: value}
+     */
+    readAllPersistentSymbols(controllerName){
+        return new Promise(async (resolve, reject) => { 
+            if(!this._dataTypes[controllerName]){
+                await this.getDataTypes(controllerName);
+            }
+            if(!this._symbols[controllerName]){
+                await this.getSymbols(controllerName);
+            }
+            let persistentSymbols = {};
+            /**@type {Promise[]}*/
+            let readValuePromises = [];
+
+            /**
+             * 
+             * @param {{name: string; type: string; comment: string;  value?: any; isPersistent?: boolean;}} symbol 
+             * @param {boolean} isPersistent 
+             */
+            const dfs = (symbol, parentName, isPersistent, typeObj) => {
+                const fullName = parentName + symbol.name
+                typeObj = typeObj ?? this._dataTypes[controllerName][symbol.type.toLowerCase()]
+                isPersistent = isPersistent || symbol.isPersistent;
+                if(typeObj.arrayDimension > 0){
+                    if(isPersistent && 
+                        (this._controllers[controllerName].primitiveTypes.has(typeObj.baseType) || 
+                        typeObj.baseType.includes("STRING"))
+                    ){
+                        // primitive type, can read directly
+                        readValuePromises.push(
+                            this._controllers[controllerName].readSymbolValue(fullName)
+                                .then((value) => {
+                                    persistentSymbols[fullName] = value;
+                                    return true
+                                })
+                                .catch(err => this.log.error(`Failed to read ${fullName}. `, err))
+                        )
+                    }
+                    else{
+                        // array of complex type. Need to go into each element
+                        let subType;
+                        if(typeObj.arrayDimension == 1){
+                            const lowerBaseType = typeObj.baseType.toLowerCase();
+                            subType = {...this._dataTypes[controllerName][lowerBaseType]}
+                        }
+                        else{
+                            subType = { ...typeObj };
+                            if (subType.size) {
+                                subType.size /= subType.arrayInfo[0].length;
+                            }
+                            subType.arrayDimension -= 1;
+                            subType.arrayInfo = subType.arrayInfo.slice(1);
+                            subType.name = subType.name.replace(/(?<=\[)\d+\.\.\d+,\s*/, '');
+                        }
+                        for(let i = 0; i < typeObj.arrayInfo[0].length; i++){
+                            const subSymbol = {
+                                name: `${symbol.name}[${i+typeObj.arrayInfo[0].startIndex}]`,
+                                type: typeObj.baseType,
+                                comment: symbol.comment,
+                                isPersistent: isPersistent
+                            }
+                            dfs(subSymbol,
+                                parentName,
+                                isPersistent,
+                                subType
+                            );
+                        }
+                    }
+                } // array
+                else if(typeObj.subItemCount > 0){
+                    typeObj.subItems.forEach((symbol) => {
+                        dfs(
+                            symbol,
+                            fullName + ".",
+                            isPersistent
+                        )
+                    })
+                } // subitem
+                else if (isPersistent){
+                    //console.log(fullName)
+                    readValuePromises.push(
+                        this._controllers[controllerName].readSymbolValue(fullName)
+                       .then((value) => {
+                            persistentSymbols[fullName] = value;
+                            return true;
+                        })
+                        .catch(err => this.log.error(`Failed to read ${fullName}. `, err))
+                    )
+                }
+            }
+
+            for(let symbolName in this._symbols[controllerName]){
+                dfs(
+                    this._symbols[controllerName][symbolName],
+                    "",
+                    false
+                );
+            }
+
+            const results = await Promise.all(readValuePromises);
+
+            resolve(persistentSymbols)
+
+         });
+
+         
+        
+         
+        
+
     }
 
     

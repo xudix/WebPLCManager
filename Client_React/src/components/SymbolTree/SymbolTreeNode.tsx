@@ -315,7 +315,6 @@ function SymbolDisplay({ treeNode, value, showAddToWatchIcon, showRemoveFromWatc
               {(value == null || value == undefined) ? <Box sx={{ display: "flex", flex: "1 1 1px" }} /> :
                 <Box sx={{ display: "flex", flex: "1 1 1px" }}>
                   <TextField
-                    id="new-value-input"
                     value={newValuesObj[treeNode.name]||""}
                     onChange={handleNewValueChange}
                     variant="outlined"

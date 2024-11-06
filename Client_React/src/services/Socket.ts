@@ -9,7 +9,7 @@ import { watchableTypes } from "./ControllerInfoContext.tsx";
 const URL =
   process.env.NODE_ENV === "production" ? undefined : "http://localhost:2333";
 
-export const socket = io(URL);
+export const socket = io(URL,{autoConnect: false});
 
 /**
  * Records the subscribers of a symbol
@@ -30,7 +30,7 @@ class SymbolWatchManager{
 
   constructor() {
     this.__watchRecords = {};
-    socket.on("subscribedData", (newData) => this.__handleReceivedData(newData));
+    socket.on("subscribedDataReceived", (newData) => this.__handleReceivedData(newData));
     socket.on("connect", () =>
       setTimeout(() => {
         this.__resubscribe();
@@ -175,7 +175,7 @@ export function useSymbolWatchManager(){
 export function registerSocketEventHandlers() {
   socket.on("broadcast", handleBroadcast);
   socket.on("controllerStatus", handleControllerStatus);
-  socket.on("subscribedData", handleSubscribedData);
+  socket.on("subscribedDataReceived", handleSubscribedData);
   socket.on("watchListUpdated", handleWatchListUpdated);
   socket.on("loggingConfigUpdated", handleLoggingConfigUpdated);
   socket.on("connect", handleConnect);
@@ -185,7 +185,7 @@ export function registerSocketEventHandlers() {
 export function unregisterSocketEventHandlers() {
   socket.off("broadcast", handleBroadcast);
   socket.off("controllerStatus", handleControllerStatus);
-  socket.off("subscribedData", handleSubscribedData);
+  socket.off("subscribedDataReceived", handleSubscribedData);
   socket.off("watchListUpdated", handleWatchListUpdated);
   socket.off("loggingConfigUpdated", handleLoggingConfigUpdated);
   socket.off("connect", handleConnect);

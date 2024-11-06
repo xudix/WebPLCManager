@@ -18,7 +18,22 @@ export class ADSController extends GenericController{
      * Object containing handles created on the PLC from variable names. Use this to subscribe to pointer and reference types. 
      * Handles should be released if not needed anymore.
      */
-    handles = {}; // 
+    handles = {};
+
+    /**
+     * ms, time interval between consecutive read value or write value operations
+     */
+    ReadWriteInterval = 1;
+
+    _readTimer = 0;
+
+    _writeTimer = 0;
+
+
+    _readQueue = [];
+
+
+    _writeQueue = [];
 
     
 
@@ -103,14 +118,14 @@ export class ADSController extends GenericController{
                             arrayDimension: adsTypesData[key].arrayDimension,
                             arrayInfo: adsTypesData[key].arrayData,
                             enumInfo: {},
-                            isPersisted: false
+                            isPersistent: false
                         }
                         adsTypesData[key].subItems.forEach((subItem) => {
                             typesObj[key].subItems.push({
                                 name: subItem.name,
                                 type: subItem.type,
                                 comment: subItem.comment,
-                                isPersisted: ((subItem.flags >> 8) & 1) == 1
+                                isPersistent: ((subItem.flags >> 8) & 1) == 1
                             });
                         });
                         if(adsTypesData[key].enumInfo != undefined){
@@ -149,7 +164,7 @@ export class ADSController extends GenericController{
                                 name: adsSymsData[key].name,
                                 type: adsSymsData[key].type,
                                 comment: adsSymsData[key].comment,
-                                isPersisted: (adsSymsData[key].flags & 1) == 1
+                                isPersistent: (adsSymsData[key].flags & 1) == 1
                             }
                         }
                     } // for let key in adsSymsData
@@ -221,9 +236,41 @@ export class ADSController extends GenericController{
         });
     }
 
+    readSymbolValue(symbolName){
+        return new Promise(async (resolve, reject) => { 
+            await this._getReadPermission();
+            //console.log(symbolName);
+            return this._readOneSymbolValue(symbolName)
+                .then(res => resolve(res))
+                .catch(err => reject(err));
+         })
+    }
+
+    _getReadPermission(){
+        return new Promise((resolve, reject) => {
+            this._readQueue.push(resolve);
+            this._processReadQueue();
+            // resolve SHOULD NOT be called here. It's called in the timer for processing read queue.
+        })
+    }
+
+    _processReadQueue(){
+        if(this._readTimer == 0){
+            // no timer is running. Start a timer to process the queue
+            this._readTimer = setInterval(() => {
+                const resolve = this._readQueue.shift();
+                if(this._readQueue.length == 0){
+                    clearInterval(this._readTimer);
+                    this._readTimer = 0;
+                }
+                resolve();
+            }, this.ReadWriteInterval);
+        }
+    }
+
     // Try to read a symbol's value from the target system. Return a Promise<object>.
     // symbolName: string is the name of the requested symbol.
-    readSymbolValue(symbolName){
+    _readOneSymbolValue(symbolName){
         return new Promise((resolve, reject) => {
             this.client.readSymbol(symbolName).then(res => {
                 resolve(res.value);
@@ -232,12 +279,59 @@ export class ADSController extends GenericController{
         });
     }
 
-    // Try to write a symbol's value to the target system. Return a Promise<object>.
-    // symbolName: string is the name of the requested symbol.
-    async writeSymbolValue(symbolName, value) {
+    /**
+     * When requested to write value, put the request into a queue, and write with limited speed
+     * @param {*} symbolName 
+     * @param {*} value 
+     */
+    writeSymbolValue(symbolName, value) {
+        return new Promise(async (resolve, reject) => { 
+            await this._getWritePermission();
+            //console.log(symbolName);
+            return this._writeOneSymbolValue(symbolName, value)
+                .then(res => resolve(res))
+                .catch(err => reject(err));
+         })
+
+    }
+
+    _getWritePermission(){
+        return new Promise((resolve, reject) => {
+            this._writeQueue.push(resolve);
+            this._processWriteQueue();
+            // resolve SHOULD NOT be called here. It's called in the timer for processing read queue.
+        })
+    }
+
+    _processWriteQueue(){
+        if(this._writeTimer == 0){
+            // no timer is running. Start a timer to process the queue
+            this._writeTimer = setInterval(() => {
+                const resolve = this._writeQueue.shift();
+                if(this._writeQueue.length == 0){
+                    clearInterval(this._writeTimer);
+                    this._writeTimer = 0;
+                }
+                resolve();
+            }, this.ReadWriteInterval);
+        }
+    }
+
+    
+
+    
+    /**
+     * Try to write a symbol's value to the target system. Return a Promise<object>.
+     * Resolve to true when write is sucessful, false when supplied value does not match the data type of the symbol.
+     * Rejects on ADS error in write.
+     * @param {string} symbolName 
+     * @param {*} value 
+     * @returns 
+     */
+    async _writeOneSymbolValue(symbolName, value) {
         return new Promise(async (resolve, reject) => {
             if (value == null || value == undefined) {
-                return;
+                resolve(false);
             }
             if (this.adsTypesData == undefined) {
                 await this.getDataTypes();
@@ -258,11 +352,11 @@ export class ADSController extends GenericController{
                     else if (typeof value == "string") {
                         valueToWrite = JSON.parse(value);
                         if (!Array.isArray(valueToWrite)) {
-                            return;
+                            return false;
                         }
                     }
                     else {
-                        return;
+                        return false;
                     }
                 }
                 else if (symbolType.subItemCount > 0) {
@@ -274,7 +368,7 @@ export class ADSController extends GenericController{
                         valueToWrite = JSON.parse(value);
                     }
                     else {
-                        return;
+                        return false;
                     }
                 }
                 else if(symbolType.name == "BOOL" || symbolType.baseType == "BOOL"){
@@ -294,7 +388,7 @@ export class ADSController extends GenericController{
                             else{
                                 let n = Number(value);
                                 if(isNaN(n)){
-                                    return;
+                                    return false;
                                 }
                                 valueToWrite = (n != 0);
                                 break;
@@ -303,14 +397,14 @@ export class ADSController extends GenericController{
                             valueToWrite = (value != 0);
                             break;
                         default:
-                            return;
+                            return false;
                     }
                 }
                 else if (this.primitiveTypes.has(symbolType.baseType)) {
                     // it's a primitive type, make the value a number
                     valueToWrite = (typeof value == "number") ? value : Number(value);
                     if (isNaN(valueToWrite)) {
-                        return;
+                        return false;
                     }
                 }
 
@@ -340,16 +434,18 @@ export class ADSController extends GenericController{
                             this.client.deleteVariableHandle(this.handles[symbolName])
                             delete this.handles[symbolName]
                         }
+                        return true
                     })
-
-
                 }
                 else {
-                    return this.client.writeSymbol(symbolName, valueToWrite, true);
+                    return this.client.writeSymbol(symbolName, valueToWrite, true)
+                            .then(() => {
+                                return true;
+                            });
                 }
             })
-            .then(() => {
-                resolve();
+            .then((res) => {
+                resolve(res);
             })
             .catch(err => {
                 reject(err);
@@ -495,8 +591,6 @@ export class ADSController extends GenericController{
         })
     }
 
-    primitiveTypes = new Set(['BOOL', 'BYTE', 'WORD', 'DWORD', 'SINT', 'USINT',
-        'INT', 'UINT', 'DINT', 'UDINT', 'LINT', 'ULINT', 'REAL', 'LREAL', 'TIME']); 
     
 
 }

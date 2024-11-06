@@ -11,9 +11,9 @@ import MainPage from "./components/MainPage.tsx";
 
 function App() {
   useEffect(() => {
-    socket.connect();
     socket.on("connect", handleConnect);
     socket.on("error", handleError);
+    socket.connect();
 
     return () =>{
       socket.off("connect", handleConnect);
@@ -32,6 +32,7 @@ function App() {
 
   function handleConnect(): void {
     // This is actually reestablishing connection. Subscribe to all previous watches.
+    console.log("socket on connect");
     socket.emit("createWatchClient");
     socket.emit("requestControllerStatus");
     // for(let controllerName in this._model.watchList){

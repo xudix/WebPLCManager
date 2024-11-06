@@ -4,7 +4,7 @@ export interface IControllerSymbol {
   comment: string;
   value?: any;
   newValueStr?: string; // new value to be written to Controller. Tied to input box of UI
-  isPersisted?: boolean;
+  isPersistent?: boolean;
 }
 
 export interface IControllerType {
@@ -18,7 +18,7 @@ export interface IControllerType {
   arrayInfo: { length: number; startIndex: number }[];
   enumInfo: Record<string, any>; // For enumeration type, this object of name-value pair gives the possible values of the enum.
 
-  isPersisted?: boolean; // This is only meaningful for subItems.
+  isPersistent?: boolean; // This is only meaningful for subItems.
 }
 
 /**

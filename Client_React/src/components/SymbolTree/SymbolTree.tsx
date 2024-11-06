@@ -225,32 +225,29 @@ function generateModelTree(symbols: SymbolsInfo, dataTypes: DataTypesInfo): Reco
     }
     else if (typeObj.arrayDimension > 0) {
       isArrayRoot = true;
+      let nodeTypeObj: IControllerType;
       // generate subnodes for array
-      const nodeTypeObj: IControllerType = { ...typeObj };
-      if (nodeTypeObj.size) {
-        nodeTypeObj.size /= nodeTypeObj.arrayInfo[0].length;
+      if(typeObj.arrayDimension == 1){
+        const lowerBaseType = typeObj.baseType.toLowerCase();
+        nodeTypeObj = {...dataTypes[controllerName][lowerBaseType]}
       }
-      nodeTypeObj.arrayDimension -= 1;
-      nodeTypeObj.arrayInfo = typeObj.arrayInfo.slice(1);
-      if (typeObj.arrayDimension > 1) {
-        // multi-dimension array. The subitem will still be an array
-        // dimension in type name should change from [0..9,0..2] to [0..2]
+      else{
+        nodeTypeObj = { ...typeObj };
+        if (nodeTypeObj.size) {
+          nodeTypeObj.size /= nodeTypeObj.arrayInfo[0].length;
+        }
+        nodeTypeObj.arrayDimension -= 1;
+        nodeTypeObj.arrayInfo = typeObj.arrayInfo.slice(1);
         nodeTypeObj.name = nodeTypeObj.name.replace(/(?<=\[)\d+\.\.\d+,\s*/, '');
       }
-      else {
-        // 1-D array, sub items are of base type
-        nodeTypeObj.name = nodeTypeObj.baseType;
-        const lowerBaseType = nodeTypeObj.baseType.toLowerCase();
-        nodeTypeObj.baseType = dataTypes[controllerName][lowerBaseType].baseType;
-        nodeTypeObj.enumInfo = dataTypes[controllerName][lowerBaseType].enumInfo;
-      }
+      
       for (let i = 0; i < typeObj.arrayInfo[0].length; i++) {
         const indexStr = `[${typeObj.arrayInfo[0].startIndex + i}]`;
         const nodeSymbolObj: IControllerSymbol = {
           name: symObj.name + indexStr,
           type: nodeTypeObj.name,
           comment: symObj.comment,
-          isPersisted: symObj.isPersisted
+          isPersistent: symObj.isPersistent
         }
         subNodes.push(generateNode(name + indexStr, controllerName, nodeSymbolObj, nodeTypeObj));
       }
@@ -334,7 +331,7 @@ function applyFilter(treeNode: IModelTreeNode, symbolFilter: { name: RegExp[], t
   }
 
   //check persistent
-  const persistentPass = ((!symbolFilter.persistent) || treeNode.symbol.isPersisted)??false;
+  const persistentPass = ((!symbolFilter.persistent) || treeNode.symbol.isPersistent)??false;
   const persistentForSub = !persistentPass;
 
   if(namePass && typePass && persistentPass){

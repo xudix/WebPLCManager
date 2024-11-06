@@ -239,7 +239,7 @@ export class WatchPage {
             name: symbol.name + `[${i}]`,
             type: newSymbolType,
             comment: typeObj.comment,
-            isPersisted: symbol.isPersisted,
+            isPersistent: symbol.isPersistent,
           },
         );
         if (!hasPersistentData)
@@ -253,10 +253,10 @@ export class WatchPage {
             name: symbol.name + "." + subitem.name,
             type: subitem.type,
             comment: subitem.comment,
-            isPersisted: subitem.isPersisted || symbol.isPersisted,
+            isPersistent: subitem.isPersistent || symbol.isPersistent,
           }) || hasPersistentData;
       });
-    } else if (symbol.isPersisted) {
+    } else if (symbol.isPersistent) {
       symbol.value = "";
       symbol.newValueStr = "";
       this.persistentList[controllerName].push(symbol);

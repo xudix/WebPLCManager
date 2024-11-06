@@ -55,6 +55,7 @@ export default function SymbolSelector() {
         // this occurs either 1. currentController selection changed 2. controller status changed
         // request symbols anyways.
         socket.emit("requestSymbols", currentController);
+        
         return;
       }
       else {
