@@ -5,6 +5,7 @@ import { DataTypesInfo, IControllerSymbol, IControllerType, SymbolsInfo } from "
 import { IModelTreeNode, SubscriptionGroupPrefixContext } from "../../models/utilities";
 import SymbolTreeNode from "./SymbolTreeNode";
 import { useContext, useMemo } from "react";
+import DownloadButton from "./DownloadButtons";
 
 
 interface ISymbolTreeProps {
@@ -50,17 +51,21 @@ export default function SymbolTree(props: ISymbolTreeProps) {
     );
   }
 
+  // convert tree nodes into actual items in the List
   const treeItems = [];
   for (const node of modelTree[props.controllerName]) {
     const lowerName = node.name.toLocaleLowerCase();
     if (!props.showGlobalSymbols && lowerName.startsWith("global_")) {
+      node.filterPassed = false;
       continue;
     }
     if (!props.showSystemSymbols &&
       (lowerName.startsWith("constants.") || lowerName.startsWith("twincat_") || lowerName.startsWith("parameterlist"))) {
+      node.filterPassed = false;
       continue;
     }
     if (isDuplicatedIOSymbol(lowerName)) {
+      node.filterPassed = false;
       continue;
     }
 
@@ -71,6 +76,9 @@ export default function SymbolTree(props: ISymbolTreeProps) {
   }
   return (
     <Box sx={{ padding: 1, overflowY: "scroll", overflowX:"clip"}}>
+      <DownloadButton 
+        currentController={props.controllerName}
+        modelTreeNodes={modelTree[props.controllerName]}/>
       <CurrentControllerContext.Provider value={props.controllerName}>
         <List dense={true} disablePadding={true}>
           {treeItems}

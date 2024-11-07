@@ -264,14 +264,55 @@ export class WatchClient extends DataClient{
         this._socket.on("readSymbolValues", async (/** @type {[string]: string[]} */symbolsObj ) => {
             const results = {};
             const readPromises = [];
+            // BigInt.prototype.toJSON = function (){
+            //     return JSON.rawJSON(this.toString());
+            // }
             Object.keys(symbolsObj).map((controllerName) => {
                 results[controllerName] = {};
                 symbolsObj[controllerName].map((symbolName) => {
                     readPromises.push(this._dataBroker.readSymbolValue(controllerName, symbolName)
                         .then((value) => {
-                            results[controllerName][symbolName] = value;
+                            //socket will try to stringify the data, which crashes if there's bigint
+                            switch(typeof value){
+                                case "bigint":
+                                    // should be ignored
+                                    break;
+                                case "string":
+                                case "number":
+                                case "boolean":
+                                    results[controllerName][symbolName] = value;
+                                    break;
+                                case "object":
+                                    if(Array.isArray(value)){
+                                        if((typeof value[0]) == "bigint"){
+                                            break;
+                                        }
+                                    }
+                                    else{
+                                        Object.keys(value).forEach(subItemName => {
+                                            if((typeof value[subItemName]) == "bigint"){
+                                                delete value[subItemName];
+                                            }
+                                            else if((typeof value[subItemName]) == "object"){
+                                                try {
+                                                    // make sure this thing can be stringified, and not too long
+                                                    if(JSON.stringify(value[subItemName]).length > 2000){
+                                                        delete value[subItemName];
+                                                    }
+                                                }
+                                                catch(err){
+                                                    delete value[subItemName];
+                                                }
+                                            }
+                                        });
+                                    }
+                                    results[controllerName][symbolName] = value;
+                                    break;
+                            }
+                            //results[controllerName][symbolName] = value;
                         })
-                        .catch((err) => this.log.error(`Error reading value of ${controllerName}.${symbolName}`, err))
+                        .catch((err) => {})
+                        // .catch((err) => this.log.error(`Error reading value of ${controllerName}.${symbolName}`, err))
                     );
                 })
             })
@@ -281,6 +322,8 @@ export class WatchClient extends DataClient{
         })
 
     }
+
+    
 
     /**
      * Event handler that handles message from the data broker.
