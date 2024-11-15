@@ -237,7 +237,7 @@ function generateModelTree(symbols: SymbolsInfo, dataTypes: DataTypesInfo): Reco
       // generate subnodes for array
       if(typeObj.arrayDimension == 1){
         const lowerBaseType = typeObj.baseType.toLowerCase();
-        nodeTypeObj = {...dataTypes[controllerName][lowerBaseType]}
+        nodeTypeObj = {...dataTypes[controllerName][lowerBaseType]};
       }
       else{
         nodeTypeObj = { ...typeObj };

@@ -3,6 +3,7 @@ import { IModelTreeNode } from "../../models/utilities";
 import { useRef, useState } from "react";
 import { socket } from "../../services/Socket";
 import { IControllerSymbol } from "../../models/controller-data-types";
+import DownloadIcon from '@mui/icons-material/Download';
 
 
 interface IDownloadButtonProps{
@@ -106,7 +107,9 @@ export default function DownloadButton(props: IDownloadButtonProps){
 
 
   return (
-    <Button variant="contained" onClick={handleClick}>
+    <Button variant="contained" onClick={handleClick}
+      startIcon={<DownloadIcon/>}
+    >
       {displayText}
     </Button>
   )

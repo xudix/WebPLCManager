@@ -5,7 +5,6 @@ import SymbolTreeNode from "./SymbolTree/SymbolTreeNode";
 import { SubscriptionGroupPrefixContext } from "../models/utilities";
 import DownloadButton from "./SymbolTree/DownloadButtons";
 import UploadButton from "./SymbolTree/UploadButton";
-import { cursorTo } from "readline";
 import { useEffect, useState } from "react";
 
 
@@ -17,22 +16,22 @@ export default function WatchPane(props: IWatchPaneProps) {
   const [currentController, setCurrentController] = useState<string>("");
   const watchList = useWatchList();
   const subscriptionGroupPrefix = "W";
-
+  const controllerStatus = useControllerStatus();
   
 
   let controllerAvailable = false;
-  const controllerSelectItems = Object.keys(watchList).map((controllerName) => {
-    if (watchList[controllerName]) {
+  const controllerSelectItems = Object.keys(controllerStatus).map((controllerName) => {
+    if (controllerStatus[controllerName]) {
       controllerAvailable = true;
     }
-    return watchList[controllerName] && <MenuItem value={controllerName} key={controllerName}>{controllerName}</MenuItem>
+    return controllerStatus[controllerName] && <MenuItem value={controllerName} key={controllerName}>{controllerName}</MenuItem>
   });
 
   // if no controller is set, pick one
   if (controllerAvailable && 
-      ((currentController == "") || (watchList[currentController] == undefined))
+      ((currentController == "") || (!controllerStatus[currentController]))
   ){
-    setCurrentController(Object.keys(watchList)[0]);
+    setCurrentController(Object.keys(controllerStatus)[0]);
   }
 
   const controllerSelectLabel = currentController == "" ?
