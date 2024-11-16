@@ -169,10 +169,11 @@ function loggingConfigUpdater(loggingConfig: ILoggingServerConfig, action: ILogg
 }
 
 // for write new value operation
-const newValuesContext = createContext<Record<string,string>>({})
+const newValuesContext = createContext<Record<string, Record<string,string>>>({})
 const newvaluesUpdaterContext = createContext<Dispatch<
   {
     type: string,
+    controllerName?: string,
     symbol?: string,
     value?: string,
   }
@@ -193,27 +194,31 @@ export function useUpdateNewValues(){
 } 
 
 function newValuesUpdater(
-  newValuesObj: Record<string,string>|null,
+  newValuesObj: Record<string, Record<string,string>>|null,
   action:{
     type: string,
+    controllerName?: string,
     symbol?: string,
     value?: string,
   } 
-): Record<string,string>{
+): Record<string, Record<string,string>>{
   let result;
   switch(action.type){
     case "add":
       result = newValuesObj? {...newValuesObj} : {};
-      if(action.symbol && action.value){
-        result[action.symbol] = action.value;
+      if(action.controllerName && action.symbol && action.value){
+        if(!result[action.controllerName]){
+          result[action.controllerName] = {};
+        }
+        result[action.controllerName][action.symbol] = action.value;
       }
       break;
     case "delete":
     case "remove":
       if(newValuesObj){
         result = {...newValuesObj};
-        if(action.symbol){
-          delete result[action.symbol];
+        if(action.controllerName && result[action.controllerName] && action.symbol){
+          delete result[action.controllerName][action.symbol];
         }
       }
       else{

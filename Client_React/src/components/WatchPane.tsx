@@ -1,11 +1,12 @@
 import { Box, Button, FormControl, InputLabel, List, MenuItem, Select, SelectChangeEvent, Stack, Typography } from "@mui/material";
-import { useWatchList } from "../models/WatchListProvider";
-import { CurrentControllerContext, useControllerStatus } from "../services/ControllerInfoContext";
+import { useWatchList, useWatchListUpdater } from "../models/WatchListProvider";
+import { CurrentControllerContext, useControllerStatus, useNewValues, useUpdateNewValues } from "../services/ControllerInfoContext";
 import SymbolTreeNode from "./SymbolTree/SymbolTreeNode";
 import { SubscriptionGroupPrefixContext } from "../models/utilities";
 import DownloadButton from "./SymbolTree/DownloadButtons";
 import UploadButton from "./SymbolTree/UploadButton";
 import { useEffect, useState } from "react";
+import { useSymbolWatchManager } from "../services/Socket";
 
 
 interface IWatchPaneProps {
@@ -17,6 +18,10 @@ export default function WatchPane(props: IWatchPaneProps) {
   const watchList = useWatchList();
   const subscriptionGroupPrefix = "W";
   const controllerStatus = useControllerStatus();
+  const symbolWatchManager = useSymbolWatchManager();
+  const newValuesObj = useNewValues();
+  const updateNewValuesObj = useUpdateNewValues();
+  const updateWatchList = useWatchListUpdater();
   
 
   let controllerAvailable = false;
@@ -42,10 +47,23 @@ export default function WatchPane(props: IWatchPaneProps) {
     setCurrentController(event.target.value)
   }
 
+  function handleWriteAllValues(){
+    symbolWatchManager.writeValue(currentController, newValuesObj[currentController])
+    updateNewValuesObj?.({
+      type: "reset"
+    })
+  }
+
+  function handleClearWatchList(){
+    updateWatchList?.({
+      type: "reset"
+    })
+  }
+
   return (
     <Box sx={{height:"100%", overflow:"clip", display:"flex", flexDirection:"column"}}>
       <Stack direction="row" padding={1} spacing={1} >
-        <Typography variant="button" flex={"1 1 auto"}>Watch List</Typography>
+        <Typography variant="h6" flex={"1 1 auto"} color="purple">Watch List</Typography>
         <FormControl sx={{ margin: "0em", flex: "0 1 10em" }}>
           <InputLabel id="controller-select-label">
             {controllerSelectLabel}
@@ -72,8 +90,8 @@ export default function WatchPane(props: IWatchPaneProps) {
         }
         
         <UploadButton currentController={currentController} />
-        <Button variant="contained" >Write All Values</Button>
-        <Button variant="contained" color="warning" >Clear Watch List</Button>
+        <Button variant="contained" onClick={handleWriteAllValues}>Write All Values</Button>
+        <Button variant="contained" color="warning" onClick={handleClearWatchList} >Clear Watch List</Button>
       </Stack>
       {
         watchList[currentController] ?
@@ -85,6 +103,7 @@ export default function WatchPane(props: IWatchPaneProps) {
                     <SymbolTreeNode
                       showRemoveFromWatchIcon={true}
                       modelTreeNode={watchList[currentController][symbolName]}
+                      showFullPath={true}
                       key={subscriptionGroupPrefix + watchList[currentController][symbolName].name
                       }
                     />

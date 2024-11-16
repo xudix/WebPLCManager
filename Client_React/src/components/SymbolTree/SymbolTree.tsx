@@ -75,17 +75,20 @@ export default function SymbolTree(props: ISymbolTreeProps) {
 
   }
   return (
-    <Box sx={{ padding: 1, overflowY: "scroll", overflowX:"clip"}}>
-      <DownloadButton 
+    <Box sx={{padding: 1, overflowY:"hidden", flex:"1 1 0", display:"flex",flexDirection:"column"}}>
+      <DownloadButton
         currentController={props.controllerName}
-        modelTreeNodes={modelTree[props.controllerName]}/>
-      <CurrentControllerContext.Provider value={props.controllerName}>
-        <List dense={true} disablePadding={true}>
-          {treeItems}
-        </List>
-      </CurrentControllerContext.Provider>
+        modelTreeNodes={modelTree[props.controllerName]} />
+      <Box sx={{ overflowY: "scroll", overflowX: "clip" }}>
+        <CurrentControllerContext.Provider value={props.controllerName}>
+          <List dense={true} disablePadding={true}>
+            {treeItems}
+          </List>
+        </CurrentControllerContext.Provider>
 
+      </Box>
     </Box>
+
   )
 
   /**

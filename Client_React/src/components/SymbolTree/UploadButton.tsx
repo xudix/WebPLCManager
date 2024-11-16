@@ -60,6 +60,7 @@ export default function UploadButton(props: IUploadButtonProps) {
             });
             updateNewValue({
               type: "add",
+              controllerName: props.currentController,
               symbol: split[0],
               value: split[1]
             })

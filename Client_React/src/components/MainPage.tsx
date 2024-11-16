@@ -39,21 +39,21 @@ export default function MainPage() {
 
   return (
     <Box sx={{ width: '100%', height:"100vh", overflow:"clip", display:"flex", flexDirection:"column"}}>
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      {/* <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={currentIndex} variant='fullWidth'
          onChange={handleChange} aria-label="basic tabs example">
           <Tab label="Watch" />
           <Tab label="Persistents" />
         </Tabs>
       </Box>
-      <CustomTabPanel value={currentIndex} index={0}>
+      <CustomTabPanel value={currentIndex} index={0}> */}
         <WatchListProvider>
           <WatchPage/>
         </WatchListProvider>
-      </CustomTabPanel>
+      {/* </CustomTabPanel>
       <CustomTabPanel value={currentIndex} index={1}>
         Persistent Page
-      </CustomTabPanel>
+      </CustomTabPanel> */}
     </Box>
   );
 }

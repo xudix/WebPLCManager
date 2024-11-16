@@ -1,4 +1,4 @@
-import { Box, FormControl, FormControlLabel, FormLabel, InputAdornment, InputLabel, MenuItem, Radio, RadioGroup, Select, SelectChangeEvent, Stack, Switch, TextField, Tooltip } from "@mui/material";
+import { Box, FormControl, FormControlLabel, FormLabel, InputAdornment, InputLabel, MenuItem, Radio, RadioGroup, Select, SelectChangeEvent, Stack, Switch, TextField, Tooltip, Typography } from "@mui/material";
 import { CurrentMeasurementContext, useControllerStatus, useLoggingServerConfig, useLoggingUpdater } from "../services/ControllerInfoContext";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { socket } from "../services/Socket";
@@ -113,6 +113,7 @@ export default function SymbolSelector() {
 
   return (
     <Stack height={"100%"}>
+      <Typography variant="h6" width="100%" textAlign="center" color="purple">Browse Symbols</Typography>
       <Stack direction="row" spacing={1} margin={1}>
         <FormControl sx={{ margin: "0em", flex: "0 1 10em" }}>
           <InputLabel id="controller-select-label">

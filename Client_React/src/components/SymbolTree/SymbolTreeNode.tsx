@@ -17,6 +17,7 @@ interface ISymbolTreeNodeProps {
   displayValue?: number | boolean | string | object | null | undefined, // This is for displaying array elements
   showAddToWatchIcon?: boolean,  // toggle the display of the "add to watch" icon 
   showRemoveFromWatchIcon?: boolean, // toggle the display of  the "remove from watch" icon
+  showFullPath?: boolean, // toggle the display of symbol's full path instead of symbol name
 }
 
 export default function SymbolTreeNode(props: ISymbolTreeNodeProps) {
@@ -153,6 +154,7 @@ export default function SymbolTreeNode(props: ISymbolTreeNodeProps) {
             value={valueToDisplay} 
             showAddToWatchIcon={props.showAddToWatchIcon}
             showRemoveFromWatchIcon={props.showRemoveFromWatchIcon}
+            showFullPath={props.showFullPath}
             ></SymbolDisplay>
 
 
@@ -182,12 +184,13 @@ function TreeNodeIndent({ level }: { level: number }) {
   )
 } // TreeNodeIndent
 
-function SymbolDisplay({ treeNode, value, showAddToWatchIcon, showRemoveFromWatchIcon }:
+function SymbolDisplay({ treeNode, value, showAddToWatchIcon, showRemoveFromWatchIcon, showFullPath }:
    { 
     treeNode: IModelTreeNode,
     value?: number | boolean | string | object | null,
     showAddToWatchIcon?: boolean,
     showRemoveFromWatchIcon?: boolean,
+    showFullPath?: boolean
    }) {
   const updateLogging = useLoggingUpdater();
   const symbolWatchManager = useSymbolWatchManager();
@@ -242,7 +245,7 @@ function SymbolDisplay({ treeNode, value, showAddToWatchIcon, showRemoveFromWatc
    * write new value to controller 
    */
   function writeValue(){
-    symbolWatchManager.writeValue(currentController, treeNode.name, newValuesObj[treeNode.name]||"");
+    symbolWatchManager.writeValue(currentController, treeNode.name, newValuesObj[currentController]?.[treeNode.name]||"");
     clearNewValue();
   }
 
@@ -283,11 +286,11 @@ function SymbolDisplay({ treeNode, value, showAddToWatchIcon, showRemoveFromWatc
           <Grid size={4} sx={symbolNameSX}>
             <Typography component="div" className="symbol-name-display"
               sx={{ textOverflow: "ellipsis", textWrap: "nowrap", overflow: "hidden" }}>
-              {treeNode.symbol.name}
+              {showFullPath? treeNode.name: treeNode.symbol.name}
             </Typography>
 
           </Grid>
-          <Grid size={"grow"} sx={{ overflow: "hidden", height: "100%", display: "flex" }}>
+          <Grid size={showFullPath?8:"grow"} sx={{ overflow: "hidden", height: "100%", display: "flex" }}>
             <Grid size={6} sx={{ display: "inline-block" }}>
               <Stack direction="row" sx={{ width: "100%", overflow: "hidden" }}>
                 {showAddToWatchIcon ? (
@@ -315,7 +318,7 @@ function SymbolDisplay({ treeNode, value, showAddToWatchIcon, showRemoveFromWatc
               {(value == null || value == undefined) ? <Box sx={{ display: "flex", flex: "1 1 1px" }} /> :
                 <Box sx={{ display: "flex", flex: "1 1 1px" }}>
                   <TextField
-                    value={newValuesObj[treeNode.name]||""}
+                    value={newValuesObj[currentController]?.[treeNode.name]||""}
                     onChange={handleNewValueChange}
                     variant="outlined"
                     sx={
@@ -370,12 +373,14 @@ function SymbolDisplay({ treeNode, value, showAddToWatchIcon, showRemoveFromWatc
       if(event.target.value == ""){
         updateNewValues({
           type: "delete",
+          controllerName: currentController,
           symbol: treeNode.name
         });
       }
       else{
         updateNewValues({
           type: "add",
+          controllerName: currentController,
           symbol: treeNode.name,
           value: event.target.value
         })
@@ -387,6 +392,7 @@ function SymbolDisplay({ treeNode, value, showAddToWatchIcon, showRemoveFromWatc
     if(updateNewValues){
       updateNewValues({
         type: "delete",
+        controllerName: currentController,
         symbol: treeNode.name,
       })
     }

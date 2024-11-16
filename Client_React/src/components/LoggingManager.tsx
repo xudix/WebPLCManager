@@ -17,6 +17,7 @@ export default function LoggingManager(props: ILoggingManagerProps) {
 
   return (
     <Stack id="logging-main-stack" direction="column" sx={{height:"100%"}}>
+      <Typography variant="h6" width="100%" textAlign="center" color="purple">Logging Configurations</Typography>
       <Stack id="logging-buttons-stack" direction="row" padding={1} spacing={1} justifyContent="end">
         <Button variant="contained" color="success" onClick={() => socket.emit("requestLoggingConfig")} >
           <Refresh />
