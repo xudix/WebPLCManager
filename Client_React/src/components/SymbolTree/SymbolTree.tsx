@@ -19,7 +19,7 @@ interface ISymbolTreeProps {
 
 
 export default function SymbolTree(props: ISymbolTreeProps) {
-  
+
   const subsPrefix = useContext(SubscriptionGroupPrefixContext)
   /**
  * symbol info received from controller. {controllerName: {symbolname: symbolObj}}. symbolname is lower case.
@@ -29,19 +29,76 @@ export default function SymbolTree(props: ISymbolTreeProps) {
    * data type info received from controller. {controllerName: {typename: typeObj}}. typename is lower case
    */
   const dataTypes = useDataTypes();
-  //const controllerStatus = useControllerStatus();
 
-  //const filterObj = useMemo(() => parseFilterString(props.filterStr), [props.filterStr]);
-  const filterObj = parseFilterString(props.filterStr, props.filterMode, props.filterPersistent);
+  // const filterObj = parseFilterString(props.filterStr, props.filterMode, props.filterPersistent);
   const modelTree = useMemo(() => generateModelTree(symbols, dataTypes), [dataTypes, symbols]);
-  // apply filter to each tree node
+  // // apply filter to each tree node
 
-  const start = Date.now();
-  modelTree[props.controllerName]?.forEach((treeNode) => {
-    applyFilter(treeNode, filterObj);
-  })
-  const end = Date.now();
-  console.log(`Filter time ${end - start} ms.`)
+  // const start = Date.now();
+  // modelTree[props.controllerName]?.forEach((treeNode) => {
+  //   applyFilter(treeNode, filterObj);
+  // })
+  // const end = Date.now();
+  // console.log(`Filter time ${end - start} ms.`)
+
+  const treeItems = useMemo(() => {
+    const filterObj = parseFilterString(props.filterStr, props.filterMode, props.filterPersistent);
+
+    const start = Date.now();
+    modelTree[props.controllerName]?.forEach((treeNode) => {
+      applyFilter(treeNode, filterObj);
+    })
+    const end = Date.now();
+    console.log(`Filter time ${end - start} ms.`);
+
+    // convert tree nodes into actual items in the List
+    // const start1 = Date.now();
+    const treeItems = [];
+    if (modelTree[props.controllerName]) {
+
+      for (const node of modelTree[props.controllerName]) {
+        const lowerName = node.name.toLocaleLowerCase();
+        if (!props.showGlobalSymbols && lowerName.startsWith("global_")) {
+          node.filterPassed = false;
+          continue;
+        }
+        if (!props.showSystemSymbols &&
+          (lowerName.startsWith("constants.") || lowerName.startsWith("twincat_") || lowerName.startsWith("parameterlist"))) {
+          node.filterPassed = false;
+          continue;
+        }
+        if (isDuplicatedIOSymbol(lowerName)) {
+          node.filterPassed = false;
+          continue;
+        }
+
+        if (node.filterPassed) {
+          treeItems.push(<SymbolTreeNode modelTreeNode={node} key={subsPrefix + node.name} showAddToWatchIcon={true} />);
+        }
+
+      }
+    }
+    // const end1 = Date.now();
+    // console.log(`Sub generation time ${end1 - start1} ms.`);
+    return treeItems;
+
+    /**
+   * TwinCAT adds input/output symbols (declared with %I and %Q) to symbol list even if they're a part of another object.
+   * This function tries to identify them by checking if the name of this symbol is part of another symbol
+   */
+    function isDuplicatedIOSymbol(symbolName: string): boolean {
+      const aSplitName = symbolName.toLocaleLowerCase().split(/[.]/);
+      let partName = aSplitName[0]; // partial name of the symbol
+      for (let i = 1; i < aSplitName.length; i++) {
+        if (symbols[props.controllerName][partName]) {
+          // this partial name exist. 
+          return true;
+        }
+        partName += "." + aSplitName[i];
+      }
+      return false;
+    }
+  }, [modelTree, props.controllerName, props.filterMode, props.filterPersistent, props.filterStr, props.showGlobalSymbols, props.showSystemSymbols, subsPrefix, symbols])
 
   if (!modelTree[props.controllerName]) {
     return (
@@ -51,34 +108,15 @@ export default function SymbolTree(props: ISymbolTreeProps) {
     );
   }
 
-  // convert tree nodes into actual items in the List
-  const treeItems = [];
-  for (const node of modelTree[props.controllerName]) {
-    const lowerName = node.name.toLocaleLowerCase();
-    if (!props.showGlobalSymbols && lowerName.startsWith("global_")) {
-      node.filterPassed = false;
-      continue;
-    }
-    if (!props.showSystemSymbols &&
-      (lowerName.startsWith("constants.") || lowerName.startsWith("twincat_") || lowerName.startsWith("parameterlist"))) {
-      node.filterPassed = false;
-      continue;
-    }
-    if (isDuplicatedIOSymbol(lowerName)) {
-      node.filterPassed = false;
-      continue;
-    }
 
-    if (node.filterPassed) {
-      treeItems.push(<SymbolTreeNode modelTreeNode={node} key={subsPrefix + node.name} showAddToWatchIcon={true} />);
-    }
-
-  }
   return (
-    <Box sx={{padding: 1, overflowY:"hidden", flex:"1 1 0", display:"flex",flexDirection:"column"}}>
-      <DownloadButton
-        currentController={props.controllerName}
-        modelTreeNodes={modelTree[props.controllerName]} />
+    <Box sx={{ padding: 1, overflowY: "hidden", flex: "1 1 0", display: "flex", flexDirection: "column" }}>
+      <Box display="flex" flexDirection="row" marginBottom={1} justifyContent="end">
+        <DownloadButton
+          currentController={props.controllerName}
+          modelTreeNodes={modelTree[props.controllerName]} />
+      </Box>
+
       <Box sx={{ overflowY: "scroll", overflowX: "clip" }}>
         <CurrentControllerContext.Provider value={props.controllerName}>
           <List dense={true} disablePadding={true}>
@@ -90,29 +128,6 @@ export default function SymbolTree(props: ISymbolTreeProps) {
     </Box>
 
   )
-
-  /**
-   * TwinCAT adds input/output symbols (declared with %I and %Q) to symbol list even if they're a part of another object.
-   * This function tries to identify them by checking if the name of this symbol is part of another symbol
-   */
-  function isDuplicatedIOSymbol(symbolName: string): boolean {
-    const aSplitName = symbolName.toLocaleLowerCase().split(/[.]/);
-    let partName = aSplitName[0]; // partial name of the symbol
-    for (let i = 1; i < aSplitName.length; i++) {
-      if (symbols[props.controllerName][partName]) {
-        // this partial name exist. 
-        return true;
-      }
-      partName += "." + aSplitName[i];
-    }
-    return false;
-  }
-
-
-
-
-
-
 
 }// SymbolTree
 
@@ -132,12 +147,12 @@ function parseFilterString(filterStr: string, filterMode: string, filterPersiste
  * @param str 
  * @returns An array of RegExp, with option 'i' (case insensitive)
  */
-function splitFilterString(str: string , filterMode: string): RegExp[] {
+function splitFilterString(str: string, filterMode: string): RegExp[] {
   const result: RegExp[] = [];
   let start = 0;
   let end = 0;
   let isInRegExLiteral = false;
-  const prefix = (filterMode == "startWith")? "^":"";
+  const prefix = (filterMode == "startWith") ? "^" : "";
   while (end < str.length) {
     if (str[end] == '/') {
       // RegExp literal symbol
@@ -146,10 +161,10 @@ function splitFilterString(str: string , filterMode: string): RegExp[] {
         if (str[end - 1] != '\\') {
           // it's not escaped, so it flags the start or end of a regex literal
           let newReg;
-          try{
-            newReg = new RegExp(prefix+str.slice(start, end), "i"); // all RegEx are made case insensitive
+          try {
+            newReg = new RegExp(prefix + str.slice(start, end), "i"); // all RegEx are made case insensitive
           }
-          catch{
+          catch {
             newReg = new RegExp("", "i");
           }
           result.push(newReg);
@@ -162,13 +177,13 @@ function splitFilterString(str: string , filterMode: string): RegExp[] {
       // separator for symbol or array
       if (end > start) {
         let newReg;
-          try{
-            newReg = new RegExp(prefix+str.slice(start, end), "i"); // all RegEx are made case insensitive
-          }
-          catch{
-            newReg = new RegExp("", "i");
-          }
-          result.push(newReg);
+        try {
+          newReg = new RegExp(prefix + str.slice(start, end), "i"); // all RegEx are made case insensitive
+        }
+        catch {
+          newReg = new RegExp("", "i");
+        }
+        result.push(newReg);
       }
       start = end + 1;
     }
@@ -176,13 +191,13 @@ function splitFilterString(str: string , filterMode: string): RegExp[] {
   }
   if (end > start) {
     let newReg;
-          try{
-            newReg = new RegExp(prefix+str.slice(start, end), "i"); // all RegEx are made case insensitive
-          }
-          catch{
-            newReg = new RegExp("", "i");
-          }
-          result.push(newReg);
+    try {
+      newReg = new RegExp(prefix + str.slice(start, end), "i"); // all RegEx are made case insensitive
+    }
+    catch {
+      newReg = new RegExp("", "i");
+    }
+    result.push(newReg);
   }
   return result;
 }
@@ -238,11 +253,11 @@ function generateModelTree(symbols: SymbolsInfo, dataTypes: DataTypesInfo): Reco
       isArrayRoot = true;
       let nodeTypeObj: IControllerType;
       // generate subnodes for array
-      if(typeObj.arrayDimension == 1){
+      if (typeObj.arrayDimension == 1) {
         const lowerBaseType = typeObj.baseType.toLowerCase();
-        nodeTypeObj = {...dataTypes[controllerName][lowerBaseType]};
+        nodeTypeObj = { ...dataTypes[controllerName][lowerBaseType] };
       }
-      else{
+      else {
         nodeTypeObj = { ...typeObj };
         if (nodeTypeObj.size) {
           nodeTypeObj.size /= nodeTypeObj.arrayInfo[0].length;
@@ -251,7 +266,7 @@ function generateModelTree(symbols: SymbolsInfo, dataTypes: DataTypesInfo): Reco
         nodeTypeObj.arrayInfo = typeObj.arrayInfo.slice(1);
         nodeTypeObj.name = nodeTypeObj.name.replace(/(?<=\[)\d+\.\.\d+,\s*/, '');
       }
-      
+
       for (let i = 0; i < typeObj.arrayInfo[0].length; i++) {
         const indexStr = `[${typeObj.arrayInfo[0].startIndex + i}]`;
         const nodeSymbolObj: IControllerSymbol = {
@@ -290,73 +305,73 @@ function applyFilter(treeNode: IModelTreeNode, symbolFilter: { name: RegExp[], t
     return true;
   }
 
-  
+
   // filter exist
   const nameFilters = symbolFilter.name;
   const typeFilters = symbolFilter.type;
-  let nameFiltersForSub:  RegExp[], typeFiltersForSub: RegExp[],
-   namePass: boolean, typePass: boolean;
+  let nameFiltersForSub: RegExp[], typeFiltersForSub: RegExp[],
+    namePass: boolean, typePass: boolean;
 
   // check name filters
-  if(nameFilters.length == 0){
+  if (nameFilters.length == 0) {
     nameFiltersForSub = [];
     namePass = true;
   }
-  else if(treeNode.symbol.name.match(nameFilters[0]) != null){
+  else if (treeNode.symbol.name.match(nameFilters[0]) != null) {
     // match first part of name
-    if(nameFilters.length == 1){
+    if (nameFilters.length == 1) {
       namePass = true;
       nameFiltersForSub = [];
     }
-    else{
+    else {
       namePass = false;
       nameFiltersForSub = nameFilters.slice(1);
     }
   }
-  else{
+  else {
     // name not match
     namePass = false;
     nameFiltersForSub = nameFilters;
   }
 
   //check type filters
-  if(typeFilters.length == 0){
+  if (typeFilters.length == 0) {
     typeFiltersForSub = [];
     typePass = true;
   }
-  else if(treeNode.symbol.type.match(typeFilters[0]) != null){
+  else if (treeNode.symbol.type.match(typeFilters[0]) != null) {
     // match first part of type
-    if(typeFilters.length == 1){
+    if (typeFilters.length == 1) {
       typePass = true;
       typeFiltersForSub = [];
     }
-    else{
+    else {
       typePass = false;
       typeFiltersForSub = nameFilters.slice(1);
     }
   }
-  else{
+  else {
     // type not match
     typePass = false;
     typeFiltersForSub = typeFilters;
   }
 
   //check persistent
-  const persistentPass = ((!symbolFilter.persistent) || treeNode.symbol.isPersistent)??false;
+  const persistentPass = ((!symbolFilter.persistent) || treeNode.symbol.isPersistent) ?? false;
   const persistentForSub = !persistentPass;
 
-  if(namePass && typePass && persistentPass){
+  if (namePass && typePass && persistentPass) {
     // all filter passed
     treeNode.filterPassed = true;
     treeNode.requestExpand = false;
-    treeNode.subNodes.forEach((subNode) => applyFilter(subNode, {name: [], type: []}))
+    treeNode.subNodes.forEach((subNode) => applyFilter(subNode, { name: [], type: [] }))
   }
-  else{
+  else {
     // not all filter passed. check decendents
     treeNode.filterPassed = false;
     treeNode.requestExpand = false;
     treeNode.subNodes.forEach((subNode) => {
-      if(applyFilter(subNode,{name: nameFiltersForSub, type: typeFiltersForSub, persistent: persistentForSub})){
+      if (applyFilter(subNode, { name: nameFiltersForSub, type: typeFiltersForSub, persistent: persistentForSub })) {
         treeNode.filterPassed = true;
         treeNode.requestExpand = true;
       }
@@ -365,8 +380,3 @@ function applyFilter(treeNode: IModelTreeNode, symbolFilter: { name: RegExp[], t
   }
   return treeNode.filterPassed;
 }
-
-
-
-
-
