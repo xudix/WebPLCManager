@@ -400,6 +400,35 @@ export class ADSController extends GenericController{
                             return false;
                     }
                 }
+                else if (Object.keys(symbolType.enumInfo).length > 0){
+                    // enum type
+                    switch(typeof value){
+                        case "string":
+                            for(const name in symbolType.enumInfo){
+                                if (name.toLocaleLowerCase() == value.toLocaleLowerCase()){
+                                    valueToWrite = symbolType.enumInfo[name];
+                                    break;
+                                }
+                            }
+                            if(valueToWrite == undefined){
+                                return false;
+                            }
+                            break;
+                        case "object":
+                            if(value.value != undefined){
+                                valueToWrite = value.value;
+                                break;
+                            }
+                            else{
+                                return false;
+                            }
+                        case "number":
+                            valueToWrite = value;
+                            break;
+                        default:
+                            return false;
+                    }
+                }
                 else if (this.primitiveTypes.has(symbolType.baseType)) {
                     // it's a primitive type, make the value a number
                     valueToWrite = (typeof value == "number") ? value : Number(value);
