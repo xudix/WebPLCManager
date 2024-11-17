@@ -6,7 +6,7 @@ import { CloudUpload, Download, ExpandLess, ExpandMore, Visibility, Clear, Send,
 import { IModelTreeNode, SubscriptionGroupPrefixContext, treeLevelContext } from "../../models/utilities";
 import { CurrentControllerContext, useCurrentMeasurement, useDataTypes, useLoggingUpdater, useNewValues, useUpdateNewValues, watchableTypes } from "../../services/ControllerInfoContext";
 import useOnScreen from "../../models/onScreenDetection";
-import { useSymbolWatchManager } from "../../services/Socket";
+import { socket, useSymbolWatchManager } from "../../services/Socket";
 import { useWatchListUpdater } from "../../models/WatchListProvider";
 
 interface ISymbolTreeNodeProps {
@@ -196,9 +196,12 @@ function SymbolDisplay({ treeNode, value, showAddToWatchIcon, showRemoveFromWatc
   const symbolWatchManager = useSymbolWatchManager();
   const currentController = useContext(CurrentControllerContext);
   const currentMeasurement = useCurrentMeasurement();
-  const newValuesObj = useNewValues();
+  //const newValuesObj = useNewValues();
   const updateNewValues = useUpdateNewValues();
   const updateWatchList = useWatchListUpdater();
+  const [newValueText, setNewValueText] = useState("");
+  const newValueDelayTimer = useRef<NodeJS.Timeout | number>(0);
+  const inputDelay = 300;
 
   function addToLogging(){
     if(updateLogging){
@@ -245,9 +248,25 @@ function SymbolDisplay({ treeNode, value, showAddToWatchIcon, showRemoveFromWatc
    * write new value to controller 
    */
   function writeValue(){
-    symbolWatchManager.writeValue(currentController, treeNode.name, newValuesObj[currentController]?.[treeNode.name]||"");
-    clearNewValue();
+    //symbolWatchManager.writeValue(currentController, treeNode.name, newValuesObj[currentController]?.[treeNode.name]||"");
+    symbolWatchManager.writeValue(currentController, treeNode.name, newValueText);
+    
   }
+
+  // after receiving confirmation of write result, clear the new value
+  useEffect(() => {
+    function handleWriteResult(result: Record<string, Record<string, boolean>>){
+      if(result[currentController]?.[treeNode.name]){
+        clearNewValue();
+      }
+    }
+
+    socket.on("writeResults", handleWriteResult);
+
+    return (() => {
+      socket.off("writeResults", handleWriteResult);
+    })
+  })
 
   const outerStackSX: SxProps = {
     flex: "1 1 auto",
@@ -318,7 +337,8 @@ function SymbolDisplay({ treeNode, value, showAddToWatchIcon, showRemoveFromWatc
               {(value == null || value == undefined) ? <Box sx={{ display: "flex", flex: "1 1 1px" }} /> :
                 <Box sx={{ display: "flex", flex: "1 1 1px" }}>
                   <TextField
-                    value={newValuesObj[currentController]?.[treeNode.name]||""}
+                    // value={newValuesObj[currentController]?.[treeNode.name]||""}
+                    value={newValueText}
                     onChange={handleNewValueChange}
                     variant="outlined"
                     sx={
@@ -364,31 +384,36 @@ function SymbolDisplay({ treeNode, value, showAddToWatchIcon, showRemoveFromWatc
         </Grid>
       </Stack>
     </Tooltip>
-
-
   )
 
   function handleNewValueChange(event: ChangeEvent<HTMLInputElement>){
-    if(updateNewValues){
-      if(event.target.value == ""){
-        updateNewValues({
-          type: "delete",
-          controllerName: currentController,
-          symbol: treeNode.name
-        });
-      }
-      else{
-        updateNewValues({
-          type: "add",
-          controllerName: currentController,
-          symbol: treeNode.name,
-          value: event.target.value
-        })
-      }
+    setNewValueText(event.target.value);
+    if(newValueDelayTimer){
+      clearTimeout(newValueDelayTimer.current);
     }
+    newValueDelayTimer.current = setTimeout(() => {
+      if(updateNewValues){
+        if(event.target.value == ""){
+          updateNewValues({
+            type: "delete",
+            controllerName: currentController,
+            symbol: treeNode.name
+          });
+        }
+        else{
+          updateNewValues({
+            type: "add",
+            controllerName: currentController,
+            symbol: treeNode.name,
+            value: event.target.value
+          })
+        }
+      }
+    }, inputDelay);
   }
 
   function clearNewValue(){
+    setNewValueText("");
     if(updateNewValues){
       updateNewValues({
         type: "delete",

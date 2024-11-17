@@ -94,16 +94,15 @@ class SymbolWatchManager{
 
   }
 
-  writeValue(controller: string, newValues: Record<string, any>): void;
-  writeValue(controller: string, symbol: string, valueStr: string): void;
-  writeValue(controller: string, symbolOrNewValues: string | Record<string, any>, valueStr?: string):void
+  writeValue(controller: string, newValues: Record<string, any>): Promise<Record<string, Record<string, boolean>>>;
+  writeValue(controller: string, symbol: string, valueStr: string): Promise<Record<string, Record<string, boolean>>>;
+  writeValue(controller: string, symbolOrNewValues: string | Record<string, any>, valueStr?: string):Promise<Record<string, Record<string, boolean>>>
   {
     if(typeof symbolOrNewValues == "string"){
       // writing single symbol
-      if(valueStr){
-        this.writeValue(controller, {[symbolOrNewValues]:valueStr})  
+      if(valueStr && (valueStr != "")){
+        return this.writeValue(controller, {[symbolOrNewValues]:valueStr})  
       }
-      
     }
     else if(typeof symbolOrNewValues == "object"){
       // provided newValues object
@@ -112,8 +111,21 @@ class SymbolWatchManager{
           symbolOrNewValues[symbolName] = "";
         }
       }
-      socket.emit("writeNewValues",{[controller]:symbolOrNewValues});
+      return new Promise((resolve, reject) => {
+        function handleWriteResult(result: Record<string, Record<string, boolean>>){
+          resolve(result);
+          socket.off("writeResults", handleWriteResult);
+        }
+        socket.on("writeResults", handleWriteResult);
+        socket.emit("writeNewValues",{[controller]:symbolOrNewValues});
+        setTimeout(() => {
+          socket.off("writeResults", handleWriteResult);
+          reject("Time out, no result received for write operation.");
+        }, 5000);
+
+      })
     }
+    return Promise.reject("Invalid arguments for write operation.")
     
   }
 
