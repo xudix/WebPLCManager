@@ -4,6 +4,9 @@ import { ChangeEvent, MouseEvent, useState } from "react";
 import { socket } from "../services/Socket";
 import { AllInclusive, Clear, CloudOff, CloudSync, DeleteForever, ExpandLess, ExpandMore, Refresh, Stairs } from "@mui/icons-material";
 import { useLoggingServerConfig, useLoggingUpdater } from "../services/ControllerInfoContext";
+import DownloadIcon from '@mui/icons-material/Download';
+import UploadIcon from '@mui/icons-material/Upload';
+import styled from "@emotion/styled";
 
 
 
@@ -14,11 +17,65 @@ interface ILoggingManagerProps {
 
 export default function LoggingManager(props: ILoggingManagerProps) {
   const localLoggingServerConfig = useLoggingServerConfig();
+  const updateConfig = useLoggingUpdater();
+
+  function sendConfig() {
+
+    if (localLoggingServerConfig) {
+      for (const config of localLoggingServerConfig.logConfigs) {
+        config.tags = config.tags.filter((tag) => tag.status != "remove");
+      }
+      socket.emit("writeLoggingConfig", localLoggingServerConfig);
+    }
+  }
+
+  function exportConfig(){
+    //create  file for download
+    const blob = new Blob([JSON.stringify(localLoggingServerConfig,null,2)], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.download = "logging.json";
+    link.href = url;
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function uploadConfig(event: ChangeEvent<HTMLInputElement>){
+    if(event.target.files?.[0]){      
+      return event.target.files[0].text().then((text) => {
+        updateConfig?.({
+          type: "reset",
+          newServerConfig: JSON.parse(text),
+        })
+        event.target.value = "";
+      })
+    }
+    else{
+      return Promise.resolve();
+    }
+  }
 
   return (
     <Stack id="logging-main-stack" direction="column" sx={{height:"100%"}}>
       <Typography variant="h6" width="100%" textAlign="center" color="purple">Logging Configurations</Typography>
       <Stack id="logging-buttons-stack" direction="row" padding={1} spacing={1} justifyContent="end">
+        <Button variant="contained" onClick={exportConfig} startIcon={<DownloadIcon />}>
+          Export Config
+        </Button>
+        <Button
+          component="label"
+          role={undefined}
+          variant="contained"
+          tabIndex={-1}
+          startIcon={<UploadIcon />}
+        >
+          Upload Config
+          <VisuallyHiddenInput
+            type="file"
+            onChange={uploadConfig}
+          />
+        </Button>
         <Button variant="contained" color="success" onClick={() => socket.emit("requestLoggingConfig")} >
           <Refresh />
           Refresh
@@ -40,16 +97,19 @@ export default function LoggingManager(props: ILoggingManagerProps) {
     </Stack>
   )
 
-  function sendConfig() {
-
-    if (localLoggingServerConfig) {
-      for (const config of localLoggingServerConfig.logConfigs) {
-        config.tags = config.tags.filter((tag) => tag.status != "remove");
-      }
-      socket.emit("writeLoggingConfig", localLoggingServerConfig);
-    }
-  }
 }
+
+const VisuallyHiddenInput = styled('input')({
+  clip: 'rect(0 0 0 0)',
+  clipPath: 'inset(50%)',
+  height: 1,
+  overflow: 'hidden',
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  whiteSpace: 'nowrap',
+  width: 1,
+});
 
 /**
  * Display a config under a measurement and controller name

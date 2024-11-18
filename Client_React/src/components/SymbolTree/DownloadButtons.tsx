@@ -13,12 +13,12 @@ interface IDownloadButtonProps{
 
 
 export default function DownloadButton(props: IDownloadButtonProps){
-  const [displayText, setDisplayText] = useState("Download List");
+  const [displayText, setDisplayText] = useState("Export List");
   const requestedSymbolsRef = useRef<Record<string, IControllerSymbol>>({});
 
   function handleReceivedSybolValues(results: Record<string, Record<string, any>>){
     // result is in the shape of {controllerName: {symbolName: value}}
-    setDisplayText("Download List");
+    setDisplayText("Export List");
     if (results[props.currentController]) {
       downloadSymbols(results[props.currentController]);
     }

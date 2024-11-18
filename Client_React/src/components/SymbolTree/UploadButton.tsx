@@ -152,7 +152,7 @@ export default function UploadButton(props: IUploadButtonProps) {
       tabIndex={-1}
       startIcon={<UploadIcon />}
     >
-      Upload files
+      Upload New Value File
       <VisuallyHiddenInput
         type="file"
         onChange={handleFile}
