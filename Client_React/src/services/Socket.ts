@@ -104,7 +104,7 @@ class SymbolWatchManager{
         return this.writeValue(controller, {[symbolOrNewValues]:valueStr})  
       }
     }
-    else if(typeof symbolOrNewValues == "object"){
+    else if(symbolOrNewValues && (typeof symbolOrNewValues == "object")){
       // provided newValues object
       for(const symbolName in symbolOrNewValues){
         if(symbolOrNewValues[symbolName]=="''" || symbolOrNewValues[symbolName]=='""'){

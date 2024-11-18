@@ -1,11 +1,12 @@
 
-import { CurrentControllerContext, useDataTypes, useSymbols } from "../../services/ControllerInfoContext";
-import { Box, List } from "@mui/material";
+import { CurrentControllerContext, useDataTypes, useNewValues, useSymbols } from "../../services/ControllerInfoContext";
+import { Box, Button, List } from "@mui/material";
 import { DataTypesInfo, IControllerSymbol, IControllerType, SymbolsInfo } from "../../models/controller-data-types";
 import { IModelTreeNode, SubscriptionGroupPrefixContext } from "../../models/utilities";
 import SymbolTreeNode from "./SymbolTreeNode";
 import { useContext, useMemo } from "react";
 import DownloadButton from "./DownloadButtons";
+import { useSymbolWatchManager } from "../../services/Socket";
 
 
 interface ISymbolTreeProps {
@@ -29,6 +30,8 @@ export default function SymbolTree(props: ISymbolTreeProps) {
    * data type info received from controller. {controllerName: {typename: typeObj}}. typename is lower case
    */
   const dataTypes = useDataTypes();
+  const symbolWatchManager = useSymbolWatchManager();
+  const newValuesObj = useNewValues();
 
   // const filterObj = parseFilterString(props.filterStr, props.filterMode, props.filterPersistent);
   const modelTree = useMemo(() => generateModelTree(symbols, dataTypes), [dataTypes, symbols]);
@@ -108,10 +111,15 @@ export default function SymbolTree(props: ISymbolTreeProps) {
     );
   }
 
+  function handleWriteAllValues(){
+    symbolWatchManager.writeValue(props.controllerName, newValuesObj[props.controllerName])
+  }
+
 
   return (
     <Box sx={{ padding: 1, overflowY: "hidden", flex: "1 1 0", display: "flex", flexDirection: "column" }}>
       <Box display="flex" flexDirection="row" marginBottom={1} justifyContent="end">
+        <Button variant="contained" onClick={handleWriteAllValues}>Write All Values</Button>
         <DownloadButton
           currentController={props.controllerName}
           modelTreeNodes={modelTree[props.controllerName]} />

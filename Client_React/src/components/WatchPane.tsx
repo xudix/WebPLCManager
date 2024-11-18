@@ -49,9 +49,6 @@ export default function WatchPane(props: IWatchPaneProps) {
 
   function handleWriteAllValues(){
     symbolWatchManager.writeValue(currentController, newValuesObj[currentController])
-    updateNewValuesObj?.({
-      type: "reset"
-    })
   }
 
   function handleClearWatchList(){
