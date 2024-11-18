@@ -1,6 +1,6 @@
 import { Box, Button, Grid2, InputAdornment, List, ListItem, ListItemButton, ListItemText, Stack, SvgIcon, TextField, Tooltip, Typography } from "@mui/material";
 import { ILoggingConfig, ILoggingTagConfig } from "../models/logging-config-type";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, MouseEvent, useState } from "react";
 import { socket } from "../services/Socket";
 import { AllInclusive, Clear, CloudOff, CloudSync, DeleteForever, ExpandLess, ExpandMore, Refresh, Stairs } from "@mui/icons-material";
 import { useLoggingServerConfig, useLoggingUpdater } from "../services/ControllerInfoContext";
@@ -51,11 +51,23 @@ export default function LoggingManager(props: ILoggingManagerProps) {
   }
 }
 
-
+/**
+ * Display a config under a measurement and controller name
+ * @param config the config object for one measurement
+ * @returns 
+ */
 function LoggingConfigDisplay({ config }: { config: ILoggingConfig }) {
-  const [isExpanded, setIsExpanded] = useState(true)
+  const [isExpanded, setIsExpanded] = useState(true);
+  const updateConfig = useLoggingUpdater();
 
   const hasSubNodes = (config.tags.length > 0);
+  let allDisabled = true;
+  for (const tag of config.tags) {
+    if (!tag.disabled) {
+      allDisabled = false;
+      break;
+    }
+  }
 
   return (
     <ListItem sx={{ padding: 0, width: "100%" }}>
@@ -73,6 +85,14 @@ function LoggingConfigDisplay({ config }: { config: ILoggingConfig }) {
           {hasSubNodes ? (isExpanded ? <ExpandMore /> : <ExpandLess />) : <SvgIcon />}
           <ListItemText primary={`Measurement: ${config.measurement}`} />
           <ListItemText primary={`Controller: ${config.name}`} />
+          <Tooltip title={allDisabled ? "Click to Enable All" : "Click to Disable All"} arrow>
+          <Box>
+            {allDisabled ?
+              <CloudOff onClick={handleDisableAll} />
+              : <CloudSync onClick={handleDisableAll} />
+            }
+          </Box>
+        </Tooltip>
         </ListItemButton>
         {isExpanded ?
           <List>
@@ -98,13 +118,34 @@ function LoggingConfigDisplay({ config }: { config: ILoggingConfig }) {
       setIsExpanded(!isExpanded);
     }
   }
+
+  function handleDisableAll(event: MouseEvent){
+    // stop propogation so it doesn't change the expansion status
+    event.stopPropagation();
+    if(updateConfig){
+      config.tags.forEach((tag, index) => {
+        updateConfig({
+          type: "modify",
+          measurement: config.measurement,
+          controllerName: config.name,
+          tag: { ...tag, disabled: !allDisabled },
+          index: index,
+        });
+      });
+    }
+    
+  }
 } // LoggingConfigDisplay
 
 
-
+/**
+ * Display the config for one symbol
+ * @param 
+ * @returns 
+ */
 function LoggingItemDisplay({ measurement, controllerName, tag, index }
   : { measurement: string, controllerName: string, tag: ILoggingTagConfig, index: number }) {
-  const updateConfig = useLoggingUpdater()
+  const updateConfig = useLoggingUpdater();
 
   return (
     <ListItem sx={{ paddingY: 0, width: "100%", borderTop: "1px solid purple" }}>
@@ -148,7 +189,7 @@ function LoggingItemDisplay({ measurement, controllerName, tag, index }
         <Box sx={{ flex: "0 0 5em" }}>
           <Typography textAlign="center">{tag.status}</Typography>
         </Box>
-        <Tooltip title={tag.disabled ? "Disabled" : "Enabled"} arrow>
+        <Tooltip title={tag.disabled ? "Disabled. Click to Enable." : "Enabled. Click to Disable."} arrow>
           <Box>
             {tag.disabled ?
               <CloudOff onClick={handleEnableClick} />
